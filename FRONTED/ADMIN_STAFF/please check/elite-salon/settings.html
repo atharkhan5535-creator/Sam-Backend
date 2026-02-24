@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Elite Salon</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/settings.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">✂️ Elite Salon</div>
+            <button class="hamburger" onclick="document.getElementById('nav').classList.toggle('open')">☰</button>
+            <ul class="nav-links" id="nav">
+                <li data-page="dashboard.html">
+                    <a href="dashboard.html">Dashboard</a>
+                </li>
+
+                <li data-page="appointments.html">
+                    <a href="appointments.html">Appointments</a>
+                </li>
+
+                <li data-page="customers.html">
+                    <a href="customers.html">Customers</a>
+                </li>
+
+                <li data-page="staff.html">
+                    <a href="staff.html">Staff</a>
+                </li>
+
+                <li data-page="services.html">
+                    <a href="services.html">Services</a>
+                </li>
+
+                <li data-page="package.html">
+                    <a href="package.html">Packages</a>
+                </li>
+
+                <li data-page="payments.html">
+                    <a href="payments.html">Payments</a>
+                </li>
+
+                <li data-page="reports.html">
+                    <a href="reports.html">Reports</a>
+                </li>
+
+                <li data-page="inventory.html">
+                    <a href="inventory.html">Inventory</a>
+                </li>
+
+                <li data-page="schedules.html">
+                    <a href="schedules.html">Schedules</a>
+                </li>
+
+                <li data-page="settings.html">
+                    <a href="settings.html">Settings</a>
+                </li>
+
+                <li>
+                    <a href="index.html" class="logout-btn">Logout</a>
+                </li>
+
+            </ul>
+        </nav>
+    </header>
+
+    <div class="container">
+        <div class="page-header">
+            <div>
+                <h1><i class="fas fa-cog"></i> Settings</h1>
+                <p>Configure your salon preferences</p>
+            </div>
+        </div>
+
+        <div class="settings-container">
+            <!-- Settings Sidebar Navigation -->
+            <div class="settings-nav">
+                <a href="#" class="active" onclick="showPanel('business', this)">
+                    <i class="fas fa-store"></i> Business
+                </a>
+                <a href="#" onclick="showPanel('hours', this)">
+                    <i class="fas fa-clock"></i> Hours
+                </a>
+                <a href="#" onclick="showPanel('profile', this)">
+                    <i class="fas fa-user"></i> Profile
+                </a>
+                <a href="#" onclick="showPanel('notifications', this)">
+                    <i class="fas fa-bell"></i> Notifications
+                </a>
+                <a href="#" onclick="showPanel('payments', this)">
+                    <i class="fas fa-credit-card"></i> Payment
+                </a>
+                <a href="#" onclick="showPanel('security', this)">
+                    <i class="fas fa-lock"></i> Security
+                </a>
+                <a href="#" onclick="showPanel('danger', this)">
+                    <i class="fas fa-exclamation-triangle" style="color:#ef4444"></i>
+                    <span style="color:#ef4444">Danger Zone</span>
+                </a>
+            </div>
+
+            <!-- Settings Content Area -->
+            <div>
+                <!-- Business Information -->
+                <div id="panel-business" class="settings-panel active">
+                    <div class="content-card">
+                        <h2><i class="fas fa-store" style="color:#8b5cf6"></i> Business Information</h2>
+                        <div class="form-grid">
+                            <div class="form-group full">
+                                <label>Business Name</label>
+                                <input type="text" id="bizName" value="Elite Salon">
+                            </div>
+                            <div class="form-group">
+                                <label>Phone</label>
+                                <input type="tel" id="bizPhone" value="(555) 123-4567">
+                            </div>
+                            <div class="form-group">
+                                <label>Email</label>
+                                <input type="email" id="bizEmail" value="info@elitesalon.com">
+                            </div>
+                            <div class="form-group">
+                                <label>Website</label>
+                                <input type="url" id="bizWeb" value="www.elitesalon.com">
+                            </div>
+                            <div class="form-group">
+                                <label>GST Number</label>
+                                <input type="text" id="bizGst" value="22AAAAA0000A1Z5" placeholder="e.g. 22AAAAA0000A1Z5">
+                            </div>
+                            <div class="form-group">
+                                <label>Tax Number / PAN</label>
+                                <input type="text" id="bizTax" value="TAX-2024-001">
+                            </div>
+                            <div class="form-group full">
+                                <label>Address</label>
+                                <input type="text" id="bizAddr" value="123 Beauty Avenue, Suite 100">
+                            </div>
+                            <div class="form-group">
+                                <label>City</label>
+                                <input type="text" id="bizCity" value="New York">
+                            </div>
+                            <div class="form-group">
+                                <label>State</label>
+                                <input type="text" id="bizState" value="NY">
+                            </div>
+                            <div class="form-group">
+                                <label>Zip Code</label>
+                                <input type="text" id="bizZip" value="10001">
+                            </div>
+                            <div class="form-group">
+                                <label>Country</label>
+                                <input type="text" id="bizCountry" value="USA">
+                            </div>
+                            <div class="form-group full">
+                                <label>About / Description</label>
+                                <textarea id="bizDesc" rows="3">Premier hair and beauty salon offering world-class services since 2018.</textarea>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" onclick="save('business')">
+                            <i class="fas fa-save"></i> Save Changes
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Operating Hours -->
+                <div id="panel-hours" class="settings-panel">
+                    <div class="content-card">
+                        <h2><i class="fas fa-clock" style="color:#8b5cf6"></i> Operating Hours</h2>
+                        <div class="hours-table" id="hoursTable"></div>
+                        <button class="btn btn-primary" onclick="save('hours')">
+                            <i class="fas fa-save"></i> Save Hours
+                        </button>
+                    </div>
+                    <div class="content-card">
+                        <h2><i class="fas fa-calendar-minus" style="color:#8b5cf6"></i> Holiday Settings</h2>
+                        <div class="form-group">
+                            <label>Public Holidays</label>
+                            <textarea id="holidays" rows="3" placeholder="List holidays (one per line)&#10;e.g.&#10;2026-01-01 - New Year&#10;2026-12-25 - Christmas"></textarea>
+                        </div>
+                        <button class="btn btn-primary" onclick="save('holidays')">
+                            <i class="fas fa-save"></i> Save Holidays
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Profile -->
+                <div id="panel-profile" class="settings-panel">
+                    <div class="content-card">
+                        <h2><i class="fas fa-user" style="color:#8b5cf6"></i> Admin Profile</h2>
+                        <div class="profile-pic-area">
+                            <div class="profile-pic" id="profilePic">A</div>
+                            <div>
+                                <p style="font-size:.9rem;color:#555;margin-bottom:.5rem">Profile Photo</p>
+                                <button class="change-pic-btn" onclick="showToast('Photo upload coming soon!')">
+                                    <i class="fas fa-camera"></i> Change Photo
+                                </button>
+                            </div>
+                        </div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>First Name</label>
+                                <input type="text" id="pFname" value="Admin">
+                            </div>
+                            <div class="form-group">
+                                <label>Last Name</label>
+                                <input type="text" id="pLname" value="User">
+                            </div>
+                            <div class="form-group">
+                                <label>Email</label>
+                                <input type="email" id="pEmail" value="admin@elitesalon.com">
+                            </div>
+                            <div class="form-group">
+                                <label>Phone</label>
+                                <input type="tel" id="pPhone" value="(555) 000-0001">
+                            </div>
+                            <div class="form-group">
+                                <label>Role</label>
+                                <input type="text" id="pRole" value="Administrator" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>Language</label>
+                                <select id="pLang">
+                                    <option>English</option>
+                                    <option>Spanish</option>
+                                    <option>French</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Time Zone</label>
+                                <select id="pTimezone">
+                                    <option value="EST" selected>Eastern Time (EST)</option>
+                                    <option value="CST">Central Time (CST)</option>
+                                    <option value="MST">Mountain Time (MST)</option>
+                                    <option value="PST">Pacific Time (PST)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" onclick="save('profile')">
+                            <i class="fas fa-save"></i> Update Profile
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Notifications -->
+                <div id="panel-notifications" class="settings-panel">
+                    <div class="content-card">
+                        <h2><i class="fas fa-bell" style="color:#8b5cf6"></i> Notification Preferences</h2>
+                        <div id="notifList"></div>
+                        <button class="btn btn-primary" onclick="save('notifications')">
+                            <i class="fas fa-save"></i> Save Preferences
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Payment Settings -->
+                <div id="panel-payments" class="settings-panel">
+                    <div class="content-card">
+                        <h2><i class="fas fa-credit-card" style="color:#8b5cf6"></i> Payment Settings</h2>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Currency</label>
+                                <select id="currency">
+                                    <option value="USD" selected>USD ($)</option>
+                                    <option value="EUR">EUR (€)</option>
+                                    <option value="GBP">GBP (£)</option>
+                                    <option value="INR">INR (₹)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Tax Rate (%)</label>
+                                <input type="number" id="taxRate" value="10" min="0" max="100" step="0.5">
+                            </div>
+                            <div class="form-group">
+                                <label>GST Rate (%)</label>
+                                <input type="number" id="gstRate" value="18" min="0" max="100" step="0.5">
+                            </div>
+                            <div class="form-group">
+                                <label>Invoice Prefix</label>
+                                <input type="text" id="invPrefix" value="INV-">
+                            </div>
+                            <div class="form-group">
+                                <label>Invoice Starting No.</label>
+                                <input type="number" id="invStart" value="1001">
+                            </div>
+                            <div class="form-group full">
+                                <label>Payment Terms</label>
+                                <select id="paymentTerms">
+                                    <option value="due_on_receipt">Due on Receipt</option>
+                                    <option value="net_15" selected>Net 15</option>
+                                    <option value="net_30">Net 30</option>
+                                    <option value="net_45">Net 45</option>
+                                    <option value="net_60">Net 60</option>
+                                </select>
+                            </div>
+                            <div class="form-group full">
+                                <label>Accepted Payment Methods</label>
+                                <div style="display:flex;gap:1rem;flex-wrap:wrap;padding:.5rem 0">
+                                    <label style="display:flex;align-items:center;gap:.4rem;font-size:.9rem">
+                                        <input type="checkbox" checked> Cash
+                                    </label>
+                                    <label style="display:flex;align-items:center;gap:.4rem;font-size:.9rem">
+                                        <input type="checkbox" checked> Card
+                                    </label>
+                                    <label style="display:flex;align-items:center;gap:.4rem;font-size:.9rem">
+                                        <input type="checkbox" checked> UPI
+                                    </label>
+                                    <label style="display:flex;align-items:center;gap:.4rem;font-size:.9rem">
+                                        <input type="checkbox" checked> Net Banking
+                                    </label>
+                                    <label style="display:flex;align-items:center;gap:.4rem;font-size:.9rem">
+                                        <input type="checkbox"> Cheque
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" onclick="save('payments')">
+                            <i class="fas fa-save"></i> Save Payment Settings
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Security -->
+                <div id="panel-security" class="settings-panel">
+                    <div class="content-card">
+                        <h2><i class="fas fa-lock" style="color:#8b5cf6"></i> Change Password</h2>
+                        <div style="max-width:400px">
+                            <div class="form-group">
+                                <label>Current Password</label>
+                                <input type="password" id="curPass" placeholder="Enter current password">
+                            </div>
+                            <div class="form-group">
+                                <label>New Password</label>
+                                <input type="password" id="newPass" placeholder="Enter new password">
+                            </div>
+                            <div class="form-group">
+                                <label>Confirm New Password</label>
+                                <input type="password" id="confPass" placeholder="Confirm new password">
+                            </div>
+                            <div id="passError" style="color:#ef4444;font-size:.85rem;margin-top:.5rem"></div>
+                        </div>
+                        <button class="btn btn-primary" onclick="changePass()">
+                            <i class="fas fa-key"></i> Update Password
+                        </button>
+                    </div>
+                    <div class="content-card">
+                        <h2><i class="fas fa-shield-alt" style="color:#8b5cf6"></i> Two-Factor Authentication</h2>
+                        <p style="margin-bottom:1rem;color:#666">Enhance your account security with 2FA.</p>
+                        <button class="btn btn-outline" onclick="showToast('2FA setup coming soon!')">
+                            <i class="fas fa-qrcode"></i> Setup 2FA
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Danger Zone -->
+                <div id="panel-danger" class="settings-panel">
+                    <div class="danger-zone">
+                        <h2 style="color:#991b1b;margin-bottom:1.5rem;font-size:1.1rem">
+                            <i class="fas fa-exclamation-triangle"></i> Danger Zone
+                        </h2>
+                        
+                        <div class="danger-item">
+                            <div>
+                                <h4>Clear All Appointments</h4>
+                                <p>Permanently delete all appointment records. This cannot be undone.</p>
+                            </div>
+                            <button class="btn btn-danger" onclick="confirmDanger('clearAppointments')">
+                                <i class="fas fa-trash"></i> Clear
+                            </button>
+                        </div>
+                        
+                        <div class="danger-item">
+                            <div>
+                                <h4>Delete All Customers</h4>
+                                <p>Remove all customer data permanently.</p>
+                            </div>
+                            <button class="btn btn-danger" onclick="confirmDanger('deleteCustomers')">
+                                <i class="fas fa-user-slash"></i> Delete
+                            </button>
+                        </div>
+                        
+                        <div class="danger-item">
+                            <div>
+                                <h4>Export All Data</h4>
+                                <p>Download a complete backup of all salon data.</p>
+                            </div>
+                            <button class="btn btn-secondary" onclick="exportData()">
+                                <i class="fas fa-download"></i> Export
+                            </button>
+                        </div>
+                        
+                        <div class="danger-item" style="border-bottom: none;">
+                            <div>
+                                <h4>Reset to Factory Defaults</h4>
+                                <p>Erase all data and reset to default configuration.</p>
+                            </div>
+                            <button class="btn btn-danger" onclick="confirmDanger('factoryReset')">
+                                <i class="fas fa-rotate-left"></i> Reset
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/permissions.js"></script>
+    <script src="js/sidebar.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/settings.js"></script>
+</body>
+</html>

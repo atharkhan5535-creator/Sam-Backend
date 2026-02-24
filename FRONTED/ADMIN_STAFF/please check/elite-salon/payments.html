@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payments & Invoices - Elite Salon</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #f8f9fa;
+            line-height: 1.6;
+        }
+
+        header {
+            background: linear-gradient(135deg, #8b5cf6, #ec4899);
+            color: white;
+            padding: .8rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, .1);
+        }
+
+        nav {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
+        }
+
+        .logo {
+            font-size: 1.4rem;
+            font-weight: bold;
+        }
+
+        .hamburger {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 1.2rem;
+            flex-wrap: wrap;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: .85rem;
+            transition: opacity .3s;
+        }
+
+        .nav-links a:hover {
+            opacity: .8;
+        }
+
+        .logout-btn {
+            background: rgba(255, 255, 255, .2);
+            padding: .3rem .8rem;
+            border-radius: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .page-header {
+            background: white;
+            padding: 1.5rem 2rem;
+            border-radius: 15px;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, .08);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .page-header h1 {
+            color: #333;
+            font-size: 1.6rem;
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.2rem 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, .07);
+        }
+
+        .stat-card .val {
+            font-size: 1.6rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #8b5cf6, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-card .lbl {
+            color: #666;
+            font-size: .85rem;
+        }
+
+        .content-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, .08);
+        }
+
+        .btn {
+            padding: .6rem 1.2rem;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem;
+            font-size: .875rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #8b5cf6, #ec4899);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(139, 92, 246, .4);
+        }
+
+        .btn-view {
+            background: #7c3aed;
+            color: white;
+        }
+
+        .btn-view:hover {
+            background: #6d28d9;
+        }
+
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+
+        .btn-sm {
+            padding: .4rem .8rem;
+            font-size: .8rem;
+        }
+
+        .search-filter {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .search-filter input,
+        .search-filter select {
+            padding: .6rem 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: .9rem;
+            min-width: 140px;
+            background: white;
+        }
+
+        .search-filter input:focus,
+        .search-filter select:focus {
+            outline: none;
+            border-color: #8b5cf6;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: .9rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        th {
+            background: #fafafa;
+            font-weight: 600;
+            color: #555;
+            font-size: .85rem;
+        }
+
+        td {
+            font-size: .9rem;
+            color: #333;
+        }
+
+        tr:hover td {
+            background: #fdf4ff;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        .status-badge {
+            padding: .3rem .75rem;
+            border-radius: 20px;
+            font-size: .78rem;
+            font-weight: 600;
+        }
+
+        .status-paid {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-refunded {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .method-badge {
+            background: #ede9fe;
+            color: #7c3aed;
+            padding: .2rem .6rem;
+            border-radius: 10px;
+            font-size: .78rem;
+            font-weight: 500;
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .5);
+            z-index: 1000;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 1rem;
+            overflow-y: auto;
+        }
+
+        .modal-overlay.open {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, .25);
+            width: 100%;
+            max-width: 660px;
+            margin: auto;
+            animation: slideUp .3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #8b5cf6, #ec4899);
+            color: white;
+            padding: 1.5rem 2rem;
+            border-radius: 20px 20px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            font-size: 1.2rem;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .modal-close:hover {
+            opacity: .8;
+        }
+
+        .modal-body {
+            padding: 2rem;
+        }
+
+        .modal-footer {
+            padding: 1rem 2rem 1.5rem;
+            display: flex;
+            gap: .75rem;
+            justify-content: flex-end;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .invoice-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .invoice-brand {
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #8b5cf6, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .invoice-meta {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .meta-block {
+            background: #f9f5ff;
+            border-radius: 10px;
+            padding: 1rem;
+        }
+
+        .meta-block h4 {
+            font-size: .72rem;
+            font-weight: 700;
+            color: #7c3aed;
+            text-transform: uppercase;
+            margin-bottom: .5rem;
+        }
+
+        .meta-block p {
+            font-size: .88rem;
+            color: #333;
+            line-height: 1.5;
+        }
+
+        .invoice-tbl {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1.5rem;
+        }
+
+        .invoice-tbl th,
+        .invoice-tbl td {
+            padding: .75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: .88rem;
+        }
+
+        .invoice-tbl th {
+            background: #f9f5ff;
+            color: #7c3aed;
+            font-weight: 600;
+        }
+
+        .invoice-totals {
+            background: linear-gradient(135deg, #f9f5ff, #fdf2f8);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .tot-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: .9rem;
+            color: #555;
+            margin-bottom: .4rem;
+        }
+
+        .tot-final {
+            display: flex;
+            justify-content: space-between;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #7c3aed;
+            border-top: 2px solid #ddd6fe;
+            padding-top: .75rem;
+            margin-top: .5rem;
+        }
+
+        .pagination {
+            display: flex;
+            gap: .5rem;
+            justify-content: center;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .page-btn {
+            padding: .5rem .9rem;
+            border: 2px solid #e5e7eb;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all .3s;
+        }
+
+        .page-btn.active {
+            background: #8b5cf6;
+            color: white;
+            border-color: #8b5cf6;
+        }
+
+        .page-btn:hover:not(.active) {
+            border-color: #8b5cf6;
+            color: #8b5cf6;
+        }
+
+        @media(max-width:768px) {
+            .hamburger {
+                display: block
+            }
+
+            .nav-links {
+                display: none;
+                flex-direction: column;
+                position: absolute;
+                top: 60px;
+                left: 0;
+                right: 0;
+                background: linear-gradient(135deg, #8b5cf6, #ec4899);
+                padding: 1rem;
+                gap: .5rem;
+                z-index: 99;
+            }
+
+            .nav-links.open {
+                display: flex;
+            }
+
+            .invoice-meta {
+                grid-template-columns: 1fr;
+            }
+
+            th,
+            td {
+                padding: .6rem .5rem;
+                font-size: .78rem;
+            }
+
+            .btn {
+                padding: .4rem .7rem;
+                font-size: .78rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <nav>
+            <div class="logo">✂️ Elite Salon</div>
+            <button class="hamburger" onclick="document.getElementById('nav').classList.toggle('open')">☰</button>
+            <ul class="nav-links" id="nav">
+                <li data-page="dashboard.html">
+                    <a href="dashboard.html">Dashboard</a>
+                </li>
+
+                <li data-page="appointments.html">
+                    <a href="appointments.html">Appointments</a>
+                </li>
+
+                <li data-page="customers.html">
+                    <a href="customers.html">Customers</a>
+                </li>
+
+                <li data-page="staff.html">
+                    <a href="staff.html">Staff</a>
+                </li>
+
+                <li data-page="services.html">
+                    <a href="services.html">Services</a>
+                </li>
+
+                <li data-page="package.html">
+                    <a href="package.html">Packages</a>
+                </li>
+
+                <li data-page="payments.html">
+                    <a href="payments.html">Payments</a>
+                </li>
+
+                <li data-page="reports.html">
+                    <a href="reports.html">Reports</a>
+                </li>
+
+                <li data-page="inventory.html">
+                    <a href="inventory.html">Inventory</a>
+                </li>
+
+                <li data-page="schedules.html">
+                    <a href="schedules.html">Schedules</a>
+                </li>
+
+                <li data-page="settings.html">
+                    <a href="settings.html">Settings</a>
+                </li>
+
+                <li>
+                    <a href="index.html" class="logout-btn">Logout</a>
+                </li>
+
+            </ul>
+        </nav>
+    </header>
+
+    <div class="container">
+        <div class="page-header">
+            <div>
+                <h1>Payments & Invoices</h1>
+                <p>Track transactions and manage invoices</p>
+            </div>
+        </div>
+
+        <div class="stats-row" id="statsRow"></div>
+
+        <div class="content-card">
+            <div class="search-filter">
+                <input type="text" id="pSearch" placeholder="Search customer, service…" oninput="render()">
+                <select id="pStatus" onchange="render()">
+                    <option value="">All Status</option>
+                    <option value="Paid">Paid</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Refunded">Refunded</option>
+                </select>
+                <select id="pMethod" onchange="render()">
+                    <option value="">All Methods</option>
+                    <option>Card</option>
+                    <option>Cash</option>
+                    <option>UPI</option>
+                    <option>Net Banking</option>
+                </select>
+                <input type="date" id="pFrom" onchange="render()">
+                <input type="date" id="pTo" onchange="render()">
+            </div>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Invoice #</th>
+                            <th>Date</th>
+                            <th>Customer</th>
+                            <th>Service</th>
+                            <th>Staff</th>
+                            <th>Amount</th>
+                            <th>Method</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="payBody"></tbody>
+                </table>
+            </div>
+            <div id="payInfo" style="color:#666;font-size:.85rem;margin-top:1rem;text-align:center"></div>
+            <div class="pagination" id="pagination"></div>
+        </div>
+    </div>
+
+    <!-- Invoice Modal -->
+    <div class="modal-overlay" id="invModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2><i class="fas fa-file-invoice-dollar"></i> Invoice Details</h2>
+                <button class="modal-close" onclick="closeModal()">✕</button>
+            </div>
+            <div class="modal-body" id="invContent"></div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="printInv()"><i class="fas fa-print"></i> Print</button>
+                <button class="btn btn-secondary" onclick="closeModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+        <script src="js/api.js"></script>
+        <script src="js/auth.js"></script>
+        <script src="js/permissions.js"></script>
+        <script src="js/sidebar.js"></script>
+
+    <script>
+        const payments = [{
+                id: "INV-1001",
+                date: "2026-01-29",
+                customer: "Jessica Martinez",
+                email: "jessica.m@email.com",
+                phone: "555-123-4567",
+                service: "Haircut",
+                staff: "Michael Chen",
+                amount: 65,
+                tax: 6.5,
+                method: "Card",
+                status: "Paid",
+                items: [{
+                    name: "Haircut",
+                    qty: 1,
+                    price: 65
+                }]
+            },
+            {
+                id: "INV-1002",
+                date: "2026-01-29",
+                customer: "Michael Chen",
+                email: "michael.chen@email.com",
+                phone: "235-723-5422",
+                service: "Hair Coloring",
+                staff: "Sarah Johnson",
+                amount: 125,
+                tax: 12.5,
+                method: "UPI",
+                status: "Paid",
+                items: [{
+                    name: "Hair Coloring",
+                    qty: 1,
+                    price: 105
+                }, {
+                    name: "Treatment Add-on",
+                    qty: 1,
+                    price: 20
+                }]
+            },
+            {
+                id: "INV-1003",
+                date: "2026-01-29",
+                customer: "Sarah Williams",
+                email: "sarah.w@email.com",
+                phone: "734-653-7874",
+                service: "Manicure",
+                staff: "Emily Rodriguez",
+                amount: 45,
+                tax: 4.5,
+                method: "Cash",
+                status: "Pending",
+                items: [{
+                    name: "Manicure",
+                    qty: 1,
+                    price: 45
+                }]
+            },
+            {
+                id: "INV-1004",
+                date: "2026-01-30",
+                customer: "Robert Brown",
+                email: "robert.b@email.com",
+                phone: "491-628-4721",
+                service: "Beard Trim",
+                staff: "Michael Chen",
+                amount: 30,
+                tax: 3,
+                method: "Card",
+                status: "Paid",
+                items: [{
+                    name: "Beard Trim",
+                    qty: 1,
+                    price: 30
+                }]
+            },
+            {
+                id: "INV-1005",
+                date: "2026-01-30",
+                customer: "Amanda Davis",
+                email: "amanda.d@email.com",
+                phone: "213-651-7377",
+                service: "Full Package",
+                staff: "Sarah Johnson",
+                amount: 220,
+                tax: 22,
+                method: "Net Banking",
+                status: "Refunded",
+                items: [{
+                    name: "Full Package",
+                    qty: 1,
+                    price: 220
+                }]
+            },
+            {
+                id: "INV-1006",
+                date: "2026-02-05",
+                customer: "Rohit Sharma",
+                email: "rohit@email.com",
+                phone: "987-654-3210",
+                service: "Haircut",
+                staff: "Michael Chen",
+                amount: 65,
+                tax: 6.5,
+                method: "UPI",
+                status: "Paid",
+                items: [{
+                    name: "Signature Haircut",
+                    qty: 1,
+                    price: 65
+                }]
+            },
+            {
+                id: "INV-1007",
+                date: "2026-02-07",
+                customer: "Jessica Martinez",
+                email: "jessica.m@email.com",
+                phone: "555-123-4567",
+                service: "Facial",
+                staff: "Emily Rodriguez",
+                amount: 85,
+                tax: 8.5,
+                method: "Card",
+                status: "Paid",
+                items: [{
+                    name: "Signature Facial",
+                    qty: 1,
+                    price: 75
+                }, {
+                    name: "Eye Treatment",
+                    qty: 1,
+                    price: 10
+                }]
+            },
+            {
+                id: "INV-1008",
+                date: "2026-02-10",
+                customer: "Daniel Lee",
+                email: "daniel.l@email.com",
+                phone: "777-888-9999",
+                service: "Haircut",
+                staff: "Jessica Alba",
+                amount: 65,
+                tax: 6.5,
+                method: "Cash",
+                status: "Paid",
+                items: [{
+                    name: "Haircut",
+                    qty: 1,
+                    price: 65
+                }]
+            },
+            {
+                id: "INV-1009",
+                date: "2026-02-12",
+                customer: "Kevin O'Brien",
+                email: "kevin.o@email.com",
+                phone: "444-333-2222",
+                service: "Hair Coloring",
+                staff: "Sarah Johnson",
+                amount: 125,
+                tax: 12.5,
+                method: "Card",
+                status: "Pending",
+                items: [{
+                    name: "Hair Coloring",
+                    qty: 1,
+                    price: 125
+                }]
+            },
+        ];
+
+        let filtered = [...payments];
+        let currentPage = 1;
+        const perPage = 6;
+
+        function renderStats() {
+            const total = payments.reduce((s, p) => s + (p.status === 'Paid' ? p.amount : 0), 0);
+            const pending = payments.filter(p => p.status === 'Pending').length;
+            const paid = payments.filter(p => p.status === 'Paid').length;
+            document.getElementById('statsRow').innerHTML = `
+                <div class="stat-card"><div class="val">$${total.toLocaleString()}</div><div class="lbl">Total Collected</div></div>
+                <div class="stat-card"><div class="val">${paid}</div><div class="lbl">Paid Invoices</div></div>
+                <div class="stat-card"><div class="val">${pending}</div><div class="lbl">Pending Payments</div></div>
+                <div class="stat-card"><div class="val">${payments.length}</div><div class="lbl">Total Invoices</div></div>
+            `;
+        }
+
+        function render() {
+            const q = document.getElementById('pSearch').value.toLowerCase();
+            const st = document.getElementById('pStatus').value;
+            const mt = document.getElementById('pMethod').value;
+            const df = document.getElementById('pFrom').value;
+            const dt = document.getElementById('pTo').value;
+            filtered = payments.filter(p => (!q || p.customer.toLowerCase().includes(q) || p.service.toLowerCase().includes(q) || p.id.toLowerCase().includes(q)) && (!st || p.status === st) && (!mt || p.method === mt) && (!df || p.date >= df) && (!dt || p.date <= dt));
+            currentPage = 1;
+            renderTable();
+        }
+
+        function renderTable() {
+            const start = (currentPage - 1) * perPage,
+                end = start + perPage,
+                page = filtered.slice(start, end);
+            document.getElementById('payBody').innerHTML = page.length ? page.map(p => `
+                <tr>
+                    <td><strong>${p.id}</strong></td>
+                    <td>${p.date}</td>
+                    <td><strong>${p.customer}</strong><br><span style="color:#888;font-size:.78rem">${p.phone}</span></td>
+                    <td>${p.service}</td>
+                    <td style="font-size:.85rem">${p.staff}</td>
+                    <td><strong>$${p.amount.toFixed(2)}</strong></td>
+                    <td><span class="method-badge">${p.method}</span></td>
+                    <td><span class="status-badge status-${p.status.toLowerCase()}">${p.status}</span></td>
+                    <td><button class="btn btn-view btn-sm" onclick="viewInvoice('${p.id}')"><i class="fas fa-eye"></i> View</button></td>
+                </tr>`).join('') : `<tr><td colspan="9" style="text-align:center;padding:2rem;color:#999">No payments found</td></tr>`;
+            document.getElementById('payInfo').textContent = `Showing ${Math.min(start + 1, filtered.length)}–${Math.min(end, filtered.length)} of ${filtered.length} payments`;
+            const total = Math.ceil(filtered.length / perPage);
+            const p = document.getElementById('pagination');
+            if (total <= 1) {
+                p.innerHTML = '';
+                return;
+            }
+            let html = `<button class="page-btn" onclick="goPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>‹</button>`;
+            for (let i = 1; i <= total; i++) html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="goPage(${i})">${i}</button>`;
+            html += `<button class="page-btn" onclick="goPage(${currentPage + 1})" ${currentPage === total ? 'disabled' : ''}>›</button>`;
+            p.innerHTML = html;
+        }
+
+        function goPage(p) {
+            const total = Math.ceil(filtered.length / perPage);
+            if (p < 1 || p > total) return;
+            currentPage = p;
+            renderTable();
+        }
+
+        function viewInvoice(id) {
+            const p = payments.find(x => x.id === id);
+            const sub = p.amount,
+                tax = p.tax || 0,
+                total = sub + tax;
+            document.getElementById('invContent').innerHTML = `
+                <div class="invoice-header">
+                    <div class="invoice-brand">✂️ Elite Salon</div>
+                    <p style="color:#666;font-size:.85rem;margin-top:.25rem">123 Beauty Avenue, Suite 100 • (555) 123-4567 • info@elitesalon.com</p>
+                </div>
+                <div class="invoice-meta">
+                    <div class="meta-block"><h4>Bill To</h4><p><strong>${p.customer}</strong><br>${p.email}<br>${p.phone}</p></div>
+                    <div class="meta-block"><h4>Invoice Info</h4><p><strong>${p.id}</strong><br>Date: ${p.date}<br>Staff: ${p.staff}<br>Method: <span class="method-badge">${p.method}</span></p></div>
+                </div>
+                <table class="invoice-tbl">
+                    <thead><tr><th>Service</th><th>Qty</th><th>Price</th><th>Total</th></tr></thead>
+                    <tbody>${p.items.map(i => `<tr><td>${i.name}</td><td>${i.qty}</td><td>$${i.price.toFixed(2)}</td><td>$${(i.price * i.qty).toFixed(2)}</td></tr>`).join('')}</tbody>
+                </table>
+                <div class="invoice-totals">
+                    <div class="tot-row"><span>Subtotal</span><span>$${sub.toFixed(2)}</span></div>
+                    <div class="tot-row"><span>Tax (10%)</span><span>$${tax.toFixed(2)}</span></div>
+                    <div class="tot-final"><span>Total</span><span>$${total.toFixed(2)}</span></div>
+                </div>
+                <p style="text-align:center;margin-top:1.5rem;color:#888;font-size:.85rem">Status: <span class="status-badge status-${p.status.toLowerCase()}">${p.status}</span> • Thank you for visiting Elite Salon! 💜</p>
+            `;
+            document.getElementById('invModal').classList.add('open');
+        }
+
+        function closeModal() {
+            document.getElementById('invModal').classList.remove('open');
+        }
+
+        function printInv() {
+            const w = window.open('', '_blank');
+            w.document.write('<html><head><title>Invoice</title><style>body{font-family:sans-serif;padding:2rem}table{width:100%;border-collapse:collapse}th,td{padding:.75rem;border-bottom:1px solid #eee;text-align:left}.method-badge,.status-badge{padding:.2rem .5rem;border-radius:8px;font-size:.8rem}</style></head><body>' + document.getElementById('invContent').innerHTML + '</body></html>');
+            w.document.close();
+            w.print();
+        }
+
+        window.onclick = e => {
+            if (e.target.id === 'invModal') closeModal();
+        };
+        renderStats();
+        render();
+    </script>
+</body>
+
+</html>

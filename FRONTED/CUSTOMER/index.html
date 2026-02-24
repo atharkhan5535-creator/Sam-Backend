@@ -25,5 +25,22 @@
 
   <!-- Global JS -->
   <script src="./Js/index.js"></script>
+  <script>fetch("http://localhost/Sam-Backend/BACKEND/public/index.php/api/customers/register", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    name: "Browser Test",
+    phone: "9999999999",
+    email: "browser@test.com",
+    password: "123456",
+    salon_id: 1
+  })
+})
+.then(res => res.text())
+.then(console.log)
+.catch(console.error);
+</script>
 </body>
 </html>

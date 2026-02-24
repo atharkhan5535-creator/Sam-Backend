@@ -45,9 +45,9 @@ class AuthController
 
             $stmt = $this->db->prepare("
                 SELECT super_admin_id AS user_id, password_hash
-                FROM super_admins
+                FROM super_admin_login
                 WHERE email = ?
-                AND status = 'ACTIVE'
+                AND status = '1'
             ");
             $stmt->execute([$email]);
             $admin = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -148,11 +148,21 @@ class AuthController
     private function generateTokens($user_id, $role, $salon_id = null, $replacedTokenHash = null)
 {
     // Access Token
+    // Role-based payload structure
     $payload = [
         'user_id' => $user_id,
         'role' => $role,
-        'salon_id' => $salon_id
     ];
+
+    if ($role === 'CUSTOMER') {
+        $payload['customer_id'] = $user_id;
+    }
+
+    if (in_array($role, ['ADMIN', 'STAFF', 'CUSTOMER'])) {
+        
+        $payload['salon_id'] = $salon_id;
+    }
+
 
     $accessToken = JWT::generate($payload);
 
@@ -230,13 +240,13 @@ public function refresh()
     }
 
     // Rotate token properly with correct salon_id
-    $this->generateTokens(
-        $tokenData['user_id'],
-        $tokenData['user_type'],
-        $tokenData['salon_id'],  // ✅ restored
-        $hashedIncoming
-    );
-}
+        $this->generateTokens(
+            $tokenData['user_id'],
+            $tokenData['user_type'],
+            $tokenData['salon_id'],  // ✅ restored
+            $hashedIncoming
+        );
+    }
 
 
 
@@ -278,21 +288,20 @@ public function refresh()
 
     public function me()
     {
-        $token = Request::getBearerToken();
+        $auth = $GLOBALS['auth_user'] ?? null;
 
-        if (!$token) {
-            Response::json(['message' => 'Access token required'], 401);
-        }
-
-        $payload = JWT::verify($token);
-
-        if (!$payload) {
-            Response::json(['message' => 'Invalid or expired token'], 401);
+        if (!$auth) {
+            Response::json([
+                "status" => "error",
+                "message" => "Unauthenticated"
+            ], 401);
         }
 
         Response::json([
             'status' => 'success',
-            'data' => $payload
+            'data' => $auth
         ]);
     }
+
+
 }

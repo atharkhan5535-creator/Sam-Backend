@@ -7,4 +7,8 @@ $authController = new AuthController();
 $router->register('POST', '/api/auth/login', [$authController, 'login']);
 $router->register('POST', '/api/auth/refresh', [$authController, 'refresh']);
 $router->register('POST', '/api/auth/logout', [$authController, 'logout']);
-$router->register('GET', '/api/auth/me', [$authController, 'me']);
+$router->register('GET', '/api/auth/me', function() use ($authController) {
+    require_once __DIR__ . '/../../middlewares/authenticate.php';
+    authenticate();
+    $authController->me();
+});

@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schedules - Elite Salon</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/schedules.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">✂️ Elite Salon</div>
+            <button class="hamburger" onclick="document.getElementById('nav').classList.toggle('open')">☰</button>
+            <ul class="nav-links" id="nav">
+                <li data-page="dashboard.html">
+                    <a href="dashboard.html">Dashboard</a>
+                </li>
+
+                <li data-page="appointments.html">
+                    <a href="appointments.html">Appointments</a>
+                </li>
+
+                <li data-page="customers.html">
+                    <a href="customers.html">Customers</a>
+                </li>
+
+                <li data-page="staff.html">
+                    <a href="staff.html">Staff</a>
+                </li>
+
+                <li data-page="services.html">
+                    <a href="services.html">Services</a>
+                </li>
+
+                <li data-page="package.html">
+                    <a href="package.html">Packages</a>
+                </li>
+
+                <li data-page="payments.html">
+                    <a href="payments.html">Payments</a>
+                </li>
+
+                <li data-page="reports.html">
+                    <a href="reports.html">Reports</a>
+                </li>
+
+                <li data-page="inventory.html">
+                    <a href="inventory.html">Inventory</a>
+                </li>
+
+                <li data-page="schedules.html">
+                    <a href="schedules.html">Schedules</a>
+                </li>
+
+                <li data-page="settings.html">
+                    <a href="settings.html">Settings</a>
+                </li>
+
+                <li>
+                    <a href="index.html" class="logout-btn">Logout</a>
+                </li>
+
+            </ul>
+        </nav>
+    </header>
+
+    <div class="container">
+        <div class="page-header">
+            <div>
+                <h1><i class="fas fa-calendar-alt"></i> Staff Schedules</h1>
+                <p>Manage shifts, availability and leave requests</p>
+            </div>
+            <div style="display:flex;gap:.75rem;flex-wrap:wrap">
+                <button class="btn btn-primary" onclick="openAddShift()">
+                    <i class="fas fa-plus"></i> Add Shift
+                </button>
+                <button class="btn btn-warning" onclick="openMarkLeave()" style="background:#f59e0b;color:white">
+                    <i class="fas fa-calendar-minus"></i> Mark Leave
+                </button>
+                <button class="btn btn-secondary" onclick="openLeaveRequest()">
+                    <i class="fas fa-paper-plane"></i> Request Leave
+                </button>
+            </div>
+        </div>
+
+        <!-- Weekly Schedule Navigation -->
+        <div class="content-card">
+            <div class="week-nav">
+                <button class="btn btn-secondary btn-sm" onclick="changeWeek(-1)">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <h3 id="weekLabel">February 17 - February 23, 2026</h3>
+                <button class="btn btn-secondary btn-sm" onclick="changeWeek(1)">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+                <button class="btn btn-primary btn-sm" onclick="goToday()">Today</button>
+            </div>
+
+            <!-- Schedule Grid -->
+            <div class="week-grid" id="weekGrid"></div>
+        </div>
+
+        <!-- Staff Availability + Leave Requests -->
+        <div class="grid-2">
+            <!-- Staff Availability -->
+            <div>
+                <div class="content-card" style="margin-bottom:0">
+                    <h3><i class="fas fa-clock" style="color:#7c3aed;margin-right:.5rem"></i> Staff Availability</h3>
+                    <div id="availabilityList"></div>
+                </div>
+            </div>
+
+            <!-- Leave Requests -->
+            <div>
+                <div class="content-card" style="margin-bottom:0">
+                    <h3><i class="fas fa-calendar-xmark" style="color:#7c3aed;margin-right:.5rem"></i> Leave Requests</h3>
+                    <div id="leaveList"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Shift Modal -->
+    <div class="modal-overlay" id="shiftModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2><i class="fas fa-clock"></i> <span id="shiftModalTitle">Add Shift</span></h2>
+                <button class="modal-close" onclick="closeModal('shiftModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Staff Member</label>
+                    <select id="sStaff">
+                        <option>Sarah Johnson</option>
+                        <option>Michael Chen</option>
+                        <option>Emily Rodriguez</option>
+                        <option>Jessica Alba</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Date</label>
+                    <input type="date" id="sDate">
+                </div>
+                <div class="form-group">
+                    <label>Shift Type</label>
+                    <select id="sType" onchange="toggleShiftTimes()">
+                        <option value="shift">Regular Shift</option>
+                        <option value="off">Day Off</option>
+                        <option value="leave">Leave</option>
+                    </select>
+                </div>
+                <div id="timeGroup">
+                    <div class="form-group">
+                        <label>Start Time</label>
+                        <input type="time" id="sStart" value="09:00">
+                    </div>
+                    <div class="form-group">
+                        <label>End Time</label>
+                        <input type="time" id="sEnd" value="18:00">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Notes</label>
+                    <textarea id="sNotes" rows="2" placeholder="Optional shift notes…"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="saveShift()"><i class="fas fa-save"></i> Save</button>
+                <button class="btn btn-secondary" onclick="closeModal('shiftModal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leave Request Modal -->
+    <div class="modal-overlay" id="leaveModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2><i class="fas fa-umbrella-beach"></i> Leave Request</h2>
+                <button class="modal-close" onclick="closeModal('leaveModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Staff Member</label>
+                    <select id="lStaff">
+                        <option>Sarah Johnson</option>
+                        <option>Michael Chen</option>
+                        <option>Emily Rodriguez</option>
+                        <option>Jessica Alba</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Leave Type</label>
+                    <select id="lType">
+                        <option>Annual Leave</option>
+                        <option>Sick Leave</option>
+                        <option>Emergency Leave</option>
+                        <option>Maternity/Paternity</option>
+                        <option>Unpaid Leave</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>From Date</label>
+                    <input type="date" id="lFrom">
+                </div>
+                <div class="form-group">
+                    <label>To Date</label>
+                    <input type="date" id="lTo">
+                </div>
+                <div class="form-group">
+                    <label>Reason</label>
+                    <textarea id="lReason" rows="3" placeholder="Reason for leave…"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="saveLeave()"><i class="fas fa-paper-plane"></i> Submit Request</button>
+                <button class="btn btn-secondary" onclick="closeModal('leaveModal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mark Leave Modal -->
+    <div class="modal-overlay" id="markLeaveModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2><i class="fas fa-calendar-minus"></i> Mark Staff Leave</h2>
+                <button class="modal-close" onclick="closeModal('markLeaveModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Staff Member</label>
+                    <select id="mlStaff">
+                        <option>Sarah Johnson</option>
+                        <option>Michael Chen</option>
+                        <option>Emily Rodriguez</option>
+                        <option>Jessica Alba</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Leave Date</label>
+                    <input type="date" id="mlDate">
+                </div>
+                <div class="form-group">
+                    <label>Leave Type</label>
+                    <select id="mlType">
+                        <option value="leave">Leave</option>
+                        <option value="off">Day Off</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Notes</label>
+                    <textarea id="mlNotes" rows="2" placeholder="Optional notes…"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-warning" onclick="saveMarkLeave()" style="background:#f59e0b;color:white">
+                    <i class="fas fa-calendar-minus"></i> Mark Leave
+                </button>
+                <button class="btn btn-secondary" onclick="closeModal('markLeaveModal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/permissions.js"></script>
+    <script src="js/sidebar.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/schedules.js"></script>
+</body>
+</html>

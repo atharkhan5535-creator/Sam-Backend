@@ -1,0 +1,44 @@
+/* Additional styles for appointments page */
+.filter-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: flex-end;
+}
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.detail-item {
+    background: #f9f5ff;
+    border-radius: 10px;
+    padding: 1rem;
+}
+
+.detail-item label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #7c3aed;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: block;
+    margin-bottom: 0.3rem;
+}
+
+.detail-item span {
+    font-size: 0.95rem;
+    color: #333;
+    font-weight: 500;
+}
+
+.detail-item.full {
+    grid-column: 1/-1;
+}
+
+@media (max-width: 768px) {
+    .detail-grid {
+        grid-template-columns: 1fr;
+    }
+}

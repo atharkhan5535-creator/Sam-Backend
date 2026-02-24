@@ -36,15 +36,18 @@ function authenticate()
 
     // Validate essential fields
     if (
-        !isset($payload['user_id']) ||
-        !isset($payload['role'])
-    ) {
-        Response::json([
-            "status" => "error",
-            "message" => "Malformed token payload"
-        ], 401);
-    }
+    !isset($payload['user_id']) ||
+    !isset($payload['role']) ||
+    !isset($payload['salon_id'])
+) {
+    Response::json([
+        "status" => "error",
+        "message" => "Malformed token payload"
+    ], 401);
+}
+
 
     // Store authenticated user globally
     $GLOBALS['auth_user'] = $payload;
+
 }
