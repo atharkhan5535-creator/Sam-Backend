@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory - Elite Salon</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="../css/main.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: var(--primary-dark); color: var(--text-primary); }
+        .dashboard-wrapper { display: flex; min-height: 100vh; }
+
+        /* Sidebar */
+        .sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 220px; background: linear-gradient(180deg, var(--primary-darker) 0%, var(--secondary-dark) 100%); border-right: 1px solid var(--card-border); display: flex; flex-direction: column; z-index: 1000; }
+        .sidebar-header { padding: 1rem; border-bottom: 1px solid var(--card-border); }
+        .sidebar-logo { font-size: 1.1rem; font-weight: 700; color: var(--text-primary); text-transform: uppercase; }
+        .sidebar-logo::before { content: '✂️'; font-size: 1.25rem; margin-right: 0.4rem; }
+        .sidebar-user { margin-top: 0.75rem; padding: 0.6rem; background: var(--card-bg); border-radius: 6px; border: 1px solid var(--card-border); }
+        .sidebar-user-info { display: flex; align-items: center; gap: 0.5rem; }
+        .user-avatar { width: 32px; height: 32px; border-radius: 6px; background: linear-gradient(135deg, var(--accent-gold), var(--accent-bronze)); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; color: var(--primary-dark); flex-shrink: 0; }
+        .user-details { flex: 1; min-width: 0; }
+        .user-name { font-weight: 600; font-size: 0.75rem; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .user-role { font-size: 0.6rem; color: var(--text-secondary); text-transform: uppercase; }
+        .sidebar-nav { padding: 0.75rem 0.5rem; flex: 1; overflow-y: auto; }
+        .nav-section-title { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.5rem; padding-left: 0.5rem; }
+        .nav-item { display: flex; align-items: center; gap: 0.6rem; padding: 0.6rem 0.65rem; margin-bottom: 0.2rem; border-radius: 6px; color: var(--text-secondary); text-decoration: none; transition: all 0.2s; font-weight: 500; font-size: 0.8rem; }
+        .nav-item:hover { background: rgba(212, 175, 55, 0.05); color: var(--text-primary); transform: translateX(3px); }
+        .nav-item.active { background: rgba(212, 175, 55, 0.1); border: 1px solid rgba(212, 175, 55, 0.3); color: var(--accent-gold); }
+        .nav-item i { width: 16px; text-align: center; font-size: 0.9rem; }
+        .sidebar-footer { padding: 0.75rem; border-top: 1px solid var(--card-border); }
+        .logout-btn { display: flex; align-items: center; justify-content: center; gap: 0.5rem; width: 100%; padding: 0.65rem; background: linear-gradient(135deg, var(--danger), #dc2626); color: white; border: none; border-radius: 6px; font-weight: 600; font-size: 0.8rem; cursor: pointer; transition: all 0.2s; }
+        .logout-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(239, 68, 68, 0.4); }
+
+        /* Main Content */
+        .main-content { margin-left: 220px; flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+        .dashboard-header { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 1rem; background: rgba(10, 14, 26, 0.95); border-bottom: 1px solid var(--card-border); height: 45px; flex-shrink: 0; }
+        .page-title-mini { display: flex; align-items: center; gap: 0.5rem; }
+        .page-icon-mini { width: 28px; height: 28px; background: linear-gradient(135deg, var(--accent-gold), var(--accent-bronze)); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; color: var(--primary-dark); }
+        .page-title-mini h1 { font-size: 0.9rem; font-weight: 700; }
+        .page-title-mini p { font-size: 0.6rem; color: var(--text-secondary); }
+
+        /* Content */
+        .dashboard-main { flex: 1; padding: 0.5rem; overflow-y: auto; display: flex; flex-direction: column; gap: 0.5rem; }
+        .content-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 6px; margin-bottom: 0.5rem; overflow: hidden; }
+        .card-header-mini { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--card-border); }
+        .card-title-mini { display: flex; align-items: center; gap: 0.4rem; font-size: 0.7rem; font-weight: 600; }
+        .card-title-mini i { color: var(--accent-gold); }
+        .card-body-mini { padding: 0.5rem; }
+
+        /* Search */
+        .search-wrapper-mini { position: relative; max-width: 300px; margin-bottom: 0.5rem; }
+        .search-input-mini { width: 100%; padding: 0.4rem 0.6rem 0.4rem 1.8rem; background: var(--primary-dark); border: 1px solid var(--card-border); border-radius: 4px; color: var(--text-primary); font-size: 0.7rem; }
+        .search-input-mini:focus { outline: none; border-color: var(--accent-gold); }
+        .search-icon-mini { position: absolute; left: 0.5rem; top: 50%; transform: translateY(-50%); color: var(--text-secondary); font-size: 0.65rem; }
+
+        /* Table */
+        .table-container { overflow-x: auto; }
+        .compact-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+        .compact-table thead th { padding: 0.5rem 0.6rem; text-align: left; font-size: 0.6rem; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); background: rgba(255, 255, 255, 0.02); border-bottom: 2px solid var(--card-border); }
+        .compact-table tbody tr { transition: all 0.2s; }
+        .compact-table tbody tr:hover { background: rgba(212, 175, 55, 0.03); }
+        .compact-table tbody td { padding: 0.6rem; border-bottom: 1px solid var(--card-border); color: var(--text-secondary); font-size: 0.75rem; vertical-align: middle; }
+        .compact-table tbody tr:last-child td { border-bottom: none; }
+
+        /* Status Badge */
+        .status-badge { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.2rem 0.5rem; font-size: 0.6rem; font-weight: 700; text-transform: uppercase; border-radius: 999px; }
+        .status-badge::before { content: ''; width: 4px; height: 4px; border-radius: 50%; background: currentColor; }
+        .status-active { background: rgba(16, 185, 129, 0.1); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.3); }
+        .status-inactive { background: rgba(100, 116, 139, 0.1); color: var(--text-muted); border: 1px solid rgba(100, 116, 139, 0.3); }
+        .status-pending { background: rgba(245, 158, 11, 0.1); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.3); }
+        .status-unpaid { background: rgba(239, 68, 68, 0.1); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3); }
+
+        /* Buttons */
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.35rem; padding: 0.45rem 0.75rem; font-family: inherit; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; border: none; border-radius: 4px; cursor: pointer; transition: all 0.2s; text-decoration: none; }
+        .btn-primary { background: linear-gradient(135deg, var(--accent-gold), var(--accent-bronze)); color: var(--primary-dark); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(212, 175, 55, 0.4); }
+        .btn-secondary { background: var(--card-bg); color: var(--text-primary); border: 1px solid var(--card-border); }
+        .btn-secondary:hover { background: var(--secondary-dark); border-color: var(--accent-gold); }
+        .btn-sm { padding: 0.35rem 0.55rem; font-size: 0.65rem; }
+
+        /* Modal */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; z-index: 2000; opacity: 0; visibility: hidden; transition: all 0.3s; }
+        .modal-overlay.open { opacity: 1; visibility: visible; }
+        .modal { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 8px; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto; transform: scale(0.9) translateY(20px); transition: transform 0.3s; }
+        .modal-overlay.open .modal { transform: scale(1) translateY(0); }
+        .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 0.6rem 0.85rem; border-bottom: 1px solid var(--card-border); }
+        .modal-title { display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; font-weight: 700; }
+        .modal-title i { color: var(--accent-gold); }
+        .modal-close { width: 26px; height: 26px; background: var(--primary-dark); border: 1px solid var(--card-border); border-radius: 4px; color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; }
+        .modal-close:hover { background: var(--danger); border-color: var(--danger); color: white; }
+        .modal-body { padding: 0.85rem; }
+        .modal-footer { display: flex; gap: 0.4rem; justify-content: flex-end; padding: 0.6rem 0.85rem; border-top: 1px solid var(--card-border); }
+
+        /* Forms */
+        .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.65rem; }
+        .form-group { display: flex; flex-direction: column; gap: 0.3rem; }
+        .form-group.full { grid-column: 1 / -1; }
+        .form-label { font-size: 0.6rem; font-weight: 600; text-transform: uppercase; color: var(--text-secondary); }
+        .form-input, .form-select, .form-textarea { padding: 0.5rem 0.65rem; background: var(--primary-dark); border: 1px solid var(--card-border); border-radius: 4px; color: var(--text-primary); font-size: 0.75rem; font-family: inherit; }
+        .form-input:focus, .form-select:focus, .form-textarea:focus { outline: none; border-color: var(--accent-gold); }
+        .form-textarea { resize: vertical; min-height: 55px; }
+
+        /* Empty State */
+        .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1.75rem 1rem; text-align: center; }
+        .empty-icon { width: 45px; height: 45px; background: rgba(212, 175, 55, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.15rem; color: var(--accent-gold); margin-bottom: 0.65rem; }
+        .empty-title { font-size: 0.85rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.3rem; }
+        .empty-text { color: var(--text-secondary); font-size: 0.75rem; }
+
+        /* Loading */
+        .loading-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2.5rem 1rem; }
+        .loading-spinner { width: 30px; height: 30px; border: 2px solid var(--card-border); border-top-color: var(--accent-gold); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 0.65rem; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-text { color: var(--text-secondary); font-size: 0.75rem; }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: var(--primary-dark); }
+        ::-webkit-scrollbar-thumb { background: var(--card-border); border-radius: 2px; }
+
+        @media (max-width: 768px) { .sidebar { transform: translateX(-100%); transition: transform 0.3s; } .sidebar.open { transform: translateX(0); } .main-content { margin-left: 0; } }
+    </style>
+</head>
+<body>
+    <div class="dashboard-wrapper">
+        <aside class="sidebar">
+            <div class="sidebar-header"><div class="sidebar-logo">Elite Salon</div>
+                <div class="sidebar-user"><div class="sidebar-user-info"><div class="user-avatar" id="userAvatar">A</div><div class="user-details"><div class="user-name" id="userName">Admin</div><div class="user-role" id="userRole">Administrator</div></div></div></div>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section"><div class="nav-section-title">Main Menu</div>
+                    <a href="dashboard.html" class="nav-item"><i class="fas fa-chart-line"></i><span>Dashboard</span></a>
+                    <a href="appointments.html" class="nav-item"><i class="fas fa-calendar-check"></i><span>Appointments</span></a>
+                    <a href="customers.html" class="nav-item"><i class="fas fa-users"></i><span>Customers</span></a>
+                    <a href="staff.html" class="nav-item"><i class="fas fa-user-tie"></i><span>Staff</span></a>
+                </div>
+                <div class="nav-section"><div class="nav-section-title">Services</div>
+                    <a href="services.html" class="nav-item"><i class="fas fa-cut"></i><span>Services</span></a>
+                    <a href="package.html" class="nav-item"><i class="fas fa-gift"></i><span>Packages</span></a>
+                    <a href="inventory.html" class="nav-item active"><i class="fas fa-boxes"></i><span>Inventory</span></a>
+                </div>
+                <div class="nav-section"><div class="nav-section-title">Financial</div>
+                    <a href="payments.html" class="nav-item"><i class="fas fa-credit-card"></i><span>Payments</span></a>
+                    <a href="schedules.html" class="nav-item"><i class="fas fa-calendar-alt"></i><span>Schedules</span></a>
+                </div>
+                <div class="nav-section"><div class="nav-section-title">System</div>
+                    <a href="settings.html" class="nav-item"><i class="fas fa-cog"></i><span>Settings</span></a>
+                </div>
+            </nav>
+            <div class="sidebar-footer"><button class="logout-btn" onclick="handleLogout()"><i class="fas fa-sign-out-alt"></i><span>Logout</span></button></div>
+        </aside>
+
+        <div class="main-content">
+            <header class="dashboard-header">
+                <div class="page-title-mini"><div class="page-icon-mini"><i class="fas fa-boxes"></i></div><div><h1>Inventory</h1><p>Track products and supplies</p></div></div>
+                <div class="header-actions"><button class="btn btn-primary" onclick="openAddProduct()"><i class="fas fa-plus"></i> Add Product</button></div>
+            </header>
+
+            <div class="dashboard-main">
+                <div id="loadingState" class="loading-state"><div class="loading-spinner"></div><p class="loading-text">Loading inventory...</p></div>
+
+                <div class="content-card" id="inventoryContent" style="display:none;">
+                    <div class="card-header-mini"><div class="card-title-mini"><i class="fas fa-list"></i><span>All Products</span></div>
+                        <button class="btn btn-secondary btn-sm" onclick="toggleTransactionsView()"><i class="fas fa-exchange-alt"></i> View Transactions</button>
+                    </div>
+                    <div class="card-body-mini">
+                        <div class="search-wrapper-mini" style="margin-bottom:1.25rem;">
+                            <input type="text" id="iSearch" class="search-input-mini" placeholder="Search products…" onkeyup="render()">
+                            <i class="fas fa-search search-icon-mini"></i>
+                        </div>
+
+                        <div class="table-container">
+                            <table class="compact-table">
+                                <thead><tr><th style="width:70px;">ID</th><th>Product</th><th>Category</th><th>Brand</th><th style="width:140px;">Stock</th><th style="width:130px;">Actions</th></tr></thead>
+                                <tbody id="invBody"></tbody>
+                            </table>
+                        </div>
+                        <div id="invInfo" style="padding:0.85rem;color:var(--text-secondary);font-size:0.7rem;border-top:1px solid var(--card-border);margin-top:0.85rem;"></div>
+                    </div>
+                </div>
+
+                <!-- Transactions View -->
+                <div class="content-card" id="transactionsContent" style="display:none;">
+                    <div class="card-header-mini">
+                        <div class="card-title-mini"><i class="fas fa-exchange-alt"></i><span>Stock Transactions</span></div>
+                        <div style="display:flex;gap:0.65rem;">
+                            <button class="btn btn-primary btn-sm" onclick="openTransactionModal()"><i class="fas fa-plus"></i> New Transaction</button>
+                            <button class="btn btn-secondary btn-sm" onclick="toggleTransactionsView()"><i class="fas fa-arrow-left"></i> Back to Products</button>
+                        </div>
+                    </div>
+                    <div class="card-body-mini">
+                        <div class="table-container">
+                            <table class="compact-table">
+                                <thead><tr><th style="width:70px;">ID</th><th style="width:90px;">Type</th><th>Product</th><th style="width:70px;">Quantity</th><th style="width:90px;">Amount</th><th style="width:100px;">Date</th><th>Notes</th></tr></thead>
+                                <tbody id="transactionsBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Product Modal -->
+    <div class="modal-overlay" id="invModal">
+        <div class="modal">
+            <div class="modal-header"><h2 class="modal-title" id="invModalTitle"><i class="fas fa-box"></i> Add Product</h2><button class="modal-close" onclick="closeModal('invModal')"><i class="fas fa-times"></i></button></div>
+            <div class="modal-body">
+                <div class="form-grid">
+                    <div class="form-group full"><label class="form-label">Product Name *</label><input type="text" id="fIName" class="form-input" placeholder="e.g. Shampoo"></div>
+                    <div class="form-group"><label class="form-label">Brand</label><input type="text" id="fBrand" class="form-input" placeholder="e.g. L'Oreal"></div>
+                    <div class="form-group"><label class="form-label">Category</label><select id="fICat" class="form-select"><option value="product">Product</option><option value="equipment">Equipment</option></select></div>
+                    <div class="form-group full"><label class="form-label">Description</label><textarea id="fDesc" class="form-textarea" rows="3" placeholder="Product description"></textarea></div>
+                </div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-primary" onclick="saveProduct()"><i class="fas fa-save"></i> Save</button><button class="btn btn-secondary" onclick="closeModal('invModal')">Cancel</button></div>
+        </div>
+    </div>
+
+    <!-- Stock Transaction Modal -->
+    <div class="modal-overlay" id="transactionModal">
+        <div class="modal">
+            <div class="modal-header"><h2 class="modal-title"><i class="fas fa-exchange-alt"></i> Stock Transaction</h2><button class="modal-close" onclick="closeModal('transactionModal')"><i class="fas fa-times"></i></button></div>
+            <div class="modal-body">
+                <div class="form-grid">
+                    <div class="form-group full">
+                        <label class="form-label">Transaction Type *</label>
+                        <select id="transType" class="form-select" onchange="toggleTransactionFields()">
+                            <option value="">Select Type</option>
+                            <option value="IN">Stock In (Purchase/Restock)</option>
+                            <option value="OUT">Stock Out (Usage/Sale)</option>
+                            <option value="ADJUSTMENT">Adjustment (Correction)</option>
+                        </select>
+                    </div>
+                    <div class="form-group full">
+                        <label class="form-label">Product *</label>
+                        <select id="transProduct" class="form-select">
+                            <option value="">Select Product</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Quantity *</label>
+                        <input type="number" id="transQty" class="form-input" placeholder="0" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Unit Price (₹)</label>
+                        <input type="number" id="transPrice" class="form-input" placeholder="0" min="0" step="0.01">
+                    </div>
+                    <div class="form-group full">
+                        <label class="form-label">Notes</label>
+                        <textarea id="transNotes" class="form-textarea" rows="2" placeholder="Transaction notes…"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="createTransaction()"><i class="fas fa-save"></i> Save Transaction</button>
+                <button class="btn btn-secondary" onclick="closeModal('transactionModal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script src="../js/core-api.js"></script><script src="../js/auth-api.js"></script><script src="../js/utils.js"></script><script src="../js/notifications.js"></script><script src="../js/stock-api.js"></script>
+    <script>
+        let products = [];
+        let stockLevels = [];
+        let transactions = [];
+        let editId = null;
+
+        function handleLogout() {
+            if (confirm('Are you sure you want to logout?')) {
+                TokenManager.removeToken();
+                TokenManager.removeUser();
+                localStorage.removeItem('refresh_token');
+                // Use relative path to avoid hardcoded URL issues
+                window.location.href = '../index.html';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const user = TokenManager.getUser();
+            if (user) { document.getElementById('userName').textContent = user.username || user.name || 'User'; document.getElementById('userRole').textContent = user.role || 'User'; document.getElementById('userAvatar').textContent = (user.username || user.name || 'U')[0].toUpperCase(); }
+            loadInventory();
+        });
+
+        function toggleTransactionsView() {
+            const invContent = document.getElementById('inventoryContent');
+            const transContent = document.getElementById('transactionsContent');
+            if (invContent.style.display === 'none') {
+                invContent.style.display = 'block';
+                transContent.style.display = 'none';
+            } else {
+                invContent.style.display = 'none';
+                transContent.style.display = 'block';
+                loadTransactions();
+            }
+        }
+
+        async function loadTransactions() {
+            try {
+                const result = await StockAPI.listTransactions();
+                if (result.success && result.data && result.data.items) {
+                    transactions = result.data.items;
+                    renderTransactions();
+                }
+            } catch (error) {
+                console.error('Failed to load transactions:', error);
+            }
+        }
+
+        function renderTransactions() {
+            const tbody = document.getElementById('transactionsBody');
+            if (!transactions.length) {
+                tbody.innerHTML = '<tr><td colspan="7" class="empty-state"><div class="empty-icon"><i class="fas fa-exchange-alt"></i></div><h3 class="empty-title">No Transactions</h3></td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = transactions.map(t => {
+                const typeClass = t.transaction_type === 'IN' ? 'status-active' : (t.transaction_type === 'OUT' ? 'status-unpaid' : 'status-pending');
+                return `<tr>
+                    <td><strong style="color:var(--accent-gold);">#${t.transaction_id}</strong></td>
+                    <td><span class="status-badge ${typeClass}">${t.transaction_type}</span></td>
+                    <td style="color:var(--text-secondary);">${t.product_name || 'Unknown'}</td>
+                    <td style="color:var(--text-secondary);">${t.quantity}</td>
+                    <td><strong style="color:var(--text-primary);">₹${parseFloat(t.total_amount || 0).toFixed(2)}</strong></td>
+                    <td style="color:var(--text-secondary);font-size:0.7rem;">${formatDate(t.created_at)}</td>
+                    <td style="color:var(--text-muted);font-size:0.7rem;">${t.notes || '-'}</td>
+                </tr>`;
+            }).join('');
+        }
+
+        function toggleTransactionFields() {
+            const transType = document.getElementById('transType').value;
+            const priceField = document.getElementById('transPrice');
+            if (transType === 'ADJUSTMENT') {
+                priceField.disabled = true;
+                priceField.style.opacity = '0.5';
+            } else {
+                priceField.disabled = false;
+                priceField.style.opacity = '1';
+            }
+        }
+
+        function openTransactionModal() {
+            const select = document.getElementById('transProduct');
+            select.innerHTML = '<option value="">Select Product</option>' +
+                products.map(p => `<option value="${p.product_id}">${p.product_name}</option>`).join('');
+
+            document.getElementById('transType').value = '';
+            document.getElementById('transQty').value = '';
+            document.getElementById('transPrice').value = '';
+            document.getElementById('transNotes').value = '';
+            toggleTransactionFields();
+            document.getElementById('transactionModal').classList.add('open');
+        }
+
+        async function createTransaction() {
+            const transactionType = document.getElementById('transType').value;
+            const productId = parseInt(document.getElementById('transProduct').value);
+            const quantity = parseInt(document.getElementById('transQty').value);
+            const unitPrice = parseFloat(document.getElementById('transPrice').value) || 0;
+            const notes = document.getElementById('transNotes').value.trim();
+
+            if (!transactionType) {
+                alert('Please select transaction type');
+                return;
+            }
+            if (!productId) {
+                alert('Please select a product');
+                return;
+            }
+            if (!quantity || quantity <= 0) {
+                alert('Please enter a valid quantity');
+                return;
+            }
+
+            const transactionData = {
+                transaction_type: transactionType,
+                product_id: productId,
+                quantity: quantity,
+                unit_price: unitPrice,
+                total_amount: quantity * unitPrice,
+                notes: notes || null
+            };
+
+            try {
+                const result = await StockAPI.createTransaction(transactionData);
+                if (result.success) {
+                    alert('✅ Transaction recorded successfully!');
+                    closeModal('transactionModal');
+                    loadTransactions();
+                    loadInventory();
+                } else {
+                    alert('❌ Failed: ' + (result.message || 'Unknown error'));
+                }
+            } catch (error) {
+                alert('❌ Error: ' + error.message);
+            }
+        }
+
+        async function loadInventory() {
+            document.getElementById('loadingState').style.display = 'flex';
+            document.getElementById('inventoryContent').style.display = 'none';
+            try {
+                const [productsResult, stockResult] = await Promise.allSettled([StockAPI.listProducts(), StockAPI.listStock()]);
+                if (productsResult.status === 'fulfilled' && productsResult.value.success) products = productsResult.value.data.items || [];
+                if (stockResult.status === 'fulfilled' && stockResult.value.success) stockLevels = stockResult.value.data.items || [];
+                render();
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('inventoryContent').style.display = 'block';
+            } catch (error) {
+                document.getElementById('loadingState').style.display = 'none';
+                alert('Failed to load inventory: ' + error.message);
+            }
+        }
+
+        function render() {
+            const q = document.getElementById('iSearch').value.toLowerCase();
+            const filtered = products.filter(p => !q || (p.product_name && p.product_name.toLowerCase().includes(q)) || (p.brand && p.brand.toLowerCase().includes(q)));
+            const tbody = document.getElementById('invBody');
+
+            if (!filtered.length) {
+                tbody.innerHTML = '<tr><td colspan="6" class="empty-state"><div class="empty-icon"><i class="fas fa-boxes"></i></div><h3 class="empty-title">No Products</h3></td></tr>';
+            } else {
+                tbody.innerHTML = filtered.map(p => {
+                    const stock = stockLevels.find(s => s.product_id === p.product_id);
+                    const currentQty = stock ? stock.current_quantity : 0;
+                    const minQty = stock ? stock.minimum_quantity : 0;
+                    const stockStatus = currentQty === 0 ? 'Out of Stock' : (currentQty < minQty ? 'Low Stock' : 'In Stock');
+                    const stockColor = currentQty === 0 ? 'var(--danger)' : (currentQty < minQty ? 'var(--warning)' : 'var(--success)');
+                    return `<tr>
+                        <td><strong style="color:var(--accent-gold);">#${p.product_id}</strong></td>
+                        <td><div style="font-weight:600;color:var(--text-primary);">${p.product_name}</div>${p.description ? `<div style="font-size:0.7rem;color:var(--text-muted);">${p.description.substring(0, 40)}${p.description.length > 40 ? '...' : ''}</div>` : ''}</td>
+                        <td><span style="padding:0.2rem 0.6rem;background:var(--card-bg);border-radius:var(--radius-full);font-size:0.65rem;color:var(--text-secondary);">${p.category || 'N/A'}</span></td>
+                        <td style="color:var(--text-secondary);">${p.brand || 'N/A'}</td>
+                        <td><div style="display:flex;align-items:center;gap:0.65rem;"><div style="flex:1;height:7px;background:var(--card-bg);border-radius:var(--radius-full);overflow:hidden;"><div style="width:${Math.min(100, (currentQty / (stock ? stock.maximum_quantity || 1 : 1)) * 100)}%;height:100%;background:${stockColor};border-radius:var(--radius-full);"></div></div><div style="min-width:75px;text-align:right;"><div style="font-weight:600;color:${stockColor};">${currentQty}</div><div style="font-size:0.65rem;color:var(--text-muted);">${stockStatus}</div></div></div></td>
+                        <td><button class="btn btn-primary btn-sm" onclick="openEdit(${p.product_id})">Edit</button></td>
+                    </tr>`;
+                }).join('');
+            }
+            document.getElementById('invInfo').textContent = `${filtered.length} product(s)`;
+        }
+
+        function openAddProduct() {
+            editId = null;
+            document.getElementById('invModalTitle').innerHTML = '<i class="fas fa-plus"></i> Add Product';
+            ['fIName','fBrand','fDesc'].forEach(id => document.getElementById(id).value = '');
+            document.getElementById('fICat').value = 'product';
+            document.getElementById('invModal').classList.add('open');
+        }
+
+        function openEdit(id) {
+            editId = id;
+            const p = products.find(x => x.product_id === id);
+            if (!p) return;
+            document.getElementById('invModalTitle').innerHTML = '<i class="fas fa-edit"></i> Edit Product';
+            document.getElementById('fIName').value = p.product_name || '';
+            document.getElementById('fBrand').value = p.brand || '';
+            document.getElementById('fICat').value = p.category || 'product';
+            document.getElementById('fDesc').value = p.description || '';
+            document.getElementById('invModal').classList.add('open');
+        }
+
+        async function saveProduct() {
+            const product_name = document.getElementById('fIName').value.trim();
+            if (!product_name) { alert('Product name required'); return; }
+            const productData = { product_name, brand: document.getElementById('fBrand').value.trim(), category: document.getElementById('fICat').value, description: document.getElementById('fDesc').value.trim() };
+            try {
+                let result;
+                if (editId) result = await StockAPI.updateProduct(editId, productData);
+                else result = await StockAPI.createProduct(productData);
+                if (result.success) { alert(editId ? 'Product updated!' : 'Product added!'); await loadInventory(); closeModal('invModal'); }
+                else { alert(result.message || 'Failed'); }
+            } catch (error) { alert(error.message || 'Failed'); }
+        }
+
+        function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+        window.onclick = function(event) { if (event.target.classList.contains('modal-overlay')) event.target.classList.remove('open'); };
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
+        }
+    </script>
+</body>
+</html>

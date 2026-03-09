@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Salon Profile - SAM Super Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../../CSS/Base/sidebar-layout.css">
+    <style>
+        /* Salon Profile Specific Styles */
+        .profile-header-section {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-radius: var(--radius-xl);
+            padding: 32px;
+            color: white;
+            margin-bottom: 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .salon-identity {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .salon-logo-large {
+            width: 100px;
+            height: 100px;
+            border-radius: var(--radius-lg);
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 42px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            overflow: hidden;
+        }
+
+        .salon-logo-large img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .salon-identity-info h1 {
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        .salon-identity-info p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .salon-status-badge {
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 700;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        /* Profile Content Grid */
+        .profile-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .profile-section {
+            background: var(--bg-surface);
+            border-radius: var(--radius-xl);
+            border: 1px solid var(--border-light);
+            overflow: hidden;
+        }
+
+        .profile-section-header {
+            padding: 20px 28px;
+            border-bottom: 1px solid var(--border-light);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .profile-section-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .profile-section-title i {
+            color: var(--primary);
+        }
+
+        .profile-section-body {
+            padding: 28px;
+        }
+
+        /* Detail Rows */
+        .detail-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            padding: 16px 0;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .detail-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .detail-value {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .detail-value i {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        /* Side Panel */
+        .side-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .quick-action-card {
+            background: var(--bg-surface);
+            border-radius: var(--radius-xl);
+            border: 1px solid var(--border-light);
+            padding: 24px;
+        }
+
+        .quick-action-card-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .quick-action-card-title i {
+            color: var(--primary);
+        }
+
+        .quick-action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .quick-action-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 12px 16px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-light);
+            background: var(--bg-surface);
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all var(--transition-base);
+            text-decoration: none;
+        }
+
+        .quick-action-btn:hover {
+            background: var(--bg-hover);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .quick-action-btn.primary {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .quick-action-btn.primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .quick-action-btn.danger {
+            color: var(--danger);
+            border-color: var(--danger-bg);
+        }
+
+        .quick-action-btn.danger:hover {
+            background: var(--danger-bg);
+        }
+
+        /* Stats Mini Cards */
+        .mini-stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .mini-stat {
+            background: var(--bg-hover);
+            padding: 16px;
+            border-radius: var(--radius-md);
+            text-align: center;
+        }
+
+        .mini-stat-value {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 4px;
+        }
+
+        .mini-stat-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        /* Full Width Section */
+        .full-width-section {
+            grid-column: 1 / -1;
+        }
+
+        /* Subscription Info */
+        .subscription-info-box {
+            background: linear-gradient(135deg, var(--primary-bg), white);
+            border: 2px solid var(--primary);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .subscription-info-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .subscription-plan-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .subscription-dates {
+            display: flex;
+            gap: 20px;
+        }
+
+        .subscription-date-item {
+            flex: 1;
+        }
+
+        .subscription-date-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .subscription-date-value {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .profile-content {
+                grid-template-columns: 1fr;
+            }
+
+            .side-panel {
+                order: -1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .profile-header-section {
+                flex-direction: column;
+                text-align: center;
+                gap: 20px;
+            }
+
+            .salon-identity {
+                flex-direction: column;
+            }
+
+            .detail-row {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <a href="sa-dashboard.html" class="sidebar-logo">
+                <div class="logo-icon">
+                    <i class="fa-solid fa-scissors"></i>
+                </div>
+                <span class="logo-text">sam<span>.com</span></span>
+            </a>
+
+            <div class="sidebar-user">
+                <div class="user-avatar">SA</div>
+                <div class="user-info">
+                    <div class="user-name">Super Admin</div>
+                    <div class="user-role">Administrator</div>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Main Menu</div>
+                    <ul class="nav-list">
+                        <li class="nav-item">
+                            <a href="sa-dashboard.html" class="nav-link">
+                                <span class="nav-icon"><i class="fa-solid fa-gauge"></i></span>
+                                <span>Dashboard</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="sa-salons.html" class="nav-link active">
+                                <span class="nav-icon"><i class="fa-solid fa-shop"></i></span>
+                                <span>Salons</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="sa-subscription.html" class="nav-link">
+                                <span class="nav-icon"><i class="fa-solid fa-crown"></i></span>
+                                <span>Subscriptions</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="sa-invoices.html" class="nav-link">
+                                <span class="nav-icon"><i class="fa-solid fa-file-invoice-dollar"></i></span>
+                                <span>Invoices</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">System</div>
+                    <ul class="nav-list">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">
+                                <span class="nav-icon"><i class="fa-solid fa-gear"></i></span>
+                                <span>Settings</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <div class="sidebar-logout">
+                <a href="#" class="logout-link" onclick="logout(); return false;">
+                    <span class="nav-icon"><i class="fa-solid fa-arrow-right-from-bracket"></i></span>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Wrapper -->
+        <div class="main-wrapper">
+            <!-- Header -->
+            <header class="main-header">
+                <div class="header-left">
+                    <a href="sa-salons.html" class="btn btn-secondary btn-sm" style="margin-right: 16px;">
+                        <i class="fa-solid fa-arrow-left"></i>
+                        Back
+                    </a>
+                    <h1 class="page-title">Salon Profile</h1>
+                </div>
+                <div class="header-right">
+                    <button class="header-action">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="badge">3</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Main Content -->
+            <main class="main-content">
+                <!-- Profile Header -->
+                <div class="profile-header-section">
+                    <div class="salon-identity">
+                        <div class="salon-logo-large" id="salonLogoDisplay">
+                            <i class="fa-solid fa-shop"></i>
+                        </div>
+                        <div class="salon-identity-info">
+                            <h1 id="salonNameDisplay">Loading...</h1>
+                            <p id="salonOwnerDisplay">Owner Name</p>
+                        </div>
+                    </div>
+                    <span class="salon-status-badge" id="salonStatusDisplay">
+                        <i class="fa-solid fa-circle-check"></i> Active
+                    </span>
+                </div>
+
+                <!-- Profile Content -->
+                <div class="profile-content">
+                    <!-- Main Info -->
+                    <div class="profile-section">
+                        <div class="profile-section-header">
+                            <h3 class="profile-section-title">
+                                <i class="fa-solid fa-circle-info"></i>
+                                Salon Information
+                            </h3>
+                        </div>
+                        <div class="profile-section-body">
+                            <div class="detail-row">
+                                <div class="detail-item">
+                                    <span class="detail-label">Salon ID</span>
+                                    <span class="detail-value" id="salonIdDisplay">#---</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">GST Number</span>
+                                    <span class="detail-value" id="gstDisplay">
+                                        <i class="fa-solid fa-copy"></i>
+                                        <span>---</span>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-item">
+                                    <span class="detail-label">Email Address</span>
+                                    <span class="detail-value" id="emailDisplay">
+                                        <i class="fa-regular fa-envelope"></i>
+                                        <span>---</span>
+                                    </span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">Phone Number</span>
+                                    <span class="detail-value" id="phoneDisplay">
+                                        <i class="fa-solid fa-phone"></i>
+                                        <span>---</span>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-item">
+                                    <span class="detail-label">Street Address</span>
+                                    <span class="detail-value" id="addressDisplay">
+                                        <i class="fa-solid fa-location-dot"></i>
+                                        <span>---</span>
+                                    </span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">City</span>
+                                    <span class="detail-value" id="cityDisplay">---</span>
+                                </div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-item">
+                                    <span class="detail-label">State</span>
+                                    <span class="detail-value" id="stateDisplay">---</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">Country</span>
+                                    <span class="detail-value" id="countryDisplay">---</span>
+                                </div>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-item">
+                                    <span class="detail-label">Created At</span>
+                                    <span class="detail-value" id="createdAtDisplay">
+                                        <i class="fa-regular fa-calendar"></i>
+                                        <span>---</span>
+                                    </span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">Last Updated</span>
+                                    <span class="detail-value" id="updatedAtDisplay">
+                                        <i class="fa-solid fa-clock"></i>
+                                        <span>---</span>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Side Panel -->
+                    <div class="side-panel">
+                        <!-- Quick Actions -->
+                        <div class="quick-action-card">
+                            <h4 class="quick-action-card-title">
+                                <i class="fa-solid fa-bolt"></i>
+                                Quick Actions
+                            </h4>
+                            <div class="quick-action-buttons">
+                                <button class="quick-action-btn primary" onclick="editSalon()">
+                                    <i class="fa-solid fa-pen"></i>
+                                    Edit Salon
+                                </button>
+                                <button class="quick-action-btn" onclick="viewSubscriptions()">
+                                    <i class="fa-solid fa-crown"></i>
+                                    View Subscriptions
+                                </button>
+                                <button class="quick-action-btn" onclick="viewInvoices()">
+                                    <i class="fa-solid fa-file-invoice-dollar"></i>
+                                    View Invoices
+                                </button>
+                                <button class="quick-action-btn" onclick="createAdmin()">
+                                    <i class="fa-solid fa-user-plus"></i>
+                                    Create Admin
+                                </button>
+                                <button class="quick-action-btn danger" onclick="toggleSalonStatus()">
+                                    <i class="fa-solid fa-toggle-on"></i>
+                                    <span id="toggleStatusText">Deactivate Salon</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Mini Stats -->
+                        <div class="quick-action-card">
+                            <h4 class="quick-action-card-title">
+                                <i class="fa-solid fa-chart-simple"></i>
+                                Quick Stats
+                            </h4>
+                            <div class="mini-stats-grid">
+                                <div class="mini-stat">
+                                    <div class="mini-stat-value" id="statSubscriptions">0</div>
+                                    <div class="mini-stat-label">Subscriptions</div>
+                                </div>
+                                <div class="mini-stat">
+                                    <div class="mini-stat-value" id="statInvoices">0</div>
+                                    <div class="mini-stat-label">Invoices</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Subscription Section -->
+                    <div class="profile-section full-width-section">
+                        <div class="profile-section-header">
+                            <h3 class="profile-section-title">
+                                <i class="fa-solid fa-crown"></i>
+                                Current Subscription
+                            </h3>
+                            <button class="btn btn-primary btn-sm" onclick="assignNewSubscription()">
+                                <i class="fa-solid fa-plus"></i>
+                                Assign New Subscription
+                            </button>
+                        </div>
+                        <div class="profile-section-body" id="subscriptionContent">
+                            <div class="subscription-info-box">
+                                <div class="subscription-info-header">
+                                    <span class="subscription-plan-name" id="currentPlanName">No active subscription</span>
+                                    <span class="badge badge-success" id="currentPlanStatus">
+                                        <span class="badge-dot"></span>
+                                        Active
+                                    </span>
+                                </div>
+                                <div class="subscription-dates">
+                                    <div class="subscription-date-item">
+                                        <div class="subscription-date-label">Start Date</div>
+                                        <div class="subscription-date-value" id="currentStartDate">---</div>
+                                    </div>
+                                    <div class="subscription-date-item">
+                                        <div class="subscription-date-label">End Date</div>
+                                        <div class="subscription-date-value" id="currentEndDate">---</div>
+                                    </div>
+                                    <div class="subscription-date-item">
+                                        <div class="subscription-date-label">Plan Type</div>
+                                        <div class="subscription-date-value" id="currentPlanType">---</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Edit Salon Modal -->
+    <div class="modal-overlay" id="editSalonModal">
+        <div class="modal modal-large">
+            <div class="modal-header">
+                <h3 class="modal-title">Edit Salon Details</h3>
+                <button class="modal-close" id="closeEditModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="editSalonForm">
+                    <input type="hidden" id="editSalonId">
+                    <!-- Form fields will be populated dynamically -->
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="cancelEditBtn">Cancel</button>
+                <button type="submit" form="editSalonForm" class="btn btn-primary">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../Js/Core/config.js"></script>
+    <script src="../../Js/Core/api.js"></script>
+    <script src="../../Js/pages/sa-salon-profile.js"></script>
+    <script>
+        // Get salon ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const salonId = urlParams.get('id');
+
+        if (!salonId) {
+            alert('No salon ID provided');
+            window.location.href = 'sa-salons.html';
+        }
+
+        // Load salon data
+        async function loadSalonProfile() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/super-admin/salons/${salonId}`, {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                const result = await response.json();
+                
+                if (result.status === 'success' && result.data) {
+                    const salon = result.data;
+                    displaySalonData(salon);
+                } else {
+                    alert('Failed to load salon details');
+                }
+            } catch (error) {
+                console.error('Error loading salon:', error);
+                alert('Error loading salon details');
+            }
+        }
+
+        function displaySalonData(salon) {
+            document.getElementById('salonNameDisplay').textContent = salon.salon_name;
+            document.getElementById('salonOwnerDisplay').textContent = `Owner: ${salon.salon_ownername}`;
+            document.getElementById('salonIdDisplay').textContent = `#S${salon.salon_id.toString().padStart(4, '0')}`;
+            document.getElementById('gstDisplay').querySelector('span').textContent = salon.gst_num || 'N/A';
+            document.getElementById('emailDisplay').querySelector('span').textContent = salon.email;
+            document.getElementById('phoneDisplay').querySelector('span').textContent = salon.phone;
+            document.getElementById('addressDisplay').querySelector('span').textContent = salon.address;
+            document.getElementById('cityDisplay').textContent = salon.city;
+            document.getElementById('stateDisplay').textContent = salon.state;
+            document.getElementById('countryDisplay').textContent = salon.country;
+            document.getElementById('createdAtDisplay').querySelector('span').textContent = new Date(salon.created_at).toLocaleDateString();
+            document.getElementById('updatedAtDisplay').querySelector('span').textContent = new Date(salon.updated_at).toLocaleDateString();
+            
+            // Status
+            const statusBadge = document.getElementById('salonStatusDisplay');
+            const statusText = salon.status === 1 ? 'Active' : 'Inactive';
+            const statusClass = salon.status === 1 ? 'badge-success' : 'badge-secondary';
+            statusBadge.className = `salon-status-badge ${statusClass}`;
+            statusBadge.innerHTML = salon.status === 1 
+                ? '<i class="fa-solid fa-circle-check"></i> Active' 
+                : '<i class="fa-solid fa-circle-xmark"></i> Inactive';
+            
+            document.getElementById('toggleStatusText').textContent = salon.status === 1 ? 'Deactivate Salon' : 'Activate Salon';
+
+            // Logo
+            if (salon.salon_logo) {
+                document.getElementById('salonLogoDisplay').innerHTML = `<img src="${salon.salon_logo}" alt="${salon.salon_name}">`;
+            }
+        }
+
+        // Quick action functions
+        function editSalon() {
+            alert('Edit functionality - will be implemented with API');
+        }
+
+        function viewSubscriptions() {
+            window.location.href = `sa-subscription.html?salon_id=${salonId}`;
+        }
+
+        function viewInvoices() {
+            window.location.href = `sa-invoices.html?salon_id=${salonId}`;
+        }
+
+        function createAdmin() {
+            alert('Create Admin functionality - will be implemented with API');
+        }
+
+        function toggleSalonStatus() {
+            alert('Toggle Status functionality - will be implemented with API');
+        }
+
+        function assignNewSubscription() {
+            window.location.href = `sa-subscription.html?action=assign&salon_id=${salonId}`;
+        }
+
+        // Load data on page load
+        loadSalonProfile();
+    </script>
+</body>
+</html>

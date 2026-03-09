@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schedules - Elite Salon</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="../css/main.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: var(--primary-dark); color: var(--text-primary); }
+        .dashboard-wrapper { display: flex; min-height: 100vh; }
+
+        /* Sidebar */
+        .sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 220px; background: linear-gradient(180deg, var(--primary-darker) 0%, var(--secondary-dark) 100%); border-right: 1px solid var(--card-border); display: flex; flex-direction: column; z-index: 1000; }
+        .sidebar-header { padding: 1rem; border-bottom: 1px solid var(--card-border); }
+        .sidebar-logo { font-size: 1.1rem; font-weight: 700; color: var(--text-primary); text-transform: uppercase; }
+        .sidebar-logo::before { content: '✂️'; font-size: 1.25rem; margin-right: 0.4rem; }
+        .sidebar-user { margin-top: 0.75rem; padding: 0.6rem; background: var(--card-bg); border-radius: 6px; border: 1px solid var(--card-border); }
+        .sidebar-user-info { display: flex; align-items: center; gap: 0.5rem; }
+        .user-avatar { width: 32px; height: 32px; border-radius: 6px; background: linear-gradient(135deg, var(--accent-gold), var(--accent-bronze)); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; color: var(--primary-dark); flex-shrink: 0; }
+        .user-details { flex: 1; min-width: 0; }
+        .user-name { font-weight: 600; font-size: 0.75rem; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .user-role { font-size: 0.6rem; color: var(--text-secondary); text-transform: uppercase; }
+        .sidebar-nav { padding: 0.75rem 0.5rem; flex: 1; overflow-y: auto; }
+        .nav-section-title { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.5rem; padding-left: 0.5rem; }
+        .nav-item { display: flex; align-items: center; gap: 0.6rem; padding: 0.6rem 0.65rem; margin-bottom: 0.2rem; border-radius: 6px; color: var(--text-secondary); text-decoration: none; transition: all 0.2s; font-weight: 500; font-size: 0.8rem; }
+        .nav-item:hover { background: rgba(212, 175, 55, 0.05); color: var(--text-primary); transform: translateX(3px); }
+        .nav-item.active { background: rgba(212, 175, 55, 0.1); border: 1px solid rgba(212, 175, 55, 0.3); color: var(--accent-gold); }
+        .nav-item i { width: 16px; text-align: center; font-size: 0.9rem; }
+        .sidebar-footer { padding: 0.75rem; border-top: 1px solid var(--card-border); }
+        .logout-btn { display: flex; align-items: center; justify-content: center; gap: 0.5rem; width: 100%; padding: 0.65rem; background: linear-gradient(135deg, var(--danger), #dc2626); color: white; border: none; border-radius: 6px; font-weight: 600; font-size: 0.8rem; cursor: pointer; transition: all 0.2s; }
+        .logout-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(239, 68, 68, 0.4); }
+
+        /* Main Content */
+        .main-content { margin-left: 220px; flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+        .dashboard-header { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 1rem; background: rgba(10, 14, 26, 0.95); border-bottom: 1px solid var(--card-border); height: 45px; flex-shrink: 0; }
+        .page-title-mini { display: flex; align-items: center; gap: 0.5rem; }
+        .page-icon-mini { width: 28px; height: 28px; background: linear-gradient(135deg, var(--accent-gold), var(--accent-bronze)); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; color: var(--primary-dark); }
+        .page-title-mini h1 { font-size: 0.9rem; font-weight: 700; }
+        .page-title-mini p { font-size: 0.6rem; color: var(--text-secondary); }
+
+        /* Content */
+        .dashboard-main { flex: 1; padding: 0.5rem; overflow-y: auto; display: flex; flex-direction: column; gap: 0.5rem; }
+        .content-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 6px; margin-bottom: 0.5rem; overflow: hidden; }
+        .card-header-mini { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--card-border); }
+        .card-title-mini { display: flex; align-items: center; gap: 0.4rem; font-size: 0.7rem; font-weight: 600; }
+        .card-title-mini i { color: var(--accent-gold); }
+        .card-body-mini { padding: 0.5rem; }
+
+        /* Buttons */
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.35rem; padding: 0.45rem 0.75rem; font-family: inherit; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; border: none; border-radius: 4px; cursor: pointer; transition: all 0.2s; text-decoration: none; }
+        .btn-primary { background: linear-gradient(135deg, var(--accent-gold), var(--accent-bronze)); color: var(--primary-dark); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(212, 175, 55, 0.4); }
+        .btn-secondary { background: var(--card-bg); color: var(--text-primary); border: 1px solid var(--card-border); }
+        .btn-secondary:hover { background: var(--secondary-dark); border-color: var(--accent-gold); }
+        .btn-sm { padding: 0.35rem 0.55rem; font-size: 0.65rem; }
+
+        /* Status Badge */
+        .status-badge { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.2rem 0.5rem; font-size: 0.6rem; font-weight: 700; text-transform: uppercase; border-radius: 999px; }
+        .status-badge::before { content: ''; width: 4px; height: 4px; border-radius: 50%; background: currentColor; }
+        .status-confirmed { background: rgba(16, 185, 129, 0.1); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.3); }
+        .status-pending { background: rgba(245, 158, 11, 0.1); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.3); }
+        .status-cancelled { background: rgba(239, 68, 68, 0.1); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3); }
+        .status-completed { background: rgba(59, 130, 246, 0.1); color: var(--info); border: 1px solid rgba(59, 130, 246, 0.3); }
+
+        /* Schedule Styles */
+        .schedule-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.85rem; }
+        .week-nav { display: flex; align-items: center; gap: 0.75rem; }
+        .staff-filter { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 1.25rem; }
+        .staff-chip { padding: 0.4rem 0.85rem; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius-full); font-size: 0.7rem; cursor: pointer; transition: all 0.2s; }
+        .staff-chip.active { background: var(--accent-gold); color: var(--primary-dark); border-color: var(--accent-gold); }
+        .schedule-grid { display: grid; gap: 0.75rem; }
+        .staff-schedule { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 6px; overflow: hidden; }
+        .staff-schedule-header { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: rgba(212, 175, 55, 0.1); border-bottom: 1px solid var(--card-border); }
+        .staff-schedule-body { padding: 0.75rem; }
+        .day-schedule { display: grid; grid-template-columns: 100px 1fr; gap: 0.75rem; padding: 0.75rem 0; border-bottom: 1px solid var(--card-border); }
+        .day-schedule:last-child { border-bottom: none; }
+        .day-label { font-weight: 600; color: var(--text-secondary); padding-top: 0.4rem; font-size: 0.7rem; }
+        .day-appointments { display: flex; flex-direction: column; gap: 0.4rem; }
+        .appointment-card { display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 0.75rem; background: var(--primary-dark); border: 1px solid var(--card-border); border-radius: 4px; border-left: 3px solid var(--accent-gold); }
+        .appointment-time { font-weight: 600; color: var(--accent-gold); min-width: 100px; font-size: 0.7rem; }
+        .appointment-details { flex: 1; margin: 0 0.75rem; }
+        .appointment-customer { font-weight: 600; color: var(--text-primary); font-size: 0.75rem; }
+        .appointment-service { font-size: 0.65rem; color: var(--text-secondary); }
+        .appointment-status { min-width: 85px; text-align: right; }
+        .no-appointments { padding: 1.5rem; text-align: center; color: var(--text-muted); font-size: 0.75rem; }
+
+        /* Loading */
+        .loading-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2.5rem 1rem; }
+        .loading-spinner { width: 30px; height: 30px; border: 2px solid var(--card-border); border-top-color: var(--accent-gold); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 0.65rem; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-text { color: var(--text-secondary); font-size: 0.75rem; }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: var(--primary-dark); }
+        ::-webkit-scrollbar-thumb { background: var(--card-border); border-radius: 2px; }
+
+        @media (max-width: 768px) {
+            .day-schedule { grid-template-columns: 1fr; }
+            .day-label { font-size: 0.7rem; margin-bottom: 0.4rem; }
+            .appointment-card { flex-direction: column; align-items: flex-start; gap: 0.4rem; }
+            .appointment-status { text-align: left; }
+            .sidebar { transform: translateX(-100%); transition: transform 0.3s; }
+            .sidebar.open { transform: translateX(0); }
+            .main-content { margin-left: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-wrapper">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">Elite Salon</div>
+                <div class="sidebar-user">
+                    <div class="sidebar-user-info">
+                        <div class="user-avatar" id="userAvatar">A</div>
+                        <div class="user-details">
+                            <div class="user-name" id="userName">Admin</div>
+                            <div class="user-role" id="userRole">Administrator</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Main Menu</div>
+                    <a href="dashboard.html" class="nav-item">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="appointments.html" class="nav-item">
+                        <i class="fas fa-calendar-check"></i>
+                        <span>Appointments</span>
+                    </a>
+                    <a href="customers.html" class="nav-item">
+                        <i class="fas fa-users"></i>
+                        <span>Customers</span>
+                    </a>
+                    <a href="staff.html" class="nav-item">
+                        <i class="fas fa-user-tie"></i>
+                        <span>Staff</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Services</div>
+                    <a href="services.html" class="nav-item">
+                        <i class="fas fa-cut"></i>
+                        <span>Services</span>
+                    </a>
+                    <a href="package.html" class="nav-item">
+                        <i class="fas fa-gift"></i>
+                        <span>Packages</span>
+                    </a>
+                    <a href="inventory.html" class="nav-item">
+                        <i class="fas fa-boxes"></i>
+                        <span>Inventory</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Financial</div>
+                    <a href="payments.html" class="nav-item">
+                        <i class="fas fa-credit-card"></i>
+                        <span>Payments</span>
+                    </a>
+                    <a href="schedules.html" class="nav-item active">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>Schedules</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">System</div>
+                    <a href="settings.html" class="nav-item">
+                        <i class="fas fa-cog"></i>
+                        <span>Settings</span>
+                    </a>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <button class="logout-btn" onclick="handleLogout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </button>
+            </div>
+        </aside>
+
+        <div class="main-content">
+            <!-- Top Header -->
+            <header class="dashboard-header">
+                <div class="page-title-mini">
+                    <div class="page-icon-mini">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <div>
+                        <h1>Staff Schedules</h1>
+                        <p>View and manage staff appointments</p>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-secondary btn-sm" onclick="goToToday()">
+                        <i class="fas fa-calendar-day"></i> Today
+                    </button>
+                </div>
+            </header>
+
+            <!-- Dashboard Main -->
+            <div class="dashboard-main">
+                <div id="loadingState" class="loading-state">
+                    <div class="loading-spinner"></div>
+                    <p class="loading-text">Loading schedules...</p>
+                </div>
+
+                <div class="content-card" id="schedulesContent" style="display:none;">
+                    <div class="card-header-mini">
+                        <div class="card-title-mini">
+                            <i class="fas fa-calendar-week"></i>
+                            <span>Weekly Schedule</span>
+                        </div>
+                        <div class="week-nav">
+                            <button class="btn btn-secondary btn-sm" onclick="changeWeek(-1)">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <span id="weekRange" style="font-weight:600;color:var(--text-primary);font-size:0.7rem;"></span>
+                            <button class="btn btn-secondary btn-sm" onclick="changeWeek(1)">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="card-body-mini">
+                        <!-- Staff Filter -->
+                        <div class="staff-filter" id="staffFilter"></div>
+
+                        <!-- Schedule Grid -->
+                        <div class="schedule-grid" id="scheduleGrid"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/core-api.js"></script>
+    <script src="../js/auth-api.js"></script>
+    <script src="../js/appointments-api.js"></script>
+    <script src="../js/staff-api-module.js"></script>
+    <script>
+        let staffList = [];
+        let appointments = [];
+        let currentWeekStart = getMonday(new Date());
+        let selectedStaffId = 'all';
+
+        function handleLogout() {
+            if (confirm('Are you sure you want to logout?')) {
+                TokenManager.removeToken();
+                TokenManager.removeUser();
+                localStorage.removeItem('refresh_token');
+                // Use relative path to avoid hardcoded URL issues
+                window.location.href = '../index.html';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const user = TokenManager.getUser();
+            if (user) {
+                document.getElementById('userName').textContent = user.username || user.name || 'User';
+                document.getElementById('userRole').textContent = user.role || 'User';
+                document.getElementById('userAvatar').textContent = (user.username || user.name || 'U')[0].toUpperCase();
+            }
+            loadSchedules();
+        });
+
+        function getMonday(date) {
+            const d = new Date(date);
+            const day = d.getDay();
+            const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+            return new Date(d.setDate(diff));
+        }
+
+        function addDays(date, days) {
+            const result = new Date(date);
+            result.setDate(result.getDate() + days);
+            return result;
+        }
+
+        function formatDate(date) {
+            return date.toISOString().split('T')[0];
+        }
+
+        function formatDisplayDate(date) {
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        }
+
+        function getDayName(date) {
+            return date.toLocaleDateString('en-US', { weekday: 'short' });
+        }
+
+        function changeWeek(direction) {
+            currentWeekStart = addDays(currentWeekStart, direction * 7);
+            loadSchedules();
+        }
+
+        function goToToday() {
+            currentWeekStart = getMonday(new Date());
+            loadSchedules();
+        }
+
+        function filterByStaff(staffId) {
+            selectedStaffId = staffId;
+            document.querySelectorAll('.staff-chip').forEach(chip => {
+                chip.classList.toggle('active', chip.dataset.staffId == staffId);
+            });
+            renderSchedules();
+        }
+
+        async function loadSchedules() {
+            document.getElementById('loadingState').style.display = 'flex';
+            document.getElementById('schedulesContent').style.display = 'none';
+
+            try {
+                const staffResult = await StaffAPI.list();
+                if (staffResult.success && staffResult.data && staffResult.data.items) {
+                    staffList = staffResult.data.items.filter(s => s.status === 'ACTIVE');
+                }
+
+                const weekEnd = addDays(currentWeekStart, 6);
+                const apptResult = await AppointmentsAPI.list({
+                    start_date: formatDate(currentWeekStart),
+                    end_date: formatDate(weekEnd)
+                });
+
+                if (apptResult.success && apptResult.data && apptResult.data.items) {
+                    appointments = apptResult.data.items;
+                }
+
+                const weekEndDisplay = addDays(currentWeekStart, 6);
+                document.getElementById('weekRange').textContent =
+                    `${formatDisplayDate(currentWeekStart)} - ${formatDisplayDate(weekEndDisplay)}`;
+
+                renderStaffFilter();
+                renderSchedules();
+
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('schedulesContent').style.display = 'block';
+
+            } catch (error) {
+                console.error('Failed to load schedules:', error);
+                document.getElementById('loadingState').style.display = 'none';
+                alert('Failed to load schedules: ' + error.message);
+            }
+        }
+
+        function renderStaffFilter() {
+            const container = document.getElementById('staffFilter');
+
+            let html = `<div class="staff-chip ${selectedStaffId === 'all' ? 'active' : ''}"
+                        data-staff-id="all" onclick="filterByStaff('all')">
+                            <i class="fas fa-users"></i> All Staff
+                        </div>`;
+
+            staffList.forEach(staff => {
+                html += `<div class="staff-chip ${selectedStaffId == staff.staff_id ? 'active' : ''}"
+                          data-staff-id="${staff.staff_id}" onclick="filterByStaff(${staff.staff_id})">
+                              ${staff.name}
+                          </div>`;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function renderSchedules() {
+            const container = document.getElementById('scheduleGrid');
+            const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+            const staffToShow = selectedStaffId === 'all'
+                ? staffList
+                : staffList.filter(s => s.staff_id == selectedStaffId);
+
+            if (staffToShow.length === 0) {
+                container.innerHTML = '<div class="no-appointments">No active staff found</div>';
+                return;
+            }
+
+            let html = '';
+
+            staffToShow.forEach(staff => {
+                html += `
+                    <div class="staff-schedule">
+                        <div class="staff-schedule-header">
+                            <div style="display:flex;align-items:center;gap:0.75rem;">
+                                <div class="user-avatar" style="width:32px;height:32px;font-size:0.75rem;">
+                                    ${getInitials(staff.name)}
+                                </div>
+                                <div>
+                                    <div style="font-weight:600;color:var(--text-primary);font-size:0.75rem;">${staff.name}</div>
+                                    <div style="font-size:0.65rem;color:var(--text-secondary);">${staff.specialization || 'Staff Member'}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="staff-schedule-body">
+                `;
+
+                for (let i = 0; i < 7; i++) {
+                    const currentDate = addDays(currentWeekStart, i);
+                    const dateStr = formatDate(currentDate);
+                    const dayName = days[i];
+
+                    const dayAppointments = appointments.filter(appt => {
+                        const matchesStaff = !appt.staff || appt.staff.staff_id == staff.staff_id;
+                        const matchesDate = appt.appointment_date === dateStr;
+                        return matchesStaff && matchesDate;
+                    });
+
+                    dayAppointments.sort((a, b) => (a.start_time || '').localeCompare(b.start_time || ''));
+
+                    html += `
+                        <div class="day-schedule">
+                            <div class="day-label">
+                                <div>${dayName}</div>
+                                <div style="font-size:0.65rem;font-weight:400;color:var(--text-muted);">
+                                    ${formatDisplayDate(currentDate)}
+                                </div>
+                            </div>
+                            <div class="day-appointments">
+                    `;
+
+                    if (dayAppointments.length === 0) {
+                        html += `<div class="no-appointments">
+                                    <i class="fas fa-calendar-times" style="margin-right:0.4rem;"></i>
+                                    No appointments
+                                 </div>`;
+                    } else {
+                        dayAppointments.forEach(appt => {
+                            const serviceName = appt.services && appt.services.length > 0
+                                ? appt.services.map(s => s.service_name).join(', ')
+                                : (appt.packages && appt.packages.length > 0
+                                    ? appt.packages.map(p => p.package_name).join(', ')
+                                    : 'Service');
+
+                            html += `
+                                <div class="appointment-card">
+                                    <div class="appointment-time">
+                                        <i class="fas fa-clock" style="margin-right:0.35rem;"></i>
+                                        ${appt.start_time || 'N/A'}
+                                    </div>
+                                    <div class="appointment-details">
+                                        <div class="appointment-customer">${appt.customer_name || 'Customer'}</div>
+                                        <div class="appointment-service">${serviceName}</div>
+                                    </div>
+                                    <div class="appointment-status">
+                                        <span class="status-badge ${getStatusBadgeClass(appt.status)}">
+                                            ${appt.status}
+                                        </span>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    }
+
+                    html += `
+                            </div>
+                        </div>
+                    `;
+                }
+
+                html += `
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function getInitials(name) {
+            if (!name) return '??';
+            return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+        }
+
+        function getStatusBadgeClass(status) {
+            if (!status) return 'status-pending';
+            const s = status.toLowerCase();
+            if (s === 'confirmed' || s === 'completed') return s === 'confirmed' ? 'status-confirmed' : 'status-completed';
+            if (s === 'cancelled') return 'status-cancelled';
+            return 'status-pending';
+        }
+    </script>
+</body>
+</html>

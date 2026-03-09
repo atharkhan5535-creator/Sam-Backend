@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appointments - Elite Salon Staff</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="../css/toastify.min.css">
+    <link rel="stylesheet" href="../css/main.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: var(--primary-dark); color: var(--text-primary); }
+        .dashboard-wrapper { display: flex; min-height: 100vh; }
+
+        /* Sidebar */
+        .sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 220px; background: linear-gradient(180deg, var(--primary-darker) 0%, var(--secondary-dark) 100%); border-right: 1px solid var(--card-border); display: flex; flex-direction: column; z-index: 1000; }
+        .sidebar-header { padding: 1rem; border-bottom: 1px solid var(--card-border); }
+        .sidebar-logo { font-size: 1.1rem; font-weight: 700; color: var(--text-primary); text-transform: uppercase; }
+        .sidebar-logo::before { content: '✂️'; font-size: 1.25rem; margin-right: 0.4rem; }
+        .sidebar-user { margin-top: 0.75rem; padding: 0.6rem; background: var(--card-bg); border-radius: 6px; border: 1px solid var(--card-border); }
+        .sidebar-user-info { display: flex; align-items: center; gap: 0.5rem; }
+        .user-avatar { width: 32px; height: 32px; border-radius: 6px; background: linear-gradient(135deg, var(--accent-gold), var(--accent-bronze)); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; color: var(--primary-dark); flex-shrink: 0; }
+        .user-details { flex: 1; min-width: 0; }
+        .user-name { font-weight: 600; font-size: 0.75rem; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .user-role { font-size: 0.6rem; color: var(--text-secondary); text-transform: uppercase; }
+        .sidebar-nav { padding: 0.75rem 0.5rem; flex: 1; overflow-y: auto; }
+        .nav-section-title { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.5rem; padding-left: 0.5rem; }
+        .nav-item { display: flex; align-items: center; gap: 0.6rem; padding: 0.6rem 0.65rem; margin-bottom: 0.2rem; border-radius: 6px; color: var(--text-secondary); text-decoration: none; transition: all 0.2s; font-weight: 500; font-size: 0.8rem; }
+        .nav-item:hover { background: rgba(212, 175, 55, 0.05); color: var(--text-primary); transform: translateX(3px); }
+        .nav-item.active { background: rgba(212, 175, 55, 0.1); border: 1px solid rgba(212, 175, 55, 0.3); color: var(--accent-gold); }
+        .nav-item i { width: 16px; text-align: center; font-size: 0.9rem; }
+        .sidebar-footer { padding: 0.75rem; border-top: 1px solid var(--card-border); }
+        .logout-btn { display: flex; align-items: center; justify-content: center; gap: 0.5rem; width: 100%; padding: 0.65rem; background: linear-gradient(135deg, var(--danger), #dc2626); color: white; border: none; border-radius: 6px; font-weight: 600; font-size: 0.8rem; cursor: pointer; transition: all 0.2s; }
+        .logout-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(239, 68, 68, 0.4); }
+
+        /* Main Content */
+        .main-content { margin-left: 220px; flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+        .dashboard-header { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 1rem; background: rgba(10, 14, 26, 0.95); border-bottom: 1px solid var(--card-border); height: 45px; flex-shrink: 0; }
+        .page-title-mini { display: flex; align-items: center; gap: 0.5rem; }
+        .page-icon-mini { width: 28px; height: 28px; background: linear-gradient(135deg, var(--accent-gold), var(--accent-bronze)); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; color: var(--primary-dark); }
+        .page-title-mini h1 { font-size: 0.9rem; font-weight: 700; }
+        .page-title-mini p { font-size: 0.6rem; color: var(--text-secondary); }
+
+        /* Appointments Content */
+        .dashboard-main { flex: 1; padding: 0.5rem; overflow-y: auto; display: flex; flex-direction: column; gap: 0.5rem; }
+        .content-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 6px; padding: 0.5rem; display: flex; flex-direction: column; }
+        .card-header-mini { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--card-border); }
+        .card-title-mini { display: flex; align-items: center; gap: 0.4rem; font-size: 0.7rem; font-weight: 600; color: var(--text-primary); }
+        .card-title-mini i { color: var(--accent-gold); font-size: 0.75rem; }
+        .card-body-mini { padding: 0.5rem; flex: 1; }
+
+        /* Toolbar & Filters */
+        .toolbar-mini { display: flex; gap: 0.35rem; margin-bottom: 0.5rem; flex-wrap: wrap; }
+        .search-wrapper-mini { position: relative; flex: 1; min-width: 180px; max-width: 250px; }
+        .search-input-mini { width: 100%; padding: 0.35rem 0.6rem 0.35rem 1.8rem; background: var(--primary-dark); border: 1px solid var(--card-border); border-radius: 4px; color: var(--text-primary); font-size: 0.7rem; }
+        .search-input-mini:focus { outline: none; border-color: var(--accent-gold); }
+        .search-icon-mini { position: absolute; left: 0.5rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.65rem; }
+
+        /* Compact Table */
+        .table-container { overflow-x: auto; }
+        .compact-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+        .compact-table thead th { padding: 0.4rem 0.5rem; text-align: left; font-size: 0.6rem; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); background: rgba(255, 255, 255, 0.02); border-bottom: 2px solid var(--card-border); }
+        .compact-table tbody tr { transition: all 0.2s; }
+        .compact-table tbody tr:hover { background: rgba(212, 175, 55, 0.03); }
+        .compact-table tbody td { padding: 0.5rem; border-bottom: 1px solid var(--card-border); color: var(--text-secondary); font-size: 0.7rem; vertical-align: middle; }
+        .compact-table tbody tr:last-child td { border-bottom: none; }
+        .table-avatar-mini { display: flex; align-items: center; gap: 0.4rem; }
+        .avatar-circle-mini { width: 26px; height: 26px; border-radius: 50%; background: linear-gradient(135deg, var(--accent-gold), var(--accent-bronze)); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.7rem; color: var(--primary-dark); flex-shrink: 0; }
+        .avatar-info-mini { display: flex; flex-direction: column; }
+        .avatar-name-mini { font-size: 0.7rem; color: var(--text-primary); font-weight: 500; }
+
+        /* Buttons - Compact */
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.35rem; padding: 0.4rem 0.65rem; font-family: inherit; font-size: 0.65rem; font-weight: 600; text-transform: uppercase; border: none; border-radius: 4px; cursor: pointer; transition: all 0.2s; text-decoration: none; }
+        .btn-primary { background: linear-gradient(135deg, var(--accent-gold), var(--accent-bronze)); color: var(--primary-dark); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(212, 175, 55, 0.4); }
+        .btn-secondary { background: var(--card-bg); color: var(--text-primary); border: 1px solid var(--card-border); }
+        .btn-secondary:hover { background: var(--secondary-dark); border-color: var(--accent-gold); }
+        .btn-success { background: linear-gradient(135deg, var(--success), #059669); color: white; }
+        .btn-danger { background: linear-gradient(135deg, var(--danger), #dc2626); color: white; }
+        .btn-warning { background: linear-gradient(135deg, var(--warning), #d97706); color: white; }
+        .btn-sm { padding: 0.3rem 0.5rem; font-size: 0.6rem; }
+        .btn-icon { width: 26px; height: 26px; padding: 0; border-radius: 4px; }
+        .btn-icon-sm { width: 24px; height: 24px; padding: 0; border-radius: 4px; }
+
+        /* Status Badge - Compact */
+        .status-badge { display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.2rem 0.45rem; font-size: 0.55rem; font-weight: 700; text-transform: uppercase; border-radius: 999px; }
+        .status-badge::before { content: ''; width: 4px; height: 4px; border-radius: 50%; background: currentColor; }
+        .status-pending { background: rgba(245, 158, 11, 0.1); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.3); }
+        .status-confirmed { background: rgba(59, 130, 246, 0.1); color: var(--info); border: 1px solid rgba(59, 130, 246, 0.3); }
+        .status-completed { background: rgba(16, 185, 129, 0.1); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.3); }
+        .status-cancelled { background: rgba(239, 68, 68, 0.1); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3); }
+        .status-in-progress { background: rgba(139, 92, 246, 0.1); color: #8b5cf6; border: 1px solid rgba(139, 92, 246, 0.3); }
+
+        /* Modal - Compact */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; z-index: 2000; opacity: 0; visibility: hidden; transition: all 0.3s; }
+        .modal-overlay.open { opacity: 1; visibility: visible; }
+        .modal { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 8px; width: 90%; max-width: 550px; max-height: 90vh; overflow-y: auto; transform: scale(0.9) translateY(20px); transition: transform 0.3s; }
+        .modal-overlay.open .modal { transform: scale(1) translateY(0); }
+        .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 0.6rem 0.85rem; border-bottom: 1px solid var(--card-border); }
+        .modal-title { display: flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; font-weight: 700; }
+        .modal-title i { color: var(--accent-gold); }
+        .modal-close { width: 24px; height: 24px; background: var(--primary-dark); border: 1px solid var(--card-border); border-radius: 4px; color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .modal-close:hover { background: var(--danger); border-color: var(--danger); color: white; }
+        .modal-body { padding: 0.75rem; }
+        .modal-footer { display: flex; gap: 0.4rem; justify-content: flex-end; padding: 0.6rem 0.85rem; border-top: 1px solid var(--card-border); flex-wrap: wrap; }
+        .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.6rem; }
+        .form-group { display: flex; flex-direction: column; gap: 0.25rem; }
+        .form-group.full { grid-column: 1 / -1; }
+        .form-label { font-size: 0.6rem; font-weight: 600; text-transform: uppercase; color: var(--text-secondary); }
+        .form-input, .form-select, .form-textarea { padding: 0.5rem 0.6rem; background: var(--primary-dark); border: 1px solid var(--card-border); border-radius: 4px; color: var(--text-primary); font-size: 0.75rem; font-family: inherit; }
+        .form-input:focus, .form-select:focus, .form-textarea:focus { outline: none; border-color: var(--accent-gold); }
+        .form-textarea { resize: vertical; min-height: 50px; }
+
+        /* Loading & Empty States */
+        .loading-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem 1rem; }
+        .loading-spinner { width: 28px; height: 28px; border: 2px solid var(--card-border); border-top-color: var(--accent-gold); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 0.5rem; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-text { color: var(--text-secondary); font-size: 0.7rem; }
+        .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1.5rem 1rem; text-align: center; }
+        .empty-icon { width: 40px; height: 40px; background: rgba(212, 175, 55, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; color: var(--accent-gold); margin-bottom: 0.5rem; }
+        .empty-title { font-size: 0.8rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.25rem; }
+        .empty-text { color: var(--text-secondary); font-size: 0.7rem; }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: var(--primary-dark); }
+        ::-webkit-scrollbar-thumb { background: var(--card-border); border-radius: 2px; }
+
+        /* Responsive */
+        @media (max-width: 768px) { .sidebar { transform: translateX(-100%); transition: transform 0.3s; } .sidebar.open { transform: translateX(0); } .main-content { margin-left: 0; } }
+    </style>
+</head>
+<body>
+    <div class="dashboard-wrapper">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">Elite Salon</div>
+                <div class="sidebar-user">
+                    <div class="sidebar-user-info">
+                        <div class="user-avatar" id="userAvatar">S</div>
+                        <div class="user-details">
+                            <div class="user-name" id="userName">Staff</div>
+                            <div class="user-role" id="userRole">Staff</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section"><div class="nav-section-title">Main Menu</div>
+                    <a href="dashboard.html" class="nav-item"><i class="fas fa-chart-line"></i><span>Dashboard</span></a>
+                    <a href="appointments.html" class="nav-item active"><i class="fas fa-calendar-check"></i><span>Appointments</span></a>
+                    <a href="customers.html" class="nav-item"><i class="fas fa-users"></i><span>Customers</span></a>
+                </div>
+                <div class="nav-section"><div class="nav-section-title">Services</div>
+                    <a href="services.html" class="nav-item"><i class="fas fa-cut"></i><span>Services</span></a>
+                    <a href="package.html" class="nav-item"><i class="fas fa-gift"></i><span>Packages</span></a>
+                    <a href="inventory.html" class="nav-item"><i class="fas fa-boxes"></i><span>Inventory</span></a>
+                </div>
+                <div class="nav-section"><div class="nav-section-title">My</div>
+                    <a href="schedules.html" class="nav-item"><i class="fas fa-calendar-alt"></i><span>My Schedule</span></a>
+                    <a href="profile.html" class="nav-item"><i class="fas fa-user"></i><span>Profile</span></a>
+                    <a href="my-incentives.html" class="nav-item"><i class="fas fa-trophy"></i><span>My Incentives</span></a>
+                </div>
+            </nav>
+            <div class="sidebar-footer">
+                <button class="logout-btn" onclick="handleLogout()"><i class="fas fa-sign-out-alt"></i><span>Logout</span></button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Compact Header -->
+            <header class="dashboard-header">
+                <div class="page-title-mini">
+                    <div class="page-icon-mini"><i class="fas fa-calendar-check"></i></div>
+                    <div><h1>Appointments</h1><p>Manage your appointments</p></div>
+                </div>
+            </header>
+
+            <!-- Dashboard Main -->
+            <div class="dashboard-main">
+                <!-- Loading State -->
+                <div id="loadingState" class="loading-state">
+                    <div class="loading-spinner"></div>
+                    <p class="loading-text">Loading appointments...</p>
+                </div>
+
+                <!-- Appointments Card -->
+                <div class="content-card" id="appointmentsContent" style="display:none;">
+                    <div class="card-header-mini">
+                        <div class="card-title-mini">
+                            <i class="fas fa-list"></i>
+                            <span>All Appointments</span>
+                        </div>
+                        <div style="display:flex;gap:0.5rem;">
+                            <button class="btn btn-secondary btn-sm" onclick="toggleFilters()">
+                                <i class="fas fa-filter"></i> Filters
+                            </button>
+                            <button class="btn btn-secondary btn-sm" onclick="clearFilters()">
+                                <i class="fas fa-rotate-left"></i> Clear
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="card-body-mini">
+                        <!-- Filters -->
+                        <div class="toolbar-mini" id="filterBar" style="display:none;flex-direction:column;align-items:stretch;">
+                            <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));gap:0.75rem;">
+                                <div>
+                                    <label style="display:block;font-size:0.6rem;font-weight:600;text-transform:uppercase;color:var(--text-secondary);margin-bottom:0.35rem;">Status</label>
+                                    <select id="fStatus" class="form-select" onchange="loadAppointments()">
+                                        <option value="">All Statuses</option>
+                                        <option value="PENDING">Pending</option>
+                                        <option value="CONFIRMED">Confirmed</option>
+                                        <option value="IN_PROGRESS">In Progress</option>
+                                        <option value="COMPLETED">Completed</option>
+                                        <option value="CANCELLED">Cancelled</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style="display:block;font-size:0.6rem;font-weight:600;text-transform:uppercase;color:var(--text-secondary);margin-bottom:0.35rem;">Date</label>
+                                    <input type="date" id="fDate" class="form-input" onchange="loadAppointments()">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Search -->
+                        <div class="search-wrapper-mini" style="margin-bottom:0.75rem;">
+                            <input type="text" id="searchInput" class="search-input-mini" placeholder="Search by customer name…" onkeyup="handleSearch(event)">
+                            <i class="fas fa-search search-icon-mini"></i>
+                        </div>
+
+                        <!-- Table -->
+                        <div class="table-container">
+                            <table class="compact-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width:70px;">ID</th>
+                                        <th>Customer</th>
+                                        <th style="width:130px;">Date</th>
+                                        <th style="width:90px;">Time</th>
+                                        <th>Services</th>
+                                        <th style="width:100px;">Amount</th>
+                                        <th style="width:100px;">Status</th>
+                                        <th style="width:180px;">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="apptTableBody">
+                                    <tr>
+                                        <td colspan="8" class="loading-state">
+                                            <div class="loading-spinner"></div>
+                                            <p class="loading-text">Loading appointments...</p>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div id="resultsInfo" style="padding:0.75rem;color:var(--text-secondary);font-size:0.65rem;border-top:1px solid var(--card-border);margin-top:0.5rem;"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- View Appointment Details Modal -->
+    <div class="modal-overlay" id="viewModal">
+        <div class="modal modal-lg">
+            <div class="modal-header">
+                <h2 class="modal-title"><i class="fas fa-eye"></i> Appointment Details</h2>
+                <button class="modal-close" onclick="closeModal('viewModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div id="viewModalContent">
+                    <div class="loading-state">
+                        <div class="loading-spinner"></div>
+                        <p class="loading-text">Loading details...</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" id="viewModalFooter">
+                <button class="btn btn-secondary" onclick="closeModal('viewModal')"><i class="fas fa-times"></i> Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Approve Modal -->
+    <div class="modal-overlay" id="approveModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title"><i class="fas fa-check-circle"></i> Approve Appointment</h2>
+                <button class="modal-close" onclick="closeModal('approveModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:1rem;">Are you sure you want to approve this appointment?</p>
+                <div id="approveAppointmentInfo" style="padding:0.75rem;background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.3);border-radius:var(--radius-lg);font-size:0.75rem;"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('approveModal')"><i class="fas fa-times"></i> Cancel</button>
+                <button class="btn btn-success" onclick="confirmApprove()"><i class="fas fa-check"></i> Approve</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Complete Modal -->
+    <div class="modal-overlay" id="completeModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title"><i class="fas fa-check-double"></i> Complete Appointment</h2>
+                <button class="modal-close" onclick="closeModal('completeModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:1rem;">Mark this appointment as completed?</p>
+                <div class="form-group full">
+                    <label class="form-label">Notes (Optional)</label>
+                    <textarea id="completeNotes" class="form-textarea" placeholder="Service completed successfully..." rows="3"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('completeModal')"><i class="fas fa-times"></i> Cancel</button>
+                <button class="btn btn-success" onclick="confirmComplete()"><i class="fas fa-check"></i> Complete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cancel Modal -->
+    <div class="modal-overlay" id="cancelModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title"><i class="fas fa-times-circle"></i> Cancel Appointment</h2>
+                <button class="modal-close" onclick="closeModal('cancelModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:1rem;">Please provide a reason for cancellation:</p>
+                <div class="form-group full">
+                    <label class="form-label">Cancellation Reason *</label>
+                    <textarea id="cancelReason" class="form-textarea" placeholder="Customer requested cancellation due to..." rows="4" required></textarea>
+                    <small id="cancelReasonError" style="color:var(--danger);display:none;">Cancellation reason is required</small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('cancelModal')"><i class="fas fa-times"></i> Cancel</button>
+                <button class="btn btn-danger" onclick="confirmCancel()"><i class="fas fa-times"></i> Cancel Appointment</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load libraries -->
+    <script src="../js/sweetalert2.min.js"></script>
+    <script src="../js/toastify.min.js"></script>
+    <script src="../js/notifications.js"></script>
+    <script src="../js/core-api.js"></script>
+    <script src="../js/auth-api.js"></script>
+    <script src="../js/appointments-api.js"></script>
+    <script src="../js/customers-api.js"></script>
+    <script src="../js/services-packages-api.js"></script>
+
+    <script>
+        let allAppointments = [];
+        let currentAppointmentId = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check authentication
+            if (!TokenManager.isAuthenticated()) {
+                window.location.href = '../login.html';
+                return;
+            }
+
+            // Check role - only STAFF can access
+            const user = TokenManager.getUser();
+            if (!user || (user.role !== USER_ROLES.STAFF && user.role !== USER_ROLES.ADMIN)) {
+                window.location.href = '../index.html';
+                return;
+            }
+
+            // Update sidebar user info
+            updateUserInfo(user);
+
+            // Set min date for filters
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('fDate').setAttribute('min', today);
+
+            // Load appointments
+            loadAppointments();
+        });
+
+        function updateUserInfo(user) {
+            document.getElementById('userName').textContent = user.username || user.name || 'User';
+            document.getElementById('userRole').textContent = user.role || 'User';
+            document.getElementById('userAvatar').textContent = (user.username || user.name || 'U')[0].toUpperCase();
+        }
+
+        async function loadAppointments() {
+            document.getElementById('loadingState').style.display = 'flex';
+            document.getElementById('appointmentsContent').style.display = 'none';
+
+            try {
+                const params = {};
+                const status = document.getElementById('fStatus').value;
+                const date = document.getElementById('fDate').value;
+
+                if (status) params.status = status;
+                if (date) params.date = date;
+
+                const result = await AppointmentsAPI.list(params);
+
+                if (result.success) {
+                    allAppointments = result.data.items || [];
+                    renderAppointments();
+                } else {
+                    showErrorToast(result.message || 'Failed to load appointments');
+                }
+            } catch (error) {
+                console.error('Error loading appointments:', error);
+                showErrorToast('Failed to load appointments: ' + error.message);
+            } finally {
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('appointmentsContent').style.display = 'flex';
+            }
+        }
+
+        function renderAppointments() {
+            const tbody = document.getElementById('apptTableBody');
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+
+            let filtered = allAppointments;
+            if (searchTerm) {
+                filtered = filtered.filter(a => 
+                    (a.customer_name && a.customer_name.toLowerCase().includes(searchTerm)) ||
+                    (a.customer_phone && a.customer_phone.includes(searchTerm))
+                );
+            }
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="empty-state">
+                            <div class="empty-icon"><i class="fas fa-calendar-times"></i></div>
+                            <h3 class="empty-title">No Appointments Found</h3>
+                            <p class="empty-text">No appointments match your criteria</p>
+                        </td>
+                    </tr>
+                `;
+                document.getElementById('resultsInfo').textContent = 'No appointments found';
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(appt => {
+                const customerName = appt.customer_name || 'Unknown';
+                const customerPhone = appt.customer_phone || '';
+                const servicesCount = (appt.services || []).length + (appt.packages || []).length;
+                const amount = appt.final_amount || appt.total_amount || 0;
+                const status = appt.status || 'PENDING';
+
+                return `
+                    <tr>
+                        <td><strong style="color:var(--text-primary);font-size:0.75rem;">#${appt.appointment_id}</strong></td>
+                        <td>
+                            <div class="table-avatar-mini">
+                                <div class="avatar-circle-mini">${customerName.charAt(0).toUpperCase()}</div>
+                                <div class="avatar-info-mini">
+                                    <span class="avatar-name-mini">${customerName}</span>
+                                    <span style="font-size:0.6rem;color:var(--text-muted);">${customerPhone}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td style="font-size:0.7rem;">${formatDate(appt.appointment_date)}</td>
+                        <td style="font-size:0.7rem;">${appt.start_time ? appt.start_time.substring(0, 5) : '-'}</td>
+                        <td style="font-size:0.7rem;">${servicesCount} item(s)</td>
+                        <td><strong style="color:var(--accent-gold);font-size:0.7rem;">₹${amount.toLocaleString('en-IN')}</strong></td>
+                        <td>${getStatusBadge(status)}</td>
+                        <td>
+                            <div style="display:flex;gap:0.3rem;flex-wrap:wrap;">
+                                <button class="btn btn-secondary btn-icon-sm" onclick="viewAppointment(${appt.appointment_id})" title="View"><i class="fas fa-eye"></i></button>
+                                ${status === 'PENDING' ? `<button class="btn btn-success btn-icon-sm" onclick="openApproveModal(${appt.appointment_id})" title="Approve"><i class="fas fa-check"></i></button>` : ''}
+                                ${status === 'CONFIRMED' ? `<button class="btn btn-success btn-icon-sm" onclick="openCompleteModal(${appt.appointment_id})" title="Complete"><i class="fas fa-check-double"></i></button>` : ''}
+                                ${['PENDING', 'CONFIRMED'].includes(status) ? `<button class="btn btn-danger btn-icon-sm" onclick="openCancelModal(${appt.appointment_id})" title="Cancel"><i class="fas fa-times"></i></button>` : ''}
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            document.getElementById('resultsInfo').textContent = `Showing ${filtered.length} of ${allAppointments.length} appointment(s)`;
+        }
+
+        function getStatusBadge(status) {
+            const statusMap = {
+                'PENDING': 'status-pending',
+                'CONFIRMED': 'status-confirmed',
+                'IN_PROGRESS': 'status-in-progress',
+                'COMPLETED': 'status-completed',
+                'CANCELLED': 'status-cancelled'
+            };
+            const className = statusMap[status] || 'status-pending';
+            return `<span class="status-badge ${className}">${status}</span>`;
+        }
+
+        function toggleFilters() {
+            const filterBar = document.getElementById('filterBar');
+            filterBar.style.display = filterBar.style.display === 'none' ? 'flex' : 'none';
+        }
+
+        function clearFilters() {
+            document.getElementById('fStatus').value = '';
+            document.getElementById('fDate').value = '';
+            document.getElementById('searchInput').value = '';
+            loadAppointments();
+        }
+
+        function handleSearch(event) {
+            if (event.key === 'Enter' || event.type === 'keyup') {
+                renderAppointments();
+            }
+        }
+
+        async function viewAppointment(appointmentId) {
+            currentAppointmentId = appointmentId;
+            openModal('viewModal');
+
+            try {
+                const result = await AppointmentsAPI.view(appointmentId);
+                if (result.success) {
+                    renderAppointmentDetails(result.data);
+                } else {
+                    document.getElementById('viewModalContent').innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon"><i class="fas fa-exclamation-circle"></i></div>
+                            <h3 class="empty-title">Error</h3>
+                            <p class="empty-text">${result.message}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                document.getElementById('viewModalContent').innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon"><i class="fas fa-exclamation-circle"></i></div>
+                        <h3 class="empty-title">Error</h3>
+                        <p class="empty-text">Failed to load appointment details</p>
+                    </div>
+                `;
+            }
+        }
+
+        function renderAppointmentDetails(appt) {
+            const services = appt.services || [];
+            const packages = appt.packages || [];
+            const status = appt.status || 'PENDING';
+
+            let actionButtons = '';
+            if (status === 'PENDING') {
+                actionButtons = `
+                    <button class="btn btn-success btn-sm" onclick="closeModal('viewModal'); openApproveModal(${appt.appointment_id})">
+                        <i class="fas fa-check"></i> Approve
+                    </button>
+                    <button class="btn btn-danger btn-sm" onclick="closeModal('viewModal'); openCancelModal(${appt.appointment_id})">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                `;
+            } else if (status === 'CONFIRMED') {
+                actionButtons = `
+                    <button class="btn btn-success btn-sm" onclick="closeModal('viewModal'); openCompleteModal(${appt.appointment_id})">
+                        <i class="fas fa-check-double"></i> Complete
+                    </button>
+                    <button class="btn btn-danger btn-sm" onclick="closeModal('viewModal'); openCancelModal(${appt.appointment_id})">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                `;
+            }
+
+            document.getElementById('viewModalContent').innerHTML = `
+                <div style="display:grid;gap:1rem;">
+                    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:0.75rem;">
+                        <div style="padding:0.75rem;background:rgba(255,255,255,0.02);border-radius:var(--radius-lg);">
+                            <div style="font-size:0.6rem;color:var(--text-secondary);text-transform:uppercase;margin-bottom:0.25rem;">Appointment ID</div>
+                            <div style="font-size:0.85rem;font-weight:600;color:var(--text-primary);">#${appt.appointment_id}</div>
+                        </div>
+                        <div style="padding:0.75rem;background:rgba(255,255,255,0.02);border-radius:var(--radius-lg);">
+                            <div style="font-size:0.6rem;color:var(--text-secondary);text-transform:uppercase;margin-bottom:0.25rem;">Status</div>
+                            <div>${getStatusBadge(status)}</div>
+                        </div>
+                        <div style="padding:0.75rem;background:rgba(255,255,255,0.02);border-radius:var(--radius-lg);">
+                            <div style="font-size:0.6rem;color:var(--text-secondary);text-transform:uppercase;margin-bottom:0.25rem;">Customer</div>
+                            <div style="font-size:0.85rem;font-weight:600;color:var(--text-primary);">${appt.customer_name || 'N/A'}</div>
+                            <div style="font-size:0.7rem;color:var(--text-muted);">${appt.customer_phone || ''}</div>
+                        </div>
+                        <div style="padding:0.75rem;background:rgba(255,255,255,0.02);border-radius:var(--radius-lg);">
+                            <div style="font-size:0.6rem;color:var(--text-secondary);text-transform:uppercase;margin-bottom:0.25rem;">Date & Time</div>
+                            <div style="font-size:0.85rem;font-weight:600;color:var(--text-primary);">${formatDate(appt.appointment_date)}</div>
+                            <div style="font-size:0.7rem;color:var(--text-muted);">${appt.start_time ? appt.start_time.substring(0, 5) : '-'} - ${appt.end_time ? appt.end_time.substring(0, 5) : '-'}</div>
+                        </div>
+                    </div>
+
+                    ${services.length > 0 ? `
+                        <div>
+                            <div style="font-size:0.65rem;font-weight:600;text-transform:uppercase;color:var(--text-secondary);margin-bottom:0.5rem;">Services</div>
+                            <div style="display:flex;flex-direction:column;gap:0.4rem;">
+                                ${services.map(s => `
+                                    <div style="display:flex;justify-content:space-between;padding:0.5rem;background:rgba(255,255,255,0.02);border-radius:var(--radius-lg);font-size:0.75rem;">
+                                        <span style="color:var(--text-primary);">${s.service_name || 'Service'}</span>
+                                        <span style="color:var(--accent-gold);font-weight:600;">₹${(s.final_price || s.service_price || 0).toLocaleString('en-IN')}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+
+                    ${packages.length > 0 ? `
+                        <div>
+                            <div style="font-size:0.65rem;font-weight:600;text-transform:uppercase;color:var(--text-secondary);margin-bottom:0.5rem;">Packages</div>
+                            <div style="display:flex;flex-direction:column;gap:0.4rem;">
+                                ${packages.map(p => `
+                                    <div style="display:flex;justify-content:space-between;padding:0.5rem;background:rgba(255,255,255,0.02);border-radius:var(--radius-lg);font-size:0.75rem;">
+                                        <span style="color:var(--text-primary);">${p.package_name || 'Package'}</span>
+                                        <span style="color:var(--accent-gold);font-weight:600;">₹${(p.final_price || p.package_price || 0).toLocaleString('en-IN')}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+
+                    <div style="padding:0.75rem;background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.3);border-radius:var(--radius-lg);">
+                        <div style="display:flex;justify-content:space-between;align-items:center;">
+                            <span style="font-size:0.75rem;font-weight:600;color:var(--text-primary);">Total Amount</span>
+                            <span style="font-size:1.1rem;font-weight:700;color:var(--accent-gold);">₹${(appt.final_amount || appt.total_amount || 0).toLocaleString('en-IN')}</span>
+                        </div>
+                    </div>
+
+                    ${appt.notes ? `
+                        <div style="padding:0.75rem;background:rgba(255,255,255,0.02);border-radius:var(--radius-lg);">
+                            <div style="font-size:0.65rem;font-weight:600;text-transform:uppercase;color:var(--text-secondary);margin-bottom:0.25rem;">Notes</div>
+                            <div style="font-size:0.75rem;color:var(--text-primary);">${appt.notes}</div>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+
+            if (actionButtons) {
+                document.getElementById('viewModalFooter').innerHTML = `
+                    <button class="btn btn-secondary" onclick="closeModal('viewModal')"><i class="fas fa-times"></i> Close</button>
+                    ${actionButtons}
+                `;
+            } else {
+                document.getElementById('viewModalFooter').innerHTML = `
+                    <button class="btn btn-secondary" onclick="closeModal('viewModal')"><i class="fas fa-times"></i> Close</button>
+                `;
+            }
+        }
+
+        function openApproveModal(appointmentId) {
+            currentAppointmentId = appointmentId;
+            const appt = allAppointments.find(a => a.appointment_id === appointmentId);
+            if (appt) {
+                document.getElementById('approveAppointmentInfo').innerHTML = `
+                    <div><strong>Appointment #${appt.appointment_id}</strong></div>
+                    <div style="margin-top:0.5rem;">Customer: ${appt.customer_name || 'N/A'}</div>
+                    <div>Date: ${formatDate(appt.appointment_date)} at ${appt.start_time ? appt.start_time.substring(0, 5) : '-'}</div>
+                `;
+                openModal('approveModal');
+            }
+        }
+
+        async function confirmApprove() {
+            try {
+                const result = await AppointmentsAPI.approve(currentAppointmentId);
+                if (result.success) {
+                    showSuccess('Appointment approved successfully!');
+                    closeModal('approveModal');
+                    loadAppointments();
+                } else {
+                    showErrorToast(result.message || 'Failed to approve appointment');
+                }
+            } catch (error) {
+                showErrorToast('Failed to approve appointment: ' + error.message);
+            }
+        }
+
+        function openCompleteModal(appointmentId) {
+            currentAppointmentId = appointmentId;
+            document.getElementById('completeNotes').value = '';
+            openModal('completeModal');
+        }
+
+        async function confirmComplete() {
+            const notes = document.getElementById('completeNotes').value.trim();
+            try {
+                const result = await AppointmentsAPI.complete(currentAppointmentId, { notes: notes || undefined });
+                if (result.success) {
+                    showSuccess('Appointment marked as completed!');
+                    closeModal('completeModal');
+                    loadAppointments();
+                } else {
+                    showErrorToast(result.message || 'Failed to complete appointment');
+                }
+            } catch (error) {
+                showErrorToast('Failed to complete appointment: ' + error.message);
+            }
+        }
+
+        function openCancelModal(appointmentId) {
+            currentAppointmentId = appointmentId;
+            document.getElementById('cancelReason').value = '';
+            document.getElementById('cancelReasonError').style.display = 'none';
+            openModal('cancelModal');
+        }
+
+        async function confirmCancel() {
+            const reason = document.getElementById('cancelReason').value.trim();
+            if (!reason) {
+                document.getElementById('cancelReasonError').style.display = 'block';
+                return;
+            }
+
+            try {
+                const result = await AppointmentsAPI.cancel(currentAppointmentId, reason);
+                if (result.success) {
+                    showSuccess('Appointment cancelled successfully!');
+                    closeModal('cancelModal');
+                    loadAppointments();
+                } else {
+                    showErrorToast(result.message || 'Failed to cancel appointment');
+                }
+            } catch (error) {
+                showErrorToast('Failed to cancel appointment: ' + error.message);
+            }
+        }
+
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('open');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('open');
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return '-';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-IN', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+        }
+
+        async function handleLogout() {
+            if (confirm('Are you sure you want to logout?')) {
+                await AuthAPI.logout();
+                TokenManager.removeToken();
+                TokenManager.removeUser();
+                localStorage.removeItem('refresh_token');
+                window.location.href = '../index.html';
+            }
+        }
+    </script>
+</body>
+</html>

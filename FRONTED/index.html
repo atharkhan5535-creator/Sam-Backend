@@ -8,19 +8,45 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Italiana&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&family=Poetsen+One&display=swap" rel="stylesheet">
 
-  <title>Apex salons</title>
+  <title>SAM - Salon Appointment Management</title>
 
   <!-- Global CSS -->
   <link rel="stylesheet" href="./CSS/Base/main.css"/>
+  
+  <style>
+    .portal-links {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin-top: 30px;
+    }
+    .portal-links a {
+      display: inline-block;
+      padding: 12px 24px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: transform 0.2s;
+    }
+    .portal-links a:hover {
+      transform: translateY(-2px);
+    }
+  </style>
 </head>
 <body>
 
-  <!-- Temporary Landing -->
+  <!-- Main Content -->
   <main class="center">
     <h1>Welcome to SAM</h1>
-    <p>Customer Appointment System</p>
-    <a href="./html/signup.html" class="btn-primary" target="_self">signup</a>
-    <button>hello</button>
+    <p>Salon Appointment Management System</p>
+    
+    <div class="portal-links">
+      <a href="./SUPER_ADMIN/html/super-admin/sa-login.html">Super Admin Portal</a>
+      <a href="./ADMIN_STAFF/New folder (4)/login.html">Admin/Staff Portal</a>
+      <a href="./CUSTOMER/html/signup.html">Customer Portal</a>
+    </div>
   </main>
 
   <!-- Global JS -->

@@ -1,0 +1,116 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #6a11cb; /* Solid purple background */
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.login-box {
+  background: #fff;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0px 6px 20px rgba(0,0,0,0.15);
+  width: 350px;
+  text-align: center;
+}
+
+.logo img {
+  width: 80px;   /* adjust size as needed */
+  height: auto;
+  margin-bottom: 10px;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: bold;
+  color: #6a11cb;
+  margin-bottom: 10px;
+}
+
+.subtitle {
+  font-size: 20px;
+  margin-bottom: 5px;
+  color: #333;
+}
+
+.description {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 20px;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+label {
+  font-size: 14px;
+  margin-bottom: 5px;
+  color: #444;
+}
+
+input {
+  padding: 10px;
+  margin-bottom: 15px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+button {
+  background: linear-gradient(135deg, #6a11cb, #2575fc);
+  color: #fff;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+.note {
+  font-size: 12px;
+  color: #888;
+  margin-top: 10px;
+  text-align: center;
+}
+
+footer {
+  margin-top: 20px;
+  font-size: 12px;
+  color: #aaa;
+}
+.brand {
+  display: flex;
+  align-items: center;      /* vertically center logo + text */
+  justify-content: center;  /* keep them centered in the box */
+  margin-bottom: 15px;
+}
+
+.brand img {
+  width: 40px;   /* adjust size */
+  height: auto;
+  margin-right: 10px; /* space between logo and text */
+}
+
+.brand-name {
+  font-size: 24px;
+  font-weight: bold;
+  color: #6a11cb;
+}

@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile - Elite Salon Staff</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="../css/toastify.min.css">
+    <link rel="stylesheet" href="../css/main.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: var(--primary-dark); color: var(--text-primary); }
+        .dashboard-wrapper { display: flex; min-height: 100vh; }
+        .sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 220px; background: linear-gradient(180deg, var(--primary-darker) 0%, var(--secondary-dark) 100%); border-right: 1px solid var(--card-border); display: flex; flex-direction: column; z-index: 1000; }
+        .sidebar-header { padding: 1rem; border-bottom: 1px solid var(--card-border); }
+        .sidebar-logo { font-size: 1.1rem; font-weight: 700; color: var(--text-primary); text-transform: uppercase; }
+        .sidebar-logo::before { content: '✂️'; font-size: 1.25rem; margin-right: 0.4rem; }
+        .sidebar-user { margin-top: 0.75rem; padding: 0.6rem; background: var(--card-bg); border-radius: 6px; border: 1px solid var(--card-border); }
+        .sidebar-user-info { display: flex; align-items: center; gap: 0.5rem; }
+        .user-avatar { width: 32px; height: 32px; border-radius: 6px; background: linear-gradient(135deg, var(--accent-gold), var(--accent-bronze)); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; color: var(--primary-dark); flex-shrink: 0; }
+        .user-details { flex: 1; min-width: 0; }
+        .user-name { font-weight: 600; font-size: 0.75rem; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .user-role { font-size: 0.6rem; color: var(--text-secondary); text-transform: uppercase; }
+        .sidebar-nav { padding: 0.75rem 0.5rem; flex: 1; overflow-y: auto; }
+        .nav-section-title { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.5rem; padding-left: 0.5rem; }
+        .nav-item { display: flex; align-items: center; gap: 0.6rem; padding: 0.6rem 0.65rem; margin-bottom: 0.2rem; border-radius: 6px; color: var(--text-secondary); text-decoration: none; transition: all 0.2s; font-weight: 500; font-size: 0.8rem; }
+        .nav-item:hover { background: rgba(212, 175, 55, 0.05); color: var(--text-primary); transform: translateX(3px); }
+        .nav-item.active { background: rgba(212, 175, 55, 0.1); border: 1px solid rgba(212, 175, 55, 0.3); color: var(--accent-gold); }
+        .nav-item i { width: 16px; text-align: center; font-size: 0.9rem; }
+        .sidebar-footer { padding: 0.75rem; border-top: 1px solid var(--card-border); }
+        .logout-btn { display: flex; align-items: center; justify-content: center; gap: 0.5rem; width: 100%; padding: 0.65rem; background: linear-gradient(135deg, var(--danger), #dc2626); color: white; border: none; border-radius: 6px; font-weight: 600; font-size: 0.8rem; cursor: pointer; transition: all 0.2s; }
+        .logout-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(239, 68, 68, 0.4); }
+        .main-content { margin-left: 220px; flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+        .dashboard-header { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 1rem; background: rgba(10, 14, 26, 0.95); border-bottom: 1px solid var(--card-border); height: 45px; flex-shrink: 0; }
+        .page-title-mini { display: flex; align-items: center; gap: 0.5rem; }
+        .page-icon-mini { width: 28px; height: 28px; background: linear-gradient(135deg, var(--accent-gold), var(--accent-bronze)); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; color: var(--primary-dark); }
+        .page-title-mini h1 { font-size: 0.9rem; font-weight: 700; }
+        .page-title-mini p { font-size: 0.6rem; color: var(--text-secondary); }
+        .dashboard-main { flex: 1; padding: 0.5rem; overflow-y: auto; display: flex; flex-direction: column; gap: 0.5rem; }
+        .content-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 6px; padding: 0.75rem; }
+        .card-header-mini { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--card-border); margin: -0.75rem -0.75rem 0.75rem -0.75rem; }
+        .card-title-mini { display: flex; align-items: center; gap: 0.4rem; font-size: 0.7rem; font-weight: 600; color: var(--text-primary); }
+        .card-title-mini i { color: var(--accent-gold); font-size: 0.75rem; }
+        .profile-header { display: flex; align-items: center; gap: 1rem; padding: 1rem; background: rgba(212, 175, 55, 0.1); border: 1px solid rgba(212, 175, 55, 0.3); border-radius: var(--radius-lg); margin-bottom: 1rem; }
+        .profile-avatar { width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, var(--accent-gold), var(--accent-bronze)); display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 700; color: var(--primary-dark); flex-shrink: 0; }
+        .profile-info { flex: 1; }
+        .profile-name { font-size: 1.2rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.25rem; }
+        .profile-role { font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase; }
+        .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
+        .form-group { display: flex; flex-direction: column; gap: 0.35rem; }
+        .form-group.full { grid-column: 1 / -1; }
+        .form-label { font-size: 0.6rem; font-weight: 600; text-transform: uppercase; color: var(--text-secondary); }
+        .form-input, .form-select { padding: 0.5rem 0.65rem; background: var(--primary-dark); border: 1px solid var(--card-border); border-radius: 4px; color: var(--text-primary); font-size: 0.75rem; font-family: inherit; }
+        .form-input:focus, .form-select:focus { outline: none; border-color: var(--accent-gold); }
+        .form-input:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.35rem; padding: 0.5rem 1rem; font-family: inherit; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; border: none; border-radius: 4px; cursor: pointer; transition: all 0.2s; }
+        .btn-primary { background: linear-gradient(135deg, var(--accent-gold), var(--accent-bronze)); color: var(--primary-dark); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(212, 175, 55, 0.4); }
+        .btn-secondary { background: var(--card-bg); color: var(--text-primary); border: 1px solid var(--card-border); }
+        .btn-secondary:hover { background: var(--secondary-dark); border-color: var(--accent-gold); }
+        .info-item { padding: 0.75rem; background: rgba(255, 255, 255, 0.02); border-radius: var(--radius-lg); margin-bottom: 0.5rem; }
+        .info-label { font-size: 0.6rem; font-weight: 600; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 0.25rem; }
+        .info-value { font-size: 0.85rem; color: var(--text-primary); font-weight: 600; }
+        .loading-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem 1rem; }
+        .loading-spinner { width: 28px; height: 28px; border: 2px solid var(--card-border); border-top-color: var(--accent-gold); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 0.5rem; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-text { color: var(--text-secondary); font-size: 0.7rem; }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: var(--primary-dark); }
+        ::-webkit-scrollbar-thumb { background: var(--card-border); border-radius: 2px; }
+        @media (max-width: 768px) { .sidebar { transform: translateX(-100%); transition: transform 0.3s; } .sidebar.open { transform: translateX(0); } .main-content { margin-left: 0; } }
+    </style>
+</head>
+<body>
+    <div class="dashboard-wrapper">
+        <aside class="sidebar">
+            <div class="sidebar-header"><div class="sidebar-logo">Elite Salon</div>
+                <div class="sidebar-user"><div class="sidebar-user-info"><div class="user-avatar" id="userAvatar">S</div><div class="user-details"><div class="user-name" id="userName">Staff</div><div class="user-role" id="userRole">Staff</div></div></div></div>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section"><div class="nav-section-title">Main Menu</div>
+                    <a href="dashboard.html" class="nav-item"><i class="fas fa-chart-line"></i><span>Dashboard</span></a>
+                    <a href="appointments.html" class="nav-item"><i class="fas fa-calendar-check"></i><span>Appointments</span></a>
+                    <a href="customers.html" class="nav-item"><i class="fas fa-users"></i><span>Customers</span></a>
+                </div>
+                <div class="nav-section"><div class="nav-section-title">Services</div>
+                    <a href="services.html" class="nav-item"><i class="fas fa-cut"></i><span>Services</span></a>
+                    <a href="package.html" class="nav-item"><i class="fas fa-gift"></i><span>Packages</span></a>
+                    <a href="inventory.html" class="nav-item"><i class="fas fa-boxes"></i><span>Inventory</span></a>
+                </div>
+                <div class="nav-section"><div class="nav-section-title">My</div>
+                    <a href="schedules.html" class="nav-item"><i class="fas fa-calendar-alt"></i><span>My Schedule</span></a>
+                    <a href="profile.html" class="nav-item active"><i class="fas fa-user"></i><span>Profile</span></a>
+                    <a href="my-incentives.html" class="nav-item"><i class="fas fa-trophy"></i><span>My Incentives</span></a>
+                </div>
+            </nav>
+            <div class="sidebar-footer"><button class="logout-btn" onclick="handleLogout()"><i class="fas fa-sign-out-alt"></i><span>Logout</span></button></div>
+        </aside>
+        <main class="main-content">
+            <header class="dashboard-header">
+                <div class="page-title-mini"><div class="page-icon-mini"><i class="fas fa-user"></i></div><div><h1>My Profile</h1><p>View and edit your profile</p></div></div>
+            </header>
+            <div class="dashboard-main">
+                <div id="loadingState" class="loading-state"><div class="loading-spinner"></div><p class="loading-text">Loading profile...</p></div>
+                <div class="content-card" id="profileContent" style="display:none;">
+                    <div class="card-header-mini"><div class="card-title-mini"><i class="fas fa-user-circle"></i><span>Profile Information</span></div><button class="btn btn-primary btn-sm" onclick="toggleEdit()" id="editBtn"><i class="fas fa-edit"></i> Edit</button></div>
+                    <div class="profile-header">
+                        <div class="profile-avatar" id="profileAvatar">S</div>
+                        <div class="profile-info">
+                            <div class="profile-name" id="profileName">Staff Name</div>
+                            <div class="profile-role" id="profileRole">Staff</div>
+                        </div>
+                    </div>
+                    <form id="profileForm" onsubmit="saveProfile(event)">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label">Name *</label>
+                                <input type="text" id="pName" class="form-input" required disabled>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Email *</label>
+                                <input type="email" id="pEmail" class="form-input" required disabled>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Phone</label>
+                                <input type="tel" id="pPhone" class="form-input" disabled>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Date of Birth</label>
+                                <input type="date" id="pDob" class="form-input" disabled>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Specialization</label>
+                                <input type="text" id="pSpecialization" class="form-input" disabled>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Experience (Years)</label>
+                                <input type="number" id="pExperience" class="form-input" disabled>
+                            </div>
+                        </div>
+                        <div id="editActions" style="display:none;margin-top:1rem;display:flex;gap:0.5rem;justify-content:flex-end;">
+                            <button type="button" class="btn btn-secondary" onclick="cancelEdit()"><i class="fas fa-times"></i> Cancel</button>
+                            <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="../js/sweetalert2.min.js"></script>
+    <script src="../js/toastify.min.js"></script>
+    <script src="../js/notifications.js"></script>
+    <script src="../js/core-api.js"></script>
+    <script src="../js/auth-api.js"></script>
+    <script>
+        let originalData = {};
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!TokenManager.isAuthenticated()) { window.location.href = '../login.html'; return; }
+            const user = TokenManager.getUser();
+            if (!user || user.role !== USER_ROLES.STAFF) { window.location.href = '../index.html'; return; }
+            updateUserInfo(user);
+            loadProfile();
+        });
+        function updateUserInfo(user) {
+            document.getElementById('userName').textContent = user.username || user.name || 'User';
+            document.getElementById('userRole').textContent = user.role || 'User';
+            document.getElementById('userAvatar').textContent = (user.username || user.name || 'U')[0].toUpperCase();
+        }
+        async function loadProfile() {
+            document.getElementById('loadingState').style.display = 'flex';
+            document.getElementById('profileContent').style.display = 'none';
+            try {
+                const user = TokenManager.getUser();
+                const result = await fetch(API_BASE_URL + '/admin/staff/' + user.id, {
+                    headers: { 'Authorization': 'Bearer ' + TokenManager.getToken(), 'Content-Type': 'application/json' }
+                }).then(r => r.json());
+                if (result.status === 'success' && result.data) {
+                    const data = result.data;
+                    originalData = { name: data.name, email: data.email, phone: data.phone, date_of_birth: data.date_of_birth, specialization: data.specialization, experience_years: data.experience_years };
+                    document.getElementById('pName').value = data.name || '';
+                    document.getElementById('pEmail').value = data.email || '';
+                    document.getElementById('pPhone').value = data.phone || '';
+                    document.getElementById('pDob').value = data.date_of_birth || '';
+                    document.getElementById('pSpecialization').value = data.specialization || '';
+                    document.getElementById('pExperience').value = data.experience_years || '';
+                    document.getElementById('profileName').textContent = data.name || 'Staff';
+                    document.getElementById('profileAvatar').textContent = (data.name || 'S')[0].toUpperCase();
+                    document.getElementById('profileRole').textContent = (data.specialization || 'Staff');
+                } else { showErrorToast('Failed to load profile'); }
+            } catch (error) { console.error('Error:', error); showErrorToast('Failed: ' + error.message); }
+            finally { document.getElementById('loadingState').style.display = 'none'; document.getElementById('profileContent').style.display = 'flex'; }
+        }
+        function toggleEdit() {
+            const inputs = document.querySelectorAll('#profileForm input');
+            const isDisabled = inputs[0].disabled;
+            inputs.forEach(input => input.disabled = !isDisabled);
+            document.getElementById('editActions').style.display = isDisabled ? 'flex' : 'none';
+            document.getElementById('editBtn').style.display = isDisabled ? 'none' : 'flex';
+            if (isDisabled) {
+                document.getElementById('pName').value = originalData.name;
+                document.getElementById('pEmail').value = originalData.email;
+                document.getElementById('pPhone').value = originalData.phone;
+                document.getElementById('pDob').value = originalData.date_of_birth;
+                document.getElementById('pSpecialization').value = originalData.specialization;
+                document.getElementById('pExperience').value = originalData.experience_years;
+            }
+        }
+        function cancelEdit() { toggleEdit(); }
+        async function saveProfile(e) {
+            e.preventDefault();
+            const userData = {
+                name: document.getElementById('pName').value.trim(),
+                email: document.getElementById('pEmail').value.trim(),
+                phone: document.getElementById('pPhone').value.trim(),
+                date_of_birth: document.getElementById('pDob').value || null,
+                specialization: document.getElementById('pSpecialization').value.trim(),
+                experience_years: parseInt(document.getElementById('pExperience').value) || null
+            };
+            try {
+                const response = await fetch(API_BASE_URL + '/auth/me', {
+                    method: 'PUT',
+                    headers: { 'Authorization': 'Bearer ' + TokenManager.getToken(), 'Content-Type': 'application/json' },
+                    body: JSON.stringify(userData)
+                }).then(r => r.json());
+                if (response.status === 'success') {
+                    showSuccess('Profile updated successfully!');
+                    toggleEdit();
+                    loadProfile();
+                } else { showErrorToast(response.message || 'Update failed'); }
+            } catch (error) { showErrorToast('Failed: ' + error.message); }
+        }
+        async function handleLogout() { if (confirm('Are you sure?')) { await AuthAPI.logout(); TokenManager.removeToken(); TokenManager.removeUser(); localStorage.removeItem('refresh_token'); window.location.href = '../index.html'; } }
+    </script>
+</body>
+</html>

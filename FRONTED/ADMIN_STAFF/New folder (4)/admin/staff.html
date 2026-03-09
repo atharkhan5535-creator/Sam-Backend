@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff - Elite Salon</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <!-- Toastify CSS - LOCAL FILE -->
+    <link rel="stylesheet" href="../css/toastify.min.css">
+    <link rel="stylesheet" href="../css/main.css">
+    <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', sans-serif; background: var(--primary-dark); color: var(--text-primary); }
+    .dashboard-wrapper { display: flex; min-height: 100vh; }
+    .sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 220px; background: linear-gradient(180deg, var(--primary-darker) 0%, var(--secondary-dark) 100%); border-right: 1px solid var(--card-border); display: flex; flex-direction: column; z-index: 1000; }
+    .sidebar-header { padding: 1rem; border-bottom: 1px solid var(--card-border); }
+    .sidebar-logo { font-size: 1.1rem; font-weight: 700; color: var(--text-primary); text-transform: uppercase; }
+    .sidebar-logo::before { content: '✂️'; font-size: 1.25rem; margin-right: 0.4rem; }
+    .sidebar-user { margin-top: 0.75rem; padding: 0.6rem; background: var(--card-bg); border-radius: 6px; border: 1px solid var(--card-border); }
+    .sidebar-user-info { display: flex; align-items: center; gap: 0.5rem; }
+    .user-avatar { width: 32px; height: 32px; border-radius: 6px; background: linear-gradient(135deg, var(--accent-gold), var(--accent-bronze)); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; color: var(--primary-dark); flex-shrink: 0; }
+    .user-details { flex: 1; min-width: 0; }
+    .user-name { font-weight: 600; font-size: 0.75rem; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .user-role { font-size: 0.6rem; color: var(--text-secondary); text-transform: uppercase; }
+    .sidebar-nav { padding: 0.75rem 0.5rem; flex: 1; overflow-y: auto; }
+    .nav-section-title { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.5rem; padding-left: 0.5rem; }
+    .nav-item { display: flex; align-items: center; gap: 0.6rem; padding: 0.6rem 0.65rem; margin-bottom: 0.2rem; border-radius: 6px; color: var(--text-secondary); text-decoration: none; transition: all 0.2s; font-weight: 500; font-size: 0.8rem; }
+    .nav-item:hover { background: rgba(212, 175, 55, 0.05); color: var(--text-primary); transform: translateX(3px); }
+    .nav-item.active { background: rgba(212, 175, 55, 0.1); border: 1px solid rgba(212, 175, 55, 0.3); color: var(--accent-gold); }
+    .nav-item i { width: 16px; text-align: center; font-size: 0.9rem; }
+    .sidebar-footer { padding: 0.75rem; border-top: 1px solid var(--card-border); }
+    .logout-btn { display: flex; align-items: center; justify-content: center; gap: 0.5rem; width: 100%; padding: 0.65rem; background: linear-gradient(135deg, var(--danger), #dc2626); color: white; border: none; border-radius: 6px; font-weight: 600; font-size: 0.8rem; cursor: pointer; transition: all 0.2s; }
+    .logout-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(239, 68, 68, 0.4); }
+    .main-content { margin-left: 220px; flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+    .dashboard-header { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 1rem; background: rgba(10, 14, 26, 0.95); border-bottom: 1px solid var(--card-border); height: 45px; flex-shrink: 0; }
+    .page-title-mini { display: flex; align-items: center; gap: 0.5rem; }
+    .page-icon-mini { width: 28px; height: 28px; background: linear-gradient(135deg, var(--accent-gold), var(--accent-bronze)); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; color: var(--primary-dark); }
+    .page-title-mini h1 { font-size: 0.9rem; font-weight: 700; }
+    .page-title-mini p { font-size: 0.6rem; color: var(--text-secondary); }
+    .dashboard-main { flex: 1; padding: 0.5rem; overflow-y: auto; display: flex; flex-direction: column; gap: 0.5rem; }
+    .content-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 6px; margin-bottom: 0.5rem; }
+    .card-header-mini { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--card-border); }
+    .card-title-mini { display: flex; align-items: center; gap: 0.4rem; font-size: 0.7rem; font-weight: 600; }
+    .card-title-mini i { color: var(--accent-gold); }
+    .card-body-mini { padding: 0.5rem; }
+    .toolbar-mini { display: flex; gap: 0.4rem; margin-bottom: 0.4rem; flex-wrap: wrap; }
+    .search-wrapper-mini { position: relative; flex: 1; min-width: 200px; max-width: 300px; margin-bottom: 0.5rem; }
+    .search-input-mini { width: 100%; padding: 0.4rem 0.6rem 0.4rem 1.8rem; background: var(--primary-dark); border: 1px solid var(--card-border); border-radius: 4px; color: var(--text-primary); font-size: 0.7rem; }
+    .search-input-mini:focus { outline: none; border-color: var(--accent-gold); }
+    .search-icon-mini { position: absolute; left: 0.5rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.65rem; }
+    .table-container { overflow-x: auto; }
+    .compact-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+    .compact-table thead th { padding: 0.5rem 0.6rem; text-align: left; font-size: 0.6rem; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); background: rgba(255, 255, 255, 0.02); border-bottom: 2px solid var(--card-border); }
+    .compact-table tbody tr { transition: all 0.2s; }
+    .compact-table tbody tr:hover { background: rgba(212, 175, 55, 0.03); }
+    .compact-table tbody td { padding: 0.6rem; border-bottom: 1px solid var(--card-border); color: var(--text-secondary); font-size: 0.75rem; vertical-align: middle; }
+    .compact-table tbody tr:last-child td { border-bottom: none; }
+    .table-avatar-mini { display: flex; align-items: center; gap: 0.5rem; }
+    .avatar-circle-mini { width: 26px; height: 26px; border-radius: 50%; background: linear-gradient(135deg, var(--accent-gold), var(--accent-bronze)); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.7rem; color: var(--primary-dark); flex-shrink: 0; }
+    .avatar-name-mini { font-weight: 600; color: var(--text-primary); font-size: 0.75rem; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.35rem; padding: 0.45rem 0.75rem; font-family: inherit; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; border: none; border-radius: 4px; cursor: pointer; transition: all 0.2s; text-decoration: none; }
+    .btn-primary { background: linear-gradient(135deg, var(--accent-gold), var(--accent-bronze)); color: var(--primary-dark); }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(212, 175, 55, 0.4); }
+    .btn-secondary { background: var(--card-bg); color: var(--text-primary); border: 1px solid var(--card-border); }
+    .btn-secondary:hover { background: var(--secondary-dark); border-color: var(--accent-gold); }
+    .btn-success { background: linear-gradient(135deg, var(--success), #059669); color: white; }
+    .btn-danger { background: linear-gradient(135deg, var(--danger), #dc2626); color: white; }
+    .btn-warning { background: linear-gradient(135deg, var(--warning), #d97706); color: white; }
+    .btn-sm { padding: 0.35rem 0.55rem; font-size: 0.65rem; }
+    .btn-icon-sm { width: 24px; height: 24px; padding: 0; border-radius: 4px; }
+    .status-badge { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.2rem 0.5rem; font-size: 0.6rem; font-weight: 700; text-transform: uppercase; border-radius: 999px; }
+    .status-badge::before { content: ''; width: 4px; height: 4px; border-radius: 50%; background: currentColor; }
+    .status-active { background: rgba(16, 185, 129, 0.1); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.3); }
+    .status-inactive { background: rgba(100, 116, 139, 0.1); color: var(--text-muted); border: 1px solid rgba(100, 116, 139, 0.3); }
+    .status-pending { background: rgba(245, 158, 11, 0.1); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.3); }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; z-index: 2000; opacity: 0; visibility: hidden; transition: all 0.3s; }
+    .modal-overlay.open { opacity: 1; visibility: visible; }
+    .modal { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 8px; width: 90%; max-width: 550px; max-height: 90vh; overflow-y: auto; transform: scale(0.9) translateY(20px); transition: transform 0.3s; }
+    .modal-overlay.open .modal { transform: scale(1) translateY(0); }
+    .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 0.6rem 0.85rem; border-bottom: 1px solid var(--card-border); }
+    .modal-title { display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; font-weight: 700; }
+    .modal-title i { color: var(--accent-gold); }
+    .modal-close { width: 26px; height: 26px; background: var(--primary-dark); border: 1px solid var(--card-border); border-radius: 4px; color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; }
+    .modal-close:hover { background: var(--danger); border-color: var(--danger); color: white; }
+    .modal-body { padding: 0.85rem; }
+    .modal-footer { display: flex; gap: 0.4rem; justify-content: flex-end; padding: 0.6rem 0.85rem; border-top: 1px solid var(--card-border); flex-wrap: wrap; }
+    .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.65rem; }
+    .form-group { display: flex; flex-direction: column; gap: 0.3rem; }
+    .form-group.full { grid-column: 1 / -1; }
+    .form-label { font-size: 0.6rem; font-weight: 600; text-transform: uppercase; color: var(--text-secondary); }
+    .form-input, .form-select, .form-textarea { padding: 0.5rem 0.65rem; background: var(--primary-dark); border: 1px solid var(--card-border); border-radius: 4px; color: var(--text-primary); font-size: 0.75rem; font-family: inherit; }
+    .form-input:focus, .form-select:focus, .form-textarea:focus { outline: none; border-color: var(--accent-gold); }
+    .form-textarea { resize: vertical; min-height: 55px; }
+    .loading-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2.5rem 1rem; }
+    .loading-spinner { width: 30px; height: 30px; border: 2px solid var(--card-border); border-top-color: var(--accent-gold); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 0.65rem; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text { color: var(--text-secondary); font-size: 0.75rem; }
+    .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1.75rem 1rem; text-align: center; }
+    .empty-icon { width: 45px; height: 45px; background: rgba(212, 175, 55, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.15rem; color: var(--accent-gold); margin-bottom: 0.65rem; }
+    .empty-title { font-size: 0.85rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.3rem; }
+    .empty-text { color: var(--text-secondary); font-size: 0.75rem; }
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: var(--primary-dark); }
+    ::-webkit-scrollbar-thumb { background: var(--card-border); border-radius: 2px; }
+    @media (max-width: 768px) { .sidebar { transform: translateX(-100%); transition: transform 0.3s; } .sidebar.open { transform: translateX(0); } .main-content { margin-left: 0; } }
+    </style>
+</head>
+<body>
+    <div class="dashboard-wrapper">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">Elite Salon</div>
+                <div class="sidebar-user">
+                    <div class="sidebar-user-info">
+                        <div class="user-avatar" id="userAvatar">A</div>
+                        <div class="user-details">
+                            <div class="user-name" id="userName">Admin</div>
+                            <div class="user-role" id="userRole">Administrator</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Main Menu</div>
+                    <a href="dashboard.html" class="nav-item">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="appointments.html" class="nav-item">
+                        <i class="fas fa-calendar-check"></i>
+                        <span>Appointments</span>
+                    </a>
+                    <a href="customers.html" class="nav-item">
+                        <i class="fas fa-users"></i>
+                        <span>Customers</span>
+                    </a>
+                    <a href="staff.html" class="nav-item active">
+                        <i class="fas fa-user-tie"></i>
+                        <span>Staff</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Services</div>
+                    <a href="services.html" class="nav-item">
+                        <i class="fas fa-cut"></i>
+                        <span>Services</span>
+                    </a>
+                    <a href="package.html" class="nav-item">
+                        <i class="fas fa-gift"></i>
+                        <span>Packages</span>
+                    </a>
+                    <a href="inventory.html" class="nav-item">
+                        <i class="fas fa-boxes"></i>
+                        <span>Inventory</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Financial</div>
+                    <a href="payments.html" class="nav-item">
+                        <i class="fas fa-credit-card"></i>
+                        <span>Payments</span>
+                    </a>
+                    <a href="schedules.html" class="nav-item">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>Schedules</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">System</div>
+                    <a href="settings.html" class="nav-item">
+                        <i class="fas fa-cog"></i>
+                        <span>Settings</span>
+                    </a>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <button class="logout-btn" onclick="handleLogout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </button>
+            </div>
+        </aside>
+
+        <div class="main-content">
+            <!-- Top Header -->
+            <header class="dashboard-header">
+                <div class="page-title-mini">
+                    <div class="page-icon-mini">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
+                    <div>
+                        <h1>Staff Management</h1>
+                        <p>Manage your team members and incentives</p>
+                    </div>
+                </div>
+                <div class="header-actions" style="display:flex;gap:0.5rem;">
+                    <a href="incentives.html" class="btn btn-secondary">
+                        <i class="fas fa-trophy"></i> View All Incentives
+                    </a>
+                    <button class="btn btn-primary" onclick="openAddStaff()">
+                        <i class="fas fa-plus"></i> Add Staff
+                    </button>
+                </div>
+            </header>
+
+            <!-- Dashboard Main -->
+            <div class="dashboard-main">
+                <!-- Loading State -->
+                <div id="loadingState" class="loading-state">
+                    <div class="loading-spinner"></div>
+                    <p class="loading-text">Loading staff...</p>
+                </div>
+
+                <!-- Staff Content Card -->
+                <div class="content-card" id="staffContent" style="display:none;">
+                    <div class="card-header-mini">
+                        <div class="card-title-mini">
+                            <i class="fas fa-list"></i>
+                            <span>All Staff</span>
+                        </div>
+                        <div style="display:flex;gap:0.65rem;">
+                            <button class="btn btn-secondary btn-sm" onclick="toggleFilters()">
+                                <i class="fas fa-filter"></i> Filters
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="card-body-mini">
+                        <!-- Filters -->
+                        <div class="toolbar-mini" id="filterBar" style="display:none;flex-direction:column;align-items:stretch;">
+                            <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:0.85rem;">
+                                <div>
+                                    <label class="form-label">Role</label>
+                                    <select id="fRole" class="form-select" onchange="renderStaff()">
+                                        <option value="">All Roles</option>
+                                        <option value="ADMIN">Admin</option>
+                                        <option value="STAFF">Staff</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="form-label">Specialization</label>
+                                    <select id="fSpec" class="form-select" onchange="renderStaff()">
+                                        <option value="">All</option>
+                                        <option>Hair Stylist</option>
+                                        <option>Colorist</option>
+                                        <option>Makeup Artist</option>
+                                        <option>Manicurist</option>
+                                        <option>Esthetician</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tabs -->
+                        <div class="tabs" style="display:flex;gap:0.4rem;margin-bottom:1.25rem;border-bottom:2px solid var(--card-border);padding-bottom:0.4rem;">
+                            <button class="btn btn-secondary btn-sm active" onclick="switchTab('active',this)" style="border-radius:var(--radius-lg) var(--radius-lg) 0 0;">
+                                <i class="fas fa-check-circle"></i> Active Staff
+                            </button>
+                            <button class="btn btn-secondary btn-sm" onclick="switchTab('inactive',this)" style="border-radius:var(--radius-lg) var(--radius-lg) 0 0;">
+                                <i class="fas fa-user-slash"></i> Inactive
+                            </button>
+                        </div>
+
+                        <!-- Active Staff Table -->
+                        <div id="active-tab">
+                            <div class="table-container">
+                                <table class="compact-table">
+                                    <thead>
+                                        <tr>
+                                            <th style="width:70px;">ID</th>
+                                            <th>Staff Member</th>
+                                            <th style="width:170px;">Email</th>
+                                            <th style="width:130px;">Phone</th>
+                                            <th>Specialization</th>
+                                            <th style="width:100px;">Status</th>
+                                            <th style="width:260px;">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="activeTableBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Inactive Staff Table -->
+                        <div id="inactive-tab" style="display:none;">
+                            <div class="table-container">
+                                <table class="compact-table">
+                                    <thead>
+                                        <tr>
+                                            <th style="width:70px;">ID</th>
+                                            <th>Staff Member</th>
+                                            <th style="width:140px;">Email</th>
+                                            <th style="width:120px;">Phone</th>
+                                            <th style="width:90px;">Status</th>
+                                            <th style="width:140px;">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="inactiveTableBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div id="resultsInfo" style="padding:0.85rem;color:var(--text-secondary);font-size:0.75rem;border-top:1px solid var(--card-border);margin-top:0.85rem;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Staff Modal -->
+    <div class="modal-overlay" id="addStaffModal">
+        <div class="modal modal-lg">
+            <div class="modal-header">
+                <h2 class="modal-title"><i class="fas fa-user-plus"></i> Add Staff Member</h2>
+                <button class="modal-close" onclick="closeModal('addStaffModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Username *</label>
+                        <input type="text" id="sUsername" class="form-input" placeholder="Username">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Password *</label>
+                        <input type="password" id="sPassword" class="form-input" placeholder="Password">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Name *</label>
+                        <input type="text" id="sName" class="form-input" placeholder="Full name">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Role *</label>
+                        <select id="sRole" class="form-select">
+                            <option value="STAFF">Staff</option>
+                            <option value="ADMIN">Admin</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Phone *</label>
+                        <input type="tel" id="sPhone" class="form-input" placeholder="Phone">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email *</label>
+                        <input type="email" id="sEmail" class="form-input" placeholder="Email">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Date of Birth</label>
+                        <input type="date" id="sDob" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Date of Joining</label>
+                        <input type="date" id="sJoining" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Specialization</label>
+                        <input type="text" id="sSpecialization" class="form-input" placeholder="e.g. Hair Stylist">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Experience (Years)</label>
+                        <input type="number" id="sExp" class="form-input" placeholder="0" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Salary</label>
+                        <input type="number" id="sSalary" class="form-input" placeholder="Monthly">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Status</label>
+                        <select id="sStatus" class="form-select">
+                            <option value="ACTIVE">Active</option>
+                            <option value="INACTIVE">Inactive</option>
+                            <option value="ON_LEAVE">On Leave</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="saveStaff()"><i class="fas fa-save"></i> Save</button>
+                <button class="btn btn-secondary" onclick="closeModal('addStaffModal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Staff Detail & Incentives Modal -->
+    <div class="modal-overlay" id="staffDetailModal">
+        <div class="modal modal-lg">
+            <div class="modal-header">
+                <h2 class="modal-title"><i class="fas fa-user"></i> Staff Details</h2>
+                <button class="modal-close" onclick="closeModal('staffDetailModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body" id="staffDetailContent" style="max-height:60vh;overflow-y:auto;"></div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('staffDetailModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Incentive Modal -->
+    <div class="modal-overlay" id="createIncentiveModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title"><i class="fas fa-trophy"></i> Create Incentive</h2>
+                <button class="modal-close" onclick="closeModal('createIncentiveModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-grid">
+                    <div class="form-group full">
+                        <label class="form-label">Incentive Type *</label>
+                        <select id="incentiveType" class="form-select" onchange="updateIncentiveFields()">
+                            <option value="">Select Type</option>
+                            <option value="SERVICE_COMMISSION">Service Commission</option>
+                            <option value="BONUS">Bonus</option>
+                            <option value="TARGET_ACHIEVEMENT">Target Achievement</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Calculation Type *</label>
+                        <select id="calculationType" class="form-select" onchange="calculateIncentiveAmount()">
+                            <option value="FIXED">Fixed Amount</option>
+                            <option value="PERCENTAGE">Percentage</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Base Amount (₹)</label>
+                        <input type="number" id="baseAmount" class="form-input" placeholder="1000" min="0" step="0.01" oninput="calculateIncentiveAmount()">
+                    </div>
+                    <div class="form-group" id="percentageField" style="display:none;">
+                        <label class="form-label">Percentage Rate (%)</label>
+                        <input type="number" id="percentageRate" class="form-input" placeholder="10" min="0" max="100" step="0.1" oninput="calculateIncentiveAmount()">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Fixed Amount (₹)</label>
+                        <input type="number" id="fixedAmount" class="form-input" placeholder="500" min="0" step="0.01" oninput="calculateIncentiveAmount()">
+                    </div>
+                    <div class="form-group full">
+                        <label class="form-label">Incentive Amount (₹) *</label>
+                        <input type="number" id="incentiveAmount" class="form-input" placeholder="0" min="0" step="0.01" required>
+                        <small style="color:var(--text-muted);font-size:0.7rem;">Auto-calculated if using percentage</small>
+                    </div>
+                    <div class="form-group full">
+                        <label class="form-label">Remarks</label>
+                        <textarea id="incentiveRemarks" class="form-textarea" rows="2" placeholder="Optional notes…"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="createIncentive()"><i class="fas fa-plus"></i> Create Incentive</button>
+                <button class="btn btn-secondary" onclick="closeModal('createIncentiveModal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Process Payout Modal -->
+    <div class="modal-overlay" id="payoutModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title"><i class="fas fa-money-bill-wave"></i> Process Payout</h2>
+                <button class="modal-close" onclick="closeModal('payoutModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div id="payoutIncentiveInfo" style="background:rgba(212, 175, 55, 0.1);padding:0.85rem;border-radius:var(--radius-lg);margin-bottom:0.85rem;">
+                    <!-- Incentive info will be displayed here -->
+                </div>
+                <div class="form-grid">
+                    <div class="form-group full">
+                        <label class="form-label">Payout Amount (₹) *</label>
+                        <input type="number" id="payoutAmount" class="form-input" placeholder="0" min="0" step="0.01">
+                    </div>
+                    <div class="form-group full">
+                        <label class="form-label">Payment Mode *</label>
+                        <select id="payoutPaymentMode" class="form-select">
+                            <option value="">Select Mode</option>
+                            <option value="CASH">Cash</option>
+                            <option value="UPI">UPI</option>
+                            <option value="BANK">Bank Transfer</option>
+                            <option value="CHEQUE">Cheque</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Payout Date</label>
+                        <input type="date" id="payoutDate" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Transaction Reference</label>
+                        <input type="text" id="payoutTransactionRef" class="form-input" placeholder="TXN123456">
+                    </div>
+                    <div class="form-group full">
+                        <label class="form-label">Remarks</label>
+                        <textarea id="payoutRemarks" class="form-textarea" rows="2" placeholder="Optional notes…"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-success" onclick="processPayout()"><i class="fas fa-check"></i> Process Payout</button>
+                <button class="btn btn-secondary" onclick="closeModal('payoutModal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Staff Documents Modal -->
+    <div class="modal-overlay" id="documentsModal">
+        <div class="modal modal-lg">
+            <div class="modal-header">
+                <h2 class="modal-title"><i class="fas fa-file-alt"></i> Staff Documents - <span id="docStaffName"></span></h2>
+                <button class="modal-close" onclick="closeModal('documentsModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <!-- Upload Section -->
+                <div style="background:var(--card-bg);padding:1.25rem;border-radius:var(--radius-lg);margin-bottom:1.25rem;">
+                    <h4 style="margin-bottom:0.85rem;color:var(--text-primary);font-size:0.85rem;"><i class="fas fa-upload" style="color:var(--accent-gold);margin-right:0.4rem;"></i>Upload Document</h4>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Document Type *</label>
+                            <select id="docType" class="form-select">
+                                <option value="">Select Type</option>
+                                <option value="CERTIFICATION">Certification</option>
+                                <option value="ID">ID Proof</option>
+                                <option value="CONTRACT">Contract</option>
+                                <option value="OTHER">Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">File *</label>
+                            <input type="file" id="docFileInput" class="form-input" onchange="handleDocFileSelect(this)" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx">
+                        </div>
+                        <div class="form-group full">
+                            <label class="form-label">Selected File</label>
+                            <div id="docFileName" style="color:var(--text-secondary);font-size:0.8rem;">No file selected</div>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" onclick="uploadDocument()" style="margin-top:0.85rem;">
+                        <i class="fas fa-upload"></i> Upload
+                    </button>
+                </div>
+
+                <!-- Documents List -->
+                <div style="background:var(--card-bg);padding:1.25rem;border-radius:var(--radius-lg);">
+                    <h4 style="margin-bottom:0.85rem;color:var(--text-primary);font-size:0.85rem;"><i class="fas fa-list" style="color:var(--accent-gold);margin-right:0.4rem;"></i>Uploaded Documents</h4>
+                    <div class="table-container">
+                        <table class="compact-table">
+                            <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>File Name</th>
+                                    <th>Status</th>
+                                    <th>Uploaded Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="documentsTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('documentsModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load libraries in correct order - LOCAL FILES -->
+    <!-- 1. SweetAlert2 (for modal alerts) -->
+    <script src="../js/sweetalert2.min.js"></script>
+    <!-- 2. Toastify JS (for toast notifications) -->
+    <script src="../js/toastify.min.js"></script>
+    <!-- 3. Core API and other modules -->
+    <script src="../js/core-api.js"></script>
+    <script src="../js/auth-api.js"></script>
+    <script src="../js/utils.js"></script>
+    <!-- 4. Our notifications wrapper (uses SweetAlert2 and Toastify) -->
+    <script src="../js/notifications.js"></script>
+    <script src="../js/staff-api-module.js"></script>
+    <script>
+        let staffList = [];
+        let selectedStaffId = null;
+        let selectedIncentiveId = null;
+        let currentTab = 'active';
+
+        function handleLogout() {
+            if (confirm('Are you sure you want to logout?')) {
+                TokenManager.removeToken();
+                TokenManager.removeUser();
+                localStorage.removeItem('refresh_token');
+                // Use relative path to avoid hardcoded URL issues
+                window.location.href = '../index.html';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const user = TokenManager.getUser();
+            if (user) {
+                document.getElementById('userName').textContent = user.username || user.name || 'User';
+                document.getElementById('userRole').textContent = user.role || 'User';
+                document.getElementById('userAvatar').textContent = (user.username || user.name || 'U')[0].toUpperCase();
+            }
+            loadStaff();
+        });
+
+        async function loadStaff() {
+            document.getElementById('loadingState').style.display = 'flex';
+            document.getElementById('staffContent').style.display = 'none';
+            try {
+                const result = await StaffAPI.list();
+                if (result.success && result.data && result.data.items) {
+                    staffList = result.data.items;
+                    renderStaff();
+                    document.getElementById('loadingState').style.display = 'none';
+                    document.getElementById('staffContent').style.display = 'block';
+                }
+            } catch (error) {
+                document.getElementById('loadingState').style.display = 'none';
+                showErrorToast('Failed to load staff: ' + error.message);
+            }
+        }
+
+        function renderStaff() {
+            const roleFilter = document.getElementById('fRole').value;
+            const specFilter = document.getElementById('fSpec').value;
+
+            let active = staffList.filter(s => s.status === 'ACTIVE');
+            let inactive = staffList.filter(s => s.status !== 'ACTIVE');
+
+            // Apply filters
+            if (roleFilter) {
+                active = active.filter(s => s.role === roleFilter);
+                inactive = inactive.filter(s => s.role === roleFilter);
+            }
+            if (specFilter) {
+                active = active.filter(s => s.specialization === specFilter);
+                inactive = inactive.filter(s => s.specialization === specFilter);
+            }
+
+            // Render active staff
+            document.getElementById('activeTableBody').innerHTML = active.length ? active.map(s => `
+                <tr>
+                    <td><strong style="color:var(--accent-gold);">#${s.staff_id}</strong></td>
+                    <td>
+                        <div class="table-avatar-mini">
+                            <div class="avatar-circle-mini">${getInitials(s.name)}</div>
+                            <div class="avatar-info">
+                                <span class="avatar-name-mini">${s.name}</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td style="color:var(--text-secondary);font-size:0.75rem;">${s.email || 'N/A'}</td>
+                    <td style="color:var(--text-secondary);">${s.phone || 'N/A'}</td>
+                    <td style="color:var(--text-secondary);">${s.specialization || '-'}</td>
+                    <td><span class="status-badge status-active">${s.status}</span></td>
+                    <td>
+                        <div style="display:flex;gap:0.4rem;align-items:center;">
+                            <button class="btn btn-primary btn-sm" onclick="viewStaffDetail(${s.staff_id})" title="View Details">
+                                <i class="fas fa-eye"></i>
+                                <span style="margin-left:0.2rem;">View</span>
+                            </button>
+                            <button class="btn btn-secondary btn-icon-sm" onclick="openDocumentsModal(${s.staff_id}, '${s.name}')" title="Documents">
+                                <i class="fas fa-file-alt"></i>
+                            </button>
+                            <button class="btn btn-warning btn-icon-sm" onclick="openIncentiveModal(${s.staff_id})" title="Incentive">
+                                <i class="fas fa-trophy"></i>
+                            </button>
+                            <button class="btn btn-danger btn-icon-sm" onclick="toggleStatus(${s.staff_id},'INACTIVE')" title="Deactivate">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('') : '<tr><td colspan="7" class="empty-state"><div class="empty-icon"><i class="fas fa-user-tie"></i></div><h3 class="empty-title">No Active Staff</h3></td></tr>';
+
+            // Render inactive staff
+            document.getElementById('inactiveTableBody').innerHTML = inactive.length ? inactive.map(s => `
+                <tr>
+                    <td><strong style="color:var(--accent-gold);">#${s.staff_id}</strong></td>
+                    <td>
+                        <div class="table-avatar-mini">
+                            <div class="avatar-circle-mini" style="background:var(--gray-600);">${getInitials(s.name)}</div>
+                            <div class="avatar-info">
+                                <span class="avatar-name-mini">${s.name}</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td style="color:var(--text-secondary);font-size:0.75rem;">${s.email || 'N/A'}</td>
+                    <td style="color:var(--text-secondary);">${s.phone || 'N/A'}</td>
+                    <td><span class="status-badge status-inactive">${s.status}</span></td>
+                    <td>
+                        <div style="display:flex;gap:0.4rem;align-items:center;">
+                            <button class="btn btn-success btn-sm" onclick="toggleStatus(${s.staff_id},'ACTIVE')" title="Activate">
+                                <i class="fas fa-check"></i>
+                                <span style="margin-left:0.2rem;">Activate</span>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('') : '<tr><td colspan="6" class="empty-state"><div class="empty-icon"><i class="fas fa-user-slash"></i></div><h3 class="empty-title">No Inactive Staff</h3></td></tr>';
+
+            const total = active.length + inactive.length;
+            document.getElementById('resultsInfo').textContent = `Showing ${active.length} active, ${inactive.length} inactive (Total: ${total})`;
+        }
+
+        function switchTab(name, el) {
+            document.querySelectorAll('.tabs .btn').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+            document.getElementById('active-tab').style.display = name === 'active' ? 'block' : 'none';
+            document.getElementById('inactive-tab').style.display = name === 'inactive' ? 'block' : 'none';
+            currentTab = name;
+        }
+
+        function toggleFilters() {
+            const filterBar = document.getElementById('filterBar');
+            filterBar.style.display = filterBar.style.display === 'none' ? 'flex' : 'none';
+        }
+
+        function openAddStaff() {
+            document.getElementById('sJoining').value = new Date().toISOString().split('T')[0];
+            ['sUsername','sPassword','sName','sPhone','sEmail','sDob','sSpecialization','sExp','sSalary'].forEach(id => document.getElementById(id).value = '');
+            document.getElementById('sRole').value = 'STAFF';
+            document.getElementById('sStatus').value = 'ACTIVE';
+            document.getElementById('addStaffModal').classList.add('open');
+        }
+
+        async function saveStaff() {
+            const username = document.getElementById('sUsername').value.trim();
+            const password = document.getElementById('sPassword').value;
+            const name = document.getElementById('sName').value.trim();
+            const role = document.getElementById('sRole').value;
+            const phone = document.getElementById('sPhone').value.trim();
+            const email = document.getElementById('sEmail').value.trim();
+            const dob = document.getElementById('sDob').value;
+            const joining = document.getElementById('sJoining').value;
+            const specialization = document.getElementById('sSpecialization').value.trim();
+            const exp = parseInt(document.getElementById('sExp').value) || 0;
+            const salary = parseFloat(document.getElementById('sSalary').value) || 0;
+            const status = document.getElementById('sStatus').value;
+
+            // Build staff data object
+            const staffData = {
+                username: username || null,
+                password: password || null,
+                name: name || null,
+                role: role || 'STAFF',
+                phone: phone || null,
+                email: email || null,
+                date_of_birth: dob || null,
+                date_of_joining: joining || null,
+                specialization: specialization || null,
+                experience_years: exp,
+                salary: salary,
+                status: status || 'ACTIVE'
+            };
+
+            // Validate using ValidationUtils (matches backend rules)
+            const validation = ValidationUtils.validateStaffData(staffData, false);
+            if (!validation.valid) {
+                showValidationErrors(validation.errors);
+                return;
+            }
+
+            try {
+                const result = await StaffAPI.create(staffData);
+                if (result.success) {
+                    showToast('✅ Staff member added successfully!');
+                    closeModal('addStaffModal');
+                    await loadStaff();
+                } else {
+                    showError('Failed to add staff', result.message || 'Unknown error');
+                }
+            } catch (error) {
+                showError('Error', error.message);
+            }
+        }
+
+        async function toggleStatus(staffId, newStatus) {
+            if (!confirm(`Are you sure you want to ${newStatus === 'ACTIVE' ? 'activate' : 'deactivate'} this staff member?`)) return;
+            try {
+                const result = await StaffAPI.toggleStatus(staffId, newStatus);
+                if (result.success) {
+                    showSuccess('Status updated successfully!');
+                    await loadStaff();
+                } else {
+                    showErrorToast(result.message || 'Failed to update status');
+                }
+            } catch (error) {
+                showErrorToast(error.message || 'Failed to update status');
+            }
+        }
+
+        async function viewStaffDetail(staffId) {
+            selectedStaffId = staffId;
+
+            // Fetch full staff details from API
+            try {
+                const result = await StaffAPI.view(staffId);
+                if (!result.success || !result.data) {
+                    showErrorToast('Failed to load staff details');
+                    return;
+                }
+
+                const staff = result.data;
+
+                document.getElementById('staffDetailContent').innerHTML = `
+                    <div style="text-align:center;margin-bottom:1.75rem;">
+                        <div class="user-avatar" style="width:70px;height:70px;font-size:2.2rem;margin:0 auto 0.85rem;">${getInitials(staff.name)}</div>
+                        <h2 style="color:var(--text-primary);margin-bottom:0.4rem;font-size:1.1rem;">${staff.name}</h2>
+                        <span class="status-badge ${staff.status === 'ACTIVE' ? 'status-active' : 'status-inactive'}">${staff.status}</span>
+                    </div>
+
+                    <div style="display:grid;grid-template-columns:repeat(2, 1fr);gap:1.25rem;">
+                        <div style="padding:0.85rem;background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius-lg);">
+                            <div style="font-size:0.65rem;font-weight:600;text-transform:uppercase;color:var(--text-secondary);margin-bottom:0.4rem;">Role</div>
+                            <div style="font-size:1rem;font-weight:600;color:var(--text-primary);">${staff.role || 'STAFF'}</div>
+                        </div>
+                        <div style="padding:0.85rem;background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius-lg);">
+                            <div style="font-size:0.65rem;font-weight:600;text-transform:uppercase;color:var(--text-secondary);margin-bottom:0.4rem;">Email</div>
+                            <div style="font-size:1rem;font-weight:600;color:var(--text-primary);">${staff.email || 'N/A'}</div>
+                        </div>
+                        <div style="padding:0.85rem;background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius-lg);">
+                            <div style="font-size:0.65rem;font-weight:600;text-transform:uppercase;color:var(--text-secondary);margin-bottom:0.4rem;">Phone</div>
+                            <div style="font-size:1rem;font-weight:600;color:var(--text-primary);">${staff.phone || 'N/A'}</div>
+                        </div>
+                        <div style="padding:0.85rem;background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius-lg);">
+                            <div style="font-size:0.65rem;font-weight:600;text-transform:uppercase;color:var(--text-secondary);margin-bottom:0.4rem;">Specialization</div>
+                            <div style="font-size:1rem;font-weight:600;color:var(--text-primary);">${staff.specialization || 'N/A'}</div>
+                        </div>
+                        <div style="padding:0.85rem;background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius-lg);">
+                            <div style="font-size:0.65rem;font-weight:600;text-transform:uppercase;color:var(--text-secondary);margin-bottom:0.4rem;">Experience</div>
+                            <div style="font-size:1rem;font-weight:600;color:var(--text-primary);">${staff.experience_years !== null && staff.experience_years !== undefined ? staff.experience_years + ' years' : 'Not specified'}</div>
+                        </div>
+                        <div style="padding:0.85rem;background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius-lg);">
+                            <div style="font-size:0.65rem;font-weight:600;text-transform:uppercase;color:var(--text-secondary);margin-bottom:0.4rem;">Salary</div>
+                            <div style="font-size:1rem;font-weight:600;color:var(--text-primary);">₹${staff.salary !== null && staff.salary !== undefined ? parseFloat(staff.salary).toLocaleString('en-IN') : 'Not specified'}</div>
+                        </div>
+                        ${staff.date_of_birth ? `<div style="padding:0.85rem;background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius-lg);">
+                            <div style="font-size:0.65rem;font-weight:600;text-transform:uppercase;color:var(--text-secondary);margin-bottom:0.4rem;">Date of Birth</div>
+                            <div style="font-size:1rem;font-weight:600;color:var(--text-primary);">${formatDate(staff.date_of_birth)}</div>
+                        </div>` : ''}
+                        ${staff.date_of_joining ? `<div style="padding:0.85rem;background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius-lg);">
+                            <div style="font-size:0.65rem;font-weight:600;text-transform:uppercase;color:var(--text-secondary);margin-bottom:0.4rem;">Date of Joining</div>
+                            <div style="font-size:1rem;font-weight:600;color:var(--text-primary);">${formatDate(staff.date_of_joining)}</div>
+                        </div>` : ''}
+                    </div>
+                `;
+                document.getElementById('staffDetailModal').classList.add('open');
+            } catch (error) {
+                showErrorToast('Error loading staff details: ' + error.message);
+            }
+        }
+
+        // ===== INCENTIVE FUNCTIONS =====
+
+        function openIncentiveModal(staffId) {
+            selectedStaffId = staffId;
+            document.getElementById('incentiveType').value = '';
+            document.getElementById('calculationType').value = 'FIXED';
+            document.getElementById('baseAmount').value = '';
+            document.getElementById('percentageRate').value = '';
+            document.getElementById('fixedAmount').value = '';
+            document.getElementById('incentiveAmount').value = '';
+            document.getElementById('incentiveRemarks').value = '';
+            updateIncentiveFields();
+            document.getElementById('createIncentiveModal').classList.add('open');
+        }
+
+        function updateIncentiveFields() {
+            const calcType = document.getElementById('calculationType').value;
+            document.getElementById('percentageField').style.display = calcType === 'PERCENTAGE' ? 'block' : 'none';
+        }
+
+        function calculateIncentiveAmount() {
+            const calcType = document.getElementById('calculationType').value;
+            const baseAmount = parseFloat(document.getElementById('baseAmount').value) || 0;
+            const percentageRate = parseFloat(document.getElementById('percentageRate').value) || 0;
+            const fixedAmount = parseFloat(document.getElementById('fixedAmount').value) || 0;
+
+            let incentiveAmount = 0;
+            if (calcType === 'PERCENTAGE' && baseAmount > 0) {
+                incentiveAmount = (baseAmount * percentageRate) / 100;
+            } else {
+                incentiveAmount = fixedAmount;
+            }
+
+            document.getElementById('incentiveAmount').value = incentiveAmount.toFixed(2);
+        }
+
+        async function createIncentive() {
+            const incentiveType = document.getElementById('incentiveType').value;
+            const calculationType = document.getElementById('calculationType').value;
+            const baseAmount = parseFloat(document.getElementById('baseAmount').value) || null;
+            const percentageRate = parseFloat(document.getElementById('percentageRate').value) || null;
+            const fixedAmount = parseFloat(document.getElementById('fixedAmount').value) || null;
+            const incentiveAmount = parseFloat(document.getElementById('incentiveAmount').value);
+            const remarks = document.getElementById('incentiveRemarks').value.trim();
+
+            // Build incentive data object
+            const incentiveData = {
+                staff_id: selectedStaffId,
+                incentive_type: incentiveType,
+                calculation_type: calculationType,
+                base_amount: baseAmount,
+                percentage_rate: percentageRate,
+                fixed_amount: fixedAmount,
+                incentive_amount: incentiveAmount,
+                remarks: remarks || null,
+                status: 'PENDING'
+            };
+
+            // Validate using ValidationUtils (matches backend rules)
+            const validation = ValidationUtils.validateIncentiveData(incentiveData);
+            if (!validation.valid) {
+                showValidationErrors(validation.errors);
+                return;
+            }
+
+            try {
+                const result = await StaffAPI.createIncentive(incentiveData);
+                if (result.success) {
+                    showToast('✅ Incentive created successfully!');
+                    closeModal('createIncentiveModal');
+                    setTimeout(() => loadStaffIncentives(selectedStaffId), 500);
+                } else {
+                    showError('Failed to create incentive', result.message || 'Unknown error');
+                }
+            } catch (error) {
+                showError('Error', error.message);
+            }
+        }
+
+        function openPayoutModal(incentiveId) {
+            selectedIncentiveId = incentiveId;
+            document.getElementById('payoutAmount').value = '';
+            document.getElementById('payoutPaymentMode').value = '';
+            document.getElementById('payoutDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('payoutTransactionRef').value = '';
+            document.getElementById('payoutRemarks').value = '';
+            document.getElementById('payoutModal').classList.add('open');
+        }
+
+        async function processPayout() {
+            const payoutAmount = parseFloat(document.getElementById('payoutAmount').value);
+            const paymentMode = document.getElementById('payoutPaymentMode').value;
+            const payoutDate = document.getElementById('payoutDate').value;
+            const transactionReference = document.getElementById('payoutTransactionRef').value.trim();
+            const remarks = document.getElementById('payoutRemarks').value.trim();
+
+            // Build payout data object
+            const payoutData = {
+                payout_amount: payoutAmount,
+                payment_mode: paymentMode,
+                payout_date: payoutDate,
+                transaction_reference: transactionReference || null,
+                remarks: remarks || null
+            };
+
+            // Validate using ValidationUtils (matches backend rules)
+            const validation = ValidationUtils.validatePayoutData(payoutData);
+            if (!validation.valid) {
+                showValidationErrors(validation.errors);
+                return;
+            }
+
+            try {
+                const result = await StaffAPI.processPayout(selectedIncentiveId, payoutData);
+                if (result.success) {
+                    showToast('✅ Payout processed successfully!');
+                    closeModal('payoutModal');
+                    setTimeout(() => loadStaffIncentives(selectedStaffId), 500);
+                } else {
+                    showError('Failed to process payout', result.message || 'Unknown error');
+                }
+            } catch (error) {
+                showError('Error', error.message);
+            }
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('open');
+        }
+
+        function getInitials(name) {
+            if (!name) return '??';
+            return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+        }
+
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal-overlay')) {
+                closeModal(event.target.id);
+            }
+        };
+
+        // ===== STAFF DOCUMENTS FUNCTIONS =====
+        let currentStaffId = null;
+        let staffDocuments = [];
+
+        function openDocumentsModal(staffId, staffName) {
+            currentStaffId = staffId;
+            document.getElementById('docStaffName').textContent = staffName;
+            document.getElementById('docFileInput').value = '';
+            document.getElementById('docType').value = '';
+            document.getElementById('docFileName').textContent = '';
+            loadStaffDocuments(staffId);
+            document.getElementById('documentsModal').classList.add('open');
+        }
+
+        async function loadStaffDocuments(staffId) {
+            try {
+                const result = await StaffAPI.getDocuments(staffId);
+                if (result.success && result.data) {
+                    staffDocuments = result.data.documents || result.data || [];
+                    renderDocuments();
+                }
+            } catch (error) {
+                console.error('Failed to load documents:', error);
+            }
+        }
+
+        function renderDocuments() {
+            const tbody = document.getElementById('documentsTableBody');
+            if (!staffDocuments.length) {
+                tbody.innerHTML = '<tr><td colspan="5" class="empty-state"><div class="empty-icon"><i class="fas fa-file-alt"></i></div><h3 class="empty-title">No Documents</h3></td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = staffDocuments.map(doc => {
+                const icon = doc.document_type === 'CERTIFICATION' ? 'fa-certificate' : (doc.document_type === 'ID' ? 'fa-id-card' : 'fa-file');
+                const verifiedClass = doc.verified ? 'status-active' : 'status-pending';
+                return `<tr>
+                    <td><i class="fas ${icon}" style="color:var(--accent-gold);margin-right:0.4rem;"></i>${doc.document_type}</td>
+                    <td style="color:var(--text-secondary);">${doc.file_name}</td>
+                    <td><span class="status-badge ${verifiedClass}">${doc.verified ? 'Verified' : 'Pending'}</span></td>
+                    <td style="color:var(--text-secondary);font-size:0.75rem;">${formatDate(doc.uploaded_at)}</td>
+                    <td>
+                        <button class="btn btn-primary btn-sm" onclick="viewDocument('${doc.document_url}')" title="View"><i class="fas fa-eye"></i></button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteDocument(${doc.document_id})" title="Delete"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+        function handleDocFileSelect(input) {
+            const file = input.files[0];
+            if (file) {
+                document.getElementById('docFileName').textContent = file.name;
+            }
+        }
+
+        async function uploadDocument() {
+            const fileInput = document.getElementById('docFileInput');
+            const docType = document.getElementById('docType').value;
+
+            if (!fileInput.files[0]) {
+                showErrorToast('Please select a file');
+                return;
+            }
+            if (!docType) {
+                showErrorToast('Please select document type');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('document', fileInput.files[0]);
+            formData.append('document_type', docType);
+
+            try {
+                const result = await StaffAPI.uploadDocument(currentStaffId, formData);
+                if (result.success) {
+                    showSuccess('Document uploaded successfully!');
+                    document.getElementById('docFileInput').value = '';
+                    document.getElementById('docType').value = '';
+                    document.getElementById('docFileName').textContent = '';
+                    loadStaffDocuments(currentStaffId);
+                } else {
+                    showErrorToast('Failed: ' + (result.message || 'Unknown error'));
+                }
+            } catch (error) {
+                showErrorToast('Error: ' + error.message);
+            }
+        }
+
+        async function deleteDocument(docId) {
+            if (!confirm('Are you sure you want to delete this document?')) return;
+
+            try {
+                const result = await StaffAPI.deleteDocument(currentStaffId, docId);
+                if (result.success) {
+                    showSuccess('Document deleted successfully!');
+                    loadStaffDocuments(currentStaffId);
+                } else {
+                    showErrorToast('Failed: ' + (result.message || 'Unknown error'));
+                }
+            } catch (error) {
+                showErrorToast('Error: ' + error.message);
+            }
+        }
+
+        function viewDocument(url) {
+            if (url) {
+                window.open(url, '_blank');
+            } else {
+                showErrorToast('Document URL not available');
+            }
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
+        }
+    </script>
+</body>
+</html>

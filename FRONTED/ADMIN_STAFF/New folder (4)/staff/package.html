@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Packages - Elite Salon Staff</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="../css/toastify.min.css">
+    <link rel="stylesheet" href="../css/main.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: var(--primary-dark); color: var(--text-primary); }
+        .dashboard-wrapper { display: flex; min-height: 100vh; }
+        .sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 220px; background: linear-gradient(180deg, var(--primary-darker) 0%, var(--secondary-dark) 100%); border-right: 1px solid var(--card-border); display: flex; flex-direction: column; z-index: 1000; }
+        .sidebar-header { padding: 1rem; border-bottom: 1px solid var(--card-border); }
+        .sidebar-logo { font-size: 1.1rem; font-weight: 700; color: var(--text-primary); text-transform: uppercase; }
+        .sidebar-logo::before { content: '✂️'; font-size: 1.25rem; margin-right: 0.4rem; }
+        .sidebar-user { margin-top: 0.75rem; padding: 0.6rem; background: var(--card-bg); border-radius: 6px; border: 1px solid var(--card-border); }
+        .sidebar-user-info { display: flex; align-items: center; gap: 0.5rem; }
+        .user-avatar { width: 32px; height: 32px; border-radius: 6px; background: linear-gradient(135deg, var(--accent-gold), var(--accent-bronze)); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; color: var(--primary-dark); flex-shrink: 0; }
+        .user-details { flex: 1; min-width: 0; }
+        .user-name { font-weight: 600; font-size: 0.75rem; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .user-role { font-size: 0.6rem; color: var(--text-secondary); text-transform: uppercase; }
+        .sidebar-nav { padding: 0.75rem 0.5rem; flex: 1; overflow-y: auto; }
+        .nav-section-title { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.5rem; padding-left: 0.5rem; }
+        .nav-item { display: flex; align-items: center; gap: 0.6rem; padding: 0.6rem 0.65rem; margin-bottom: 0.2rem; border-radius: 6px; color: var(--text-secondary); text-decoration: none; transition: all 0.2s; font-weight: 500; font-size: 0.8rem; }
+        .nav-item:hover { background: rgba(212, 175, 55, 0.05); color: var(--text-primary); transform: translateX(3px); }
+        .nav-item.active { background: rgba(212, 175, 55, 0.1); border: 1px solid rgba(212, 175, 55, 0.3); color: var(--accent-gold); }
+        .nav-item i { width: 16px; text-align: center; font-size: 0.9rem; }
+        .sidebar-footer { padding: 0.75rem; border-top: 1px solid var(--card-border); }
+        .logout-btn { display: flex; align-items: center; justify-content: center; gap: 0.5rem; width: 100%; padding: 0.65rem; background: linear-gradient(135deg, var(--danger), #dc2626); color: white; border: none; border-radius: 6px; font-weight: 600; font-size: 0.8rem; cursor: pointer; transition: all 0.2s; }
+        .logout-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(239, 68, 68, 0.4); }
+        .main-content { margin-left: 220px; flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+        .dashboard-header { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 1rem; background: rgba(10, 14, 26, 0.95); border-bottom: 1px solid var(--card-border); height: 45px; flex-shrink: 0; }
+        .page-title-mini { display: flex; align-items: center; gap: 0.5rem; }
+        .page-icon-mini { width: 28px; height: 28px; background: linear-gradient(135deg, var(--accent-gold), var(--accent-bronze)); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; color: var(--primary-dark); }
+        .page-title-mini h1 { font-size: 0.9rem; font-weight: 700; }
+        .page-title-mini p { font-size: 0.6rem; color: var(--text-secondary); }
+        .dashboard-main { flex: 1; padding: 0.5rem; overflow-y: auto; display: flex; flex-direction: column; gap: 0.5rem; }
+        .content-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 6px; padding: 0.5rem; display: flex; flex-direction: column; }
+        .card-header-mini { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--card-border); }
+        .card-title-mini { display: flex; align-items: center; gap: 0.4rem; font-size: 0.7rem; font-weight: 600; color: var(--text-primary); }
+        .card-title-mini i { color: var(--accent-gold); font-size: 0.75rem; }
+        .card-body-mini { padding: 0.5rem; flex: 1; }
+        .search-wrapper-mini { position: relative; flex: 1; min-width: 180px; max-width: 250px; margin-bottom: 0.75rem; }
+        .search-input-mini { width: 100%; padding: 0.35rem 0.6rem 0.35rem 1.8rem; background: var(--primary-dark); border: 1px solid var(--card-border); border-radius: 4px; color: var(--text-primary); font-size: 0.7rem; }
+        .search-input-mini:focus { outline: none; border-color: var(--accent-gold); }
+        .search-icon-mini { position: absolute; left: 0.5rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.65rem; }
+        .table-container { overflow-x: auto; }
+        .compact-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+        .compact-table thead th { padding: 0.4rem 0.5rem; text-align: left; font-size: 0.6rem; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); background: rgba(255, 255, 255, 0.02); border-bottom: 2px solid var(--card-border); }
+        .compact-table tbody tr { transition: all 0.2s; }
+        .compact-table tbody tr:hover { background: rgba(212, 175, 55, 0.03); }
+        .compact-table tbody td { padding: 0.5rem; border-bottom: 1px solid var(--card-border); color: var(--text-secondary); font-size: 0.7rem; vertical-align: middle; }
+        .compact-table tbody tr:last-child td { border-bottom: none; }
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.35rem; padding: 0.4rem 0.65rem; font-family: inherit; font-size: 0.65rem; font-weight: 600; text-transform: uppercase; border: none; border-radius: 4px; cursor: pointer; transition: all 0.2s; text-decoration: none; }
+        .btn-primary { background: linear-gradient(135deg, var(--accent-gold), var(--accent-bronze)); color: var(--primary-dark); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(212, 175, 55, 0.4); }
+        .btn-secondary { background: var(--card-bg); color: var(--text-primary); border: 1px solid var(--card-border); }
+        .btn-secondary:hover { background: var(--secondary-dark); border-color: var(--accent-gold); }
+        .btn-sm { padding: 0.3rem 0.5rem; font-size: 0.6rem; }
+        .btn-icon-sm { width: 24px; height: 24px; padding: 0; border-radius: 4px; }
+        .status-badge { display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.2rem 0.45rem; font-size: 0.55rem; font-weight: 700; text-transform: uppercase; border-radius: 999px; }
+        .status-badge::before { content: ''; width: 4px; height: 4px; border-radius: 50%; background: currentColor; }
+        .status-active { background: rgba(16, 185, 129, 0.1); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.3); }
+        .status-inactive { background: rgba(100, 116, 139, 0.1); color: var(--text-muted); border: 1px solid rgba(100, 116, 139, 0.3); }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; z-index: 2000; opacity: 0; visibility: hidden; transition: all 0.3s; }
+        .modal-overlay.open { opacity: 1; visibility: visible; }
+        .modal { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 8px; width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto; transform: scale(0.9) translateY(20px); transition: transform 0.3s; }
+        .modal-overlay.open .modal { transform: scale(1) translateY(0); }
+        .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 0.6rem 0.85rem; border-bottom: 1px solid var(--card-border); }
+        .modal-title { display: flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; font-weight: 700; }
+        .modal-title i { color: var(--accent-gold); }
+        .modal-close { width: 24px; height: 24px; background: var(--primary-dark); border: 1px solid var(--card-border); border-radius: 4px; color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .modal-close:hover { background: var(--danger); border-color: var(--danger); color: white; }
+        .modal-body { padding: 0.75rem; }
+        .modal-footer { display: flex; gap: 0.4rem; justify-content: flex-end; padding: 0.6rem 0.85rem; border-top: 1px solid var(--card-border); }
+        .info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem; margin-bottom: 1rem; }
+        .info-item { padding: 0.75rem; background: rgba(255, 255, 255, 0.02); border-radius: var(--radius-lg); }
+        .info-label { font-size: 0.6rem; font-weight: 600; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 0.25rem; }
+        .info-value { font-size: 0.8rem; color: var(--text-primary); font-weight: 600; }
+        .loading-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem 1rem; }
+        .loading-spinner { width: 28px; height: 28px; border: 2px solid var(--card-border); border-top-color: var(--accent-gold); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 0.5rem; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-text { color: var(--text-secondary); font-size: 0.7rem; }
+        .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1.5rem 1rem; text-align: center; }
+        .empty-icon { width: 40px; height: 40px; background: rgba(212, 175, 55, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; color: var(--accent-gold); margin-bottom: 0.5rem; }
+        .empty-title { font-size: 0.8rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.25rem; }
+        .empty-text { color: var(--text-secondary); font-size: 0.7rem; }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: var(--primary-dark); }
+        ::-webkit-scrollbar-thumb { background: var(--card-border); border-radius: 2px; }
+        @media (max-width: 768px) { .sidebar { transform: translateX(-100%); transition: transform 0.3s; } .sidebar.open { transform: translateX(0); } .main-content { margin-left: 0; } }
+    </style>
+</head>
+<body>
+    <div class="dashboard-wrapper">
+        <aside class="sidebar">
+            <div class="sidebar-header"><div class="sidebar-logo">Elite Salon</div>
+                <div class="sidebar-user"><div class="sidebar-user-info"><div class="user-avatar" id="userAvatar">S</div><div class="user-details"><div class="user-name" id="userName">Staff</div><div class="user-role" id="userRole">Staff</div></div></div></div>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section"><div class="nav-section-title">Main Menu</div>
+                    <a href="dashboard.html" class="nav-item"><i class="fas fa-chart-line"></i><span>Dashboard</span></a>
+                    <a href="appointments.html" class="nav-item"><i class="fas fa-calendar-check"></i><span>Appointments</span></a>
+                    <a href="customers.html" class="nav-item"><i class="fas fa-users"></i><span>Customers</span></a>
+                </div>
+                <div class="nav-section"><div class="nav-section-title">Services</div>
+                    <a href="services.html" class="nav-item"><i class="fas fa-cut"></i><span>Services</span></a>
+                    <a href="package.html" class="nav-item active"><i class="fas fa-gift"></i><span>Packages</span></a>
+                    <a href="inventory.html" class="nav-item"><i class="fas fa-boxes"></i><span>Inventory</span></a>
+                </div>
+                <div class="nav-section"><div class="nav-section-title">My</div>
+                    <a href="schedules.html" class="nav-item"><i class="fas fa-calendar-alt"></i><span>My Schedule</span></a>
+                    <a href="profile.html" class="nav-item"><i class="fas fa-user"></i><span>Profile</span></a>
+                    <a href="my-incentives.html" class="nav-item"><i class="fas fa-trophy"></i><span>My Incentives</span></a>
+                </div>
+            </nav>
+            <div class="sidebar-footer"><button class="logout-btn" onclick="handleLogout()"><i class="fas fa-sign-out-alt"></i><span>Logout</span></button></div>
+        </aside>
+        <main class="main-content">
+            <header class="dashboard-header">
+                <div class="page-title-mini"><div class="page-icon-mini"><i class="fas fa-gift"></i></div><div><h1>Packages</h1><p>View package catalog</p></div></div>
+            </header>
+            <div class="dashboard-main">
+                <div id="loadingState" class="loading-state"><div class="loading-spinner"></div><p class="loading-text">Loading packages...</p></div>
+                <div class="content-card" id="packagesContent" style="display:none;">
+                    <div class="card-header-mini"><div class="card-title-mini"><i class="fas fa-list"></i><span>All Packages</span></div></div>
+                    <div class="card-body-mini">
+                        <div class="search-wrapper-mini"><input type="text" id="searchInput" class="search-input-mini" placeholder="Search packages…" onkeyup="render()"><i class="fas fa-search search-icon-mini"></i></div>
+                        <div class="table-container">
+                            <table class="compact-table">
+                                <thead><tr><th style="width:70px;">ID</th><th>Package Name</th><th>Description</th><th style="width:100px;">Validity</th><th style="width:110px;">Price</th><th style="width:90px;">Status</th><th style="width:80px;">Actions</th></tr></thead>
+                                <tbody id="pkgBody"></tbody>
+                            </table>
+                        </div>
+                        <div id="pkgInfo" style="padding:0.75rem;color:var(--text-secondary);font-size:0.65rem;border-top:1px solid var(--card-border);margin-top:0.5rem;"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="modal-overlay" id="viewModal">
+        <div class="modal modal-lg">
+            <div class="modal-header"><h2 class="modal-title"><i class="fas fa-gift"></i> Package Details</h2><button class="modal-close" onclick="closeModal('viewModal')"><i class="fas fa-times"></i></button></div>
+            <div class="modal-body"><div id="viewModalContent"><div class="loading-state"><div class="loading-spinner"></div><p class="loading-text">Loading...</p></div></div></div>
+            <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('viewModal')"><i class="fas fa-times"></i> Close</button></div>
+        </div>
+    </div>
+
+    <script src="../js/sweetalert2.min.js"></script>
+    <script src="../js/toastify.min.js"></script>
+    <script src="../js/notifications.js"></script>
+    <script src="../js/core-api.js"></script>
+    <script src="../js/auth-api.js"></script>
+    <script src="../js/services-packages-api.js"></script>
+    <script>
+        let allPackages = [];
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!TokenManager.isAuthenticated()) { window.location.href = '../login.html'; return; }
+            const user = TokenManager.getUser();
+            if (!user || (user.role !== USER_ROLES.STAFF && user.role !== USER_ROLES.ADMIN)) { window.location.href = '../index.html'; return; }
+            updateUserInfo(user);
+            loadPackages();
+        });
+        function updateUserInfo(user) {
+            document.getElementById('userName').textContent = user.username || user.name || 'User';
+            document.getElementById('userRole').textContent = user.role || 'User';
+            document.getElementById('userAvatar').textContent = (user.username || user.name || 'U')[0].toUpperCase();
+        }
+        async function loadPackages() {
+            document.getElementById('loadingState').style.display = 'flex';
+            document.getElementById('packagesContent').style.display = 'none';
+            try {
+                const result = await PackagesAPI.list();
+                if (result.success) { allPackages = result.data.items || []; render(); }
+                else { showErrorToast(result.message || 'Failed to load packages'); }
+            } catch (error) { console.error('Error:', error); showErrorToast('Failed: ' + error.message); }
+            finally { document.getElementById('loadingState').style.display = 'none'; document.getElementById('packagesContent').style.display = 'flex'; }
+        }
+        function render() {
+            const tbody = document.getElementById('pkgBody');
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            let filtered = allPackages.filter(p => !searchTerm || (p.package_name && p.package_name.toLowerCase().includes(searchTerm)) || (p.description && p.description.toLowerCase().includes(searchTerm)));
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="empty-state"><div class="empty-icon"><i class="fas fa-gift"></i></div><h3 class="empty-title">No Packages Found</h3><p class="empty-text">No packages available</p></td></tr>';
+                document.getElementById('pkgInfo').textContent = 'No packages found'; return;
+            }
+            tbody.innerHTML = filtered.map(pkg => `<tr><td><strong style="color:var(--text-primary);font-size:0.75rem;">#${pkg.package_id}</strong></td><td><span style="color:var(--text-primary);font-weight:600;font-size:0.75rem;">${pkg.package_name || 'N/A'}</span></td><td style="max-width:250px;font-size:0.7rem;">${pkg.description || '-'}</td><td style="font-size:0.7rem;">${pkg.validity_days || 0} days</td><td><strong style="color:var(--accent-gold);font-size:0.7rem;">₹${(pkg.total_price || 0).toLocaleString('en-IN')}</strong></td><td>${pkg.status === 'ACTIVE' ? '<span class="status-badge status-active">Active</span>' : '<span class="status-badge status-inactive">Inactive</span>'}</td><td><button class="btn btn-secondary btn-icon-sm" onclick="viewPackage(${pkg.package_id})"><i class="fas fa-eye"></i></button></td></tr>`).join('');
+            document.getElementById('pkgInfo').textContent = `Showing ${filtered.length} of ${allPackages.length} package(s)`;
+        }
+        async function viewPackage(packageId) {
+            openModal('viewModal');
+            try {
+                const result = await PackagesAPI.view(packageId);
+                if (result.success) { renderPackageDetails(result.data); }
+                else { document.getElementById('viewModalContent').innerHTML = '<div class="empty-state"><div class="empty-icon"><i class="fas fa-exclamation-circle"></i></div><h3 class="empty-title">Error</h3><p class="empty-text">' + result.message + '</p></div>'; }
+            } catch (error) { document.getElementById('viewModalContent').innerHTML = '<div class="empty-state"><div class="empty-icon"><i class="fas fa-exclamation-circle"></i></div><h3 class="empty-title">Error</h3><p class="empty-text">Failed to load</p></div>'; }
+        }
+        function renderPackageDetails(pkg) {
+            const services = pkg.services || [];
+            document.getElementById('viewModalContent').innerHTML = '<div style="display:grid;gap:1rem;">' +
+                '<div class="info-grid">' +
+                '<div class="info-item"><div class="info-label">Package ID</div><div class="info-value">#' + pkg.package_id + '</div></div>' +
+                '<div class="info-item"><div class="info-label">Status</div><div class="info-value">' + (pkg.status === 'ACTIVE' ? '<span class="status-badge status-active">Active</span>' : '<span class="status-badge status-inactive">Inactive</span>') + '</div></div>' +
+                '<div class="info-item" style="grid-column:span 2;"><div class="info-label">Package Name</div><div class="info-value" style="font-size:1rem;">' + (pkg.package_name || 'N/A') + '</div></div>' +
+                '<div class="info-item" style="grid-column:span 2;"><div class="info-label">Description</div><div class="info-value" style="font-weight:500;">' + (pkg.description || 'No description') + '</div></div>' +
+                '<div class="info-item"><div class="info-label">Total Price</div><div class="info-value" style="color:var(--accent-gold);font-size:1.1rem;">₹' + ((pkg.total_price || 0).toLocaleString('en-IN')) + '</div></div>' +
+                '<div class="info-item"><div class="info-label">Validity</div><div class="info-value">' + (pkg.validity_days || 0) + ' days</div></div>' +
+                '</div>';
+            if (services.length > 0) {
+                document.getElementById('viewModalContent').innerHTML += '<div><div class="info-label" style="margin-bottom:0.5rem;">Included Services</div><div style="display:flex;flex-direction:column;gap:0.4rem;">' +
+                    services.map(s => '<div style="display:flex;justify-content:space-between;padding:0.5rem;background:rgba(255,255,255,0.02);border-radius:var(--radius-lg);font-size:0.75rem;"><span style="color:var(--text-primary);">' + (s.service_name || 'Service') + '</span><span style="color:var(--accent-gold);font-weight:600;">₹' + ((s.price || 0).toLocaleString('en-IN')) + '</span></div>').join('') +
+                    '</div></div>';
+            }
+            document.getElementById('viewModalContent').innerHTML += '</div>';
+        }
+        function openModal(id) { document.getElementById(id).classList.add('open'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+        async function handleLogout() { if (confirm('Are you sure?')) { await AuthAPI.logout(); TokenManager.removeToken(); TokenManager.removeUser(); localStorage.removeItem('refresh_token'); window.location.href = '../index.html'; } }
+    </script>
+</body>
+</html>

@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Elite Salon</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.min.css">
+    <!-- Toastify CSS - LOCAL FILE -->
+    <link rel="stylesheet" href="../css/toastify.min.css">
+    <link rel="stylesheet" href="../css/main.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: var(--primary-dark); color: var(--text-primary); }
+        .dashboard-wrapper { display: flex; min-height: 100vh; }
+        
+        /* Sidebar */
+        .sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 220px; background: linear-gradient(180deg, var(--primary-darker) 0%, var(--secondary-dark) 100%); border-right: 1px solid var(--card-border); display: flex; flex-direction: column; z-index: 1000; }
+        .sidebar-header { padding: 1rem; border-bottom: 1px solid var(--card-border); }
+        .sidebar-logo { font-size: 1.1rem; font-weight: 700; color: var(--text-primary); text-transform: uppercase; }
+        .sidebar-logo::before { content: '✂️'; font-size: 1.25rem; margin-right: 0.4rem; }
+        .sidebar-user { margin-top: 0.75rem; padding: 0.6rem; background: var(--card-bg); border-radius: 6px; border: 1px solid var(--card-border); }
+        .sidebar-user-info { display: flex; align-items: center; gap: 0.5rem; }
+        .user-avatar { width: 32px; height: 32px; border-radius: 6px; background: linear-gradient(135deg, var(--accent-gold), var(--accent-bronze)); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; color: var(--primary-dark); flex-shrink: 0; }
+        .user-details { flex: 1; min-width: 0; }
+        .user-name { font-weight: 600; font-size: 0.75rem; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .user-role { font-size: 0.6rem; color: var(--text-secondary); text-transform: uppercase; }
+        .sidebar-nav { padding: 0.75rem 0.5rem; flex: 1; overflow-y: auto; }
+        .nav-section-title { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.5rem; padding-left: 0.5rem; }
+        .nav-item { display: flex; align-items: center; gap: 0.6rem; padding: 0.6rem 0.65rem; margin-bottom: 0.2rem; border-radius: 6px; color: var(--text-secondary); text-decoration: none; transition: all 0.2s; font-weight: 500; font-size: 0.8rem; }
+        .nav-item:hover { background: rgba(212, 175, 55, 0.05); color: var(--text-primary); transform: translateX(3px); }
+        .nav-item.active { background: rgba(212, 175, 55, 0.1); border: 1px solid rgba(212, 175, 55, 0.3); color: var(--accent-gold); }
+        .nav-item i { width: 16px; text-align: center; font-size: 0.9rem; }
+        .sidebar-footer { padding: 0.75rem; border-top: 1px solid var(--card-border); }
+        .logout-btn { display: flex; align-items: center; justify-content: center; gap: 0.5rem; width: 100%; padding: 0.65rem; background: linear-gradient(135deg, var(--danger), #dc2626); color: white; border: none; border-radius: 6px; font-weight: 600; font-size: 0.8rem; cursor: pointer; transition: all 0.2s; }
+        .logout-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(239, 68, 68, 0.4); }
+        
+        /* Main Content */
+        .main-content { margin-left: 220px; flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+        .dashboard-header { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 1rem; background: rgba(10, 14, 26, 0.95); border-bottom: 1px solid var(--card-border); height: 45px; flex-shrink: 0; }
+        .page-title-mini { display: flex; align-items: center; gap: 0.5rem; }
+        .page-icon-mini { width: 28px; height: 28px; background: linear-gradient(135deg, var(--accent-gold), var(--accent-bronze)); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; color: var(--primary-dark); }
+        .page-title-mini h1 { font-size: 0.9rem; font-weight: 700; }
+        .page-title-mini p { font-size: 0.6rem; color: var(--text-secondary); }
+        .date-filter-mini { display: flex; gap: 0.35rem; align-items: center; }
+        .date-input-mini { padding: 0.25rem 0.4rem; background: var(--primary-dark); border: 1px solid var(--card-border); border-radius: 4px; color: var(--text-primary); font-size: 0.65rem; }
+        .btn-refresh-mini { padding: 0.25rem 0.5rem; background: linear-gradient(135deg, var(--accent-gold), var(--accent-bronze)); color: var(--primary-dark); border: none; border-radius: 4px; font-weight: 600; font-size: 0.65rem; cursor: pointer; }
+        
+        /* Dashboard */
+        .dashboard-main { flex: 1; padding: 0.5rem; overflow-y: auto; display: flex; flex-direction: column; gap: 0.5rem; }
+        .stats-row-mini { display: grid; grid-template-columns: repeat(8, 1fr); gap: 0.4rem; }
+        .stat-card-mini { background: linear-gradient(135deg, var(--card-bg), var(--secondary-dark)); border: 1px solid var(--card-border); border-radius: 6px; padding: 0.5rem; position: relative; }
+        .stat-card-mini::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--accent-gold), var(--accent-bronze)); }
+        .stat-icon-mini { width: 22px; height: 22px; background: rgba(212, 175, 55, 0.1); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; color: var(--accent-gold); margin-bottom: 0.25rem; }
+        .stat-label-mini { font-size: 0.5rem; font-weight: 600; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 0.15rem; }
+        .stat-value-mini { font-size: 0.9rem; font-weight: 700; color: var(--text-primary); line-height: 1; }
+        .stat-sub-mini { font-size: 0.5rem; color: var(--text-muted); margin-top: 0.1rem; }
+        .center-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 0.5rem; }
+        .chart-card-mini { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 6px; padding: 0.5rem; display: flex; flex-direction: column; }
+        .chart-header-mini { display: flex; align-items: center; gap: 0.25rem; margin-bottom: 0.35rem; }
+        .chart-title-mini { display: flex; align-items: center; gap: 0.25rem; font-size: 0.65rem; font-weight: 600; color: var(--text-primary); }
+        .chart-title-mini i { color: var(--accent-gold); font-size: 0.7rem; }
+        .chart-body-mini { flex: 1; min-height: 0; position: relative; }
+        .chart-container-tiny { position: relative; height: 100%; width: 100%; }
+        .top-list-mini { display: flex; flex-direction: column; gap: 0.25rem; overflow-y: auto; }
+        .top-item-mini { display: flex; align-items: center; justify-content: space-between; padding: 0.3rem 0.35rem; background: rgba(255, 255, 255, 0.02); border-radius: 4px; }
+        .top-item-left-mini { display: flex; align-items: center; gap: 0.35rem; min-width: 0; }
+        .top-rank-mini { width: 14px; height: 14px; background: var(--accent-gold); color: var(--primary-dark); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.5rem; font-weight: 700; flex-shrink: 0; }
+        .top-name-mini { font-size: 0.6rem; color: var(--text-primary); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .top-value-mini { font-size: 0.6rem; font-weight: 600; color: var(--accent-gold); flex-shrink: 0; }
+        .top-section-title { font-size: 0.55rem; font-weight: 600; color: var(--text-secondary); margin: 0.35rem 0 0.15rem; text-transform: uppercase; }
+        .bottom-row-mini { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
+        .mini-chart-container { height: 90px; }
+        
+        /* Loading */
+        .loading-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(10, 14, 26, 0.9); display: flex; align-items: center; justify-content: center; z-index: 9999; }
+        .loading-spinner { width: 30px; height: 30px; border: 2px solid var(--card-border); border-top-color: var(--accent-gold); border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: var(--primary-dark); }
+        ::-webkit-scrollbar-thumb { background: var(--card-border); border-radius: 2px; }
+        
+        /* Responsive */
+        @media (max-width: 1400px) { .stats-row-mini { grid-template-columns: repeat(4, 1fr); } .center-grid { grid-template-columns: 1fr; } .bottom-row-mini { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 900px) { .stats-row-mini { grid-template-columns: repeat(2, 1fr); } .bottom-row-mini { grid-template-columns: 1fr; } }
+        @media (max-width: 768px) { .sidebar { transform: translateX(-100%); transition: transform 0.3s; } .sidebar.open { transform: translateX(0); } .main-content { margin-left: 0; } }
+    </style>
+</head>
+<body>
+    <div class="dashboard-wrapper">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">Elite Salon</div>
+                <div class="sidebar-user">
+                    <div class="sidebar-user-info">
+                        <div class="user-avatar" id="userAvatar">A</div>
+                        <div class="user-details">
+                            <div class="user-name" id="userName">Admin</div>
+                            <div class="user-role" id="userRole">Administrator</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section"><div class="nav-section-title">Main Menu</div>
+                    <a href="dashboard.html" class="nav-item active"><i class="fas fa-chart-line"></i><span>Dashboard</span></a>
+                    <a href="appointments.html" class="nav-item"><i class="fas fa-calendar-check"></i><span>Appointments</span></a>
+                    <a href="customers.html" class="nav-item"><i class="fas fa-users"></i><span>Customers</span></a>
+                    <a href="staff.html" class="nav-item"><i class="fas fa-user-tie"></i><span>Staff</span></a>
+                </div>
+                <div class="nav-section"><div class="nav-section-title">Services</div>
+                    <a href="services.html" class="nav-item"><i class="fas fa-cut"></i><span>Services</span></a>
+                    <a href="package.html" class="nav-item"><i class="fas fa-gift"></i><span>Packages</span></a>
+                    <a href="inventory.html" class="nav-item"><i class="fas fa-boxes"></i><span>Inventory</span></a>
+                </div>
+                <div class="nav-section"><div class="nav-section-title">Financial</div>
+                    <a href="payments.html" class="nav-item"><i class="fas fa-credit-card"></i><span>Payments</span></a>
+                    <a href="schedules.html" class="nav-item"><i class="fas fa-calendar-alt"></i><span>Schedules</span></a>
+                </div>
+                <div class="nav-section"><div class="nav-section-title">System</div>
+                    <a href="settings.html" class="nav-item"><i class="fas fa-cog"></i><span>Settings</span></a>
+                </div>
+            </nav>
+            <div class="sidebar-footer">
+                <button class="logout-btn" onclick="handleLogout()"><i class="fas fa-sign-out-alt"></i><span>Logout</span></button>
+            </div>
+        </aside>
+
+        <div class="main-content">
+            <header class="dashboard-header">
+                <div class="page-title-mini">
+                    <div class="page-icon-mini"><i class="fas fa-chart-line"></i></div>
+                    <div><h1>Dashboard</h1><p>Business Overview</p></div>
+                </div>
+                <div class="date-filter-mini">
+                    <input type="date" id="startDate" class="date-input-mini">
+                    <span style="color:var(--text-secondary);font-size:0.6rem;">to</span>
+                    <input type="date" id="endDate" class="date-input-mini">
+                    <button class="btn-refresh-mini" onclick="loadDashboard()"><i class="fas fa-sync-alt"></i> Refresh</button>
+                </div>
+            </header>
+
+            <div class="dashboard-main">
+                <div id="loadingState" class="loading-overlay"><div class="loading-spinner"></div></div>
+                <div id="dashboardContent" style="display:none;flex-direction:column;gap:0.5rem;">
+                    <div class="stats-row-mini">
+                        <div class="stat-card-mini"><div class="stat-icon-mini"><i class="fas fa-dollar-sign"></i></div><div class="stat-label-mini">Revenue</div><div class="stat-value-mini" id="statRevenue">-</div><div class="stat-sub-mini">This period</div></div>
+                        <div class="stat-card-mini"><div class="stat-icon-mini"><i class="fas fa-calendar-check"></i></div><div class="stat-label-mini">Appointments</div><div class="stat-value-mini" id="statAppointments">-</div><div class="stat-sub-mini">Total</div></div>
+                        <div class="stat-card-mini"><div class="stat-icon-mini"><i class="fas fa-users"></i></div><div class="stat-label-mini">Customers</div><div class="stat-value-mini" id="statCustomers">-</div><div class="stat-sub-mini">Active</div></div>
+                        <div class="stat-card-mini"><div class="stat-icon-mini"><i class="fas fa-user-tie"></i></div><div class="stat-label-mini">Staff</div><div class="stat-value-mini" id="statStaff">-</div><div class="stat-sub-mini">Active</div></div>
+                        <div class="stat-card-mini"><div class="stat-icon-mini"><i class="fas fa-cut"></i></div><div class="stat-label-mini">Services</div><div class="stat-value-mini" id="statServices">-</div><div class="stat-sub-mini">Available</div></div>
+                        <div class="stat-card-mini"><div class="stat-icon-mini"><i class="fas fa-gift"></i></div><div class="stat-label-mini">Packages</div><div class="stat-value-mini" id="statPackages">-</div><div class="stat-sub-mini">Active</div></div>
+                        <div class="stat-card-mini"><div class="stat-icon-mini"><i class="fas fa-boxes"></i></div><div class="stat-label-mini">Inventory</div><div class="stat-value-mini" id="statInventory">-</div><div class="stat-sub-mini"><span id="statLowStock" style="color:var(--warning)">0</span> low</div></div>
+                        <div class="stat-card-mini"><div class="stat-icon-mini"><i class="fas fa-trophy"></i></div><div class="stat-label-mini">Incentives</div><div class="stat-value-mini" id="statIncentives">-</div><div class="stat-sub-mini">Paid</div></div>
+                    </div>
+
+                    <div class="center-grid">
+                        <div class="chart-card-mini">
+                            <div class="chart-header-mini"><div class="chart-title-mini"><i class="fas fa-chart-line"></i><span>Revenue Trend</span></div></div>
+                            <div class="chart-body-mini"><div class="chart-container-tiny"><canvas id="revenueChart"></canvas></div></div>
+                        </div>
+                        <div class="chart-card-mini">
+                            <div class="chart-header-mini"><div class="chart-title-mini"><i class="fas fa-crown"></i><span>Top Performers</span></div></div>
+                            <div class="chart-body-mini"><div class="top-list-mini" id="topPerformersList"><div style="text-align:center;color:var(--text-muted);padding:0.75rem;"><i class="fas fa-circle-notch fa-spin"></i></div></div></div>
+                        </div>
+                    </div>
+
+                    <div class="bottom-row-mini">
+                        <div class="chart-card-mini">
+                            <div class="chart-header-mini"><div class="chart-title-mini"><i class="fas fa-chart-pie"></i><span>Services</span></div></div>
+                            <div class="chart-body-mini"><div class="chart-container-tiny mini-chart-container"><canvas id="servicesChart"></canvas></div></div>
+                        </div>
+                        <div class="chart-card-mini">
+                            <div class="chart-header-mini"><div class="chart-title-mini"><i class="fas fa-chart-bar"></i><span>Status</span></div></div>
+                            <div class="chart-body-mini"><div class="chart-container-tiny mini-chart-container"><canvas id="statusChart"></canvas></div></div>
+                        </div>
+                        <div class="chart-card-mini">
+                            <div class="chart-header-mini"><div class="chart-title-mini"><i class="fas fa-boxes"></i><span>Stock</span></div></div>
+                            <div class="chart-body-mini"><div class="chart-container-tiny mini-chart-container"><canvas id="inventoryChart"></canvas></div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart.js (from CDN - no local copy) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <!-- Load notification libraries - LOCAL FILES -->
+    <script src="../js/sweetalert2.min.js"></script>
+    <script src="../js/toastify.min.js"></script>
+    <script src="../js/notifications.js"></script>
+    <!-- Core API and modules -->
+    <script src="../js/core-api.js"></script>
+    <script src="../js/auth-api.js"></script>
+    <script src="../js/reports-api.js"></script>
+    <script src="../js/staff-api-module.js"></script>
+    <script src="../js/services-packages-api.js"></script>
+    <script src="../js/stock-api.js"></script>
+    <script>
+        let charts = {};
+
+        async function loadDashboard() {
+            document.getElementById('loadingState').style.display = 'flex';
+            document.getElementById('dashboardContent').style.display = 'none';
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+
+            try {
+                const [sales, appts, staff, services, packages, inventory, incentives, staffList] = await Promise.all([
+                    ReportsAPI.getSalesReport({ start_date: startDate, end_date: endDate }),
+                    ReportsAPI.getAppointmentsReport({ start_date: startDate, end_date: endDate }),
+                    ReportsAPI.getStaffPerformanceReport({ start_date: startDate, end_date: endDate }),
+                    ReportsAPI.getServicesReport({ start_date: startDate, end_date: endDate }),
+                    ReportsAPI.getPackagesReport({ start_date: startDate, end_date: endDate }),
+                    ReportsAPI.getInventoryReport({ start_date: startDate, end_date: endDate }),
+                    ReportsAPI.getIncentivesReport({ start_date: startDate, end_date: endDate }),
+                    StaffAPI.list()
+                ]);
+
+                updateStats(sales, appts, staff, services, packages, inventory, incentives, staffList);
+                updateRevenueChart();
+                updateServicesChart(services);
+                updateStatusChart(appts);
+                updateInventoryChart(inventory);
+                updateTopPerformers(services, packages);
+
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('dashboardContent').style.display = 'flex';
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('loadingState').style.display = 'none';
+                showErrorToast('Failed: ' + error.message);
+            }
+        }
+
+        function updateStats(sales, appts, staff, services, packages, inventory, incentives, staffList) {
+            document.getElementById('statRevenue').textContent = '₹' + (sales.data?.summary?.total_revenue || 0).toLocaleString('en-IN', {maximumFractionDigits: 0});
+            document.getElementById('statAppointments').textContent = appts.data?.summary?.total_appointments || 0;
+            document.getElementById('statCustomers').textContent = appts.data?.summary?.total_customers || 0;
+            document.getElementById('statStaff').textContent = (staffList.data?.items || []).filter(s => s.status === 'ACTIVE').length;
+            document.getElementById('statServices').textContent = (services.data?.services || []).length;
+            document.getElementById('statPackages').textContent = (packages.data?.packages || []).length;
+            document.getElementById('statInventory').textContent = (inventory.data?.inventory || []).length;
+            document.getElementById('statLowStock').textContent = (inventory.data?.inventory || []).filter(i => i.stock_status === 'LOW').length;
+            document.getElementById('statIncentives').textContent = '₹' + (incentives.data?.summary?.total_paid || 0).toLocaleString('en-IN', {maximumFractionDigits: 0});
+        }
+
+        function updateRevenueChart() {
+            const ctx = document.getElementById('revenueChart').getContext('2d');
+            if (charts.revenue) charts.revenue.destroy();
+            charts.revenue = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['W1', 'W2', 'W3', 'W4'],
+                    datasets: [{ label: 'Revenue', data: [15000, 22000, 18000, 25000], borderColor: '#d4af37', backgroundColor: 'rgba(212, 175, 55, 0.1)', tension: 0.4, fill: true, pointRadius: 2 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 8 } } }, y: { grid: { color: 'rgba(42,49,66,0.5)' }, ticks: { color: '#94a3b8', font: { size: 8 } } } } }
+            });
+        }
+
+        function updateServicesChart(services) {
+            const ctx = document.getElementById('servicesChart').getContext('2d');
+            if (charts.services) charts.services.destroy();
+            const data = (services.data?.services || []).slice(0, 4);
+            charts.services = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: data.map(s => s.service_name),
+                    datasets: [{ data: data.map(s => s.net_revenue || 0), backgroundColor: ['#d4af37', '#cd7f32', '#3b82f6', '#10b981'], borderWidth: 0 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: '#94a3b8', font: { size: 7 } } } } }
+            });
+        }
+
+        function updateStatusChart(appts) {
+            const ctx = document.getElementById('statusChart').getContext('2d');
+            if (charts.status) charts.status.destroy();
+            const breakdown = appts.data?.status_breakdown || [];
+            charts.status = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: breakdown.map(s => s.status),
+                    datasets: [{ data: breakdown.map(s => s.count), backgroundColor: ['#3b82f6', '#10b981', '#8b5cf6', '#ef4444'], borderWidth: 0 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: '#94a3b8', font: { size: 7 } } } } }
+            });
+        }
+
+        function updateInventoryChart(inventory) {
+            const ctx = document.getElementById('inventoryChart').getContext('2d');
+            if (charts.inventory) charts.inventory.destroy();
+            const items = inventory.data?.inventory || [];
+            const ok = items.filter(i => i.stock_status === 'OK').length;
+            const low = items.filter(i => i.stock_status === 'LOW').length;
+            const out = items.filter(i => i.current_quantity === 0).length;
+            charts.inventory = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['OK', 'Low', 'Out'],
+                    datasets: [{ data: [ok, low, out], backgroundColor: ['#10b981', '#f59e0b', '#ef4444'], borderRadius: 4 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 8 } } }, y: { display: false } } }
+            });
+        }
+
+        function updateTopPerformers(services, packages) {
+            const topServices = (services.data?.services || []).sort((a,b) => (b.net_revenue||0) - (a.net_revenue||0)).slice(0, 3);
+            const topPackages = (packages.data?.packages || []).sort((a,b) => (b.net_revenue||0) - (a.net_revenue||0)).slice(0, 2);
+
+            let html = '<div class="top-section-title">Top Services</div>';
+            topServices.forEach((s, i) => {
+                html += `<div class="top-item-mini"><div class="top-item-left-mini"><div class="top-rank-mini">${i+1}</div><div class="top-name-mini" title="${s.service_name}">${s.service_name}</div></div><div class="top-value-mini">₹${(s.net_revenue||0).toLocaleString('en-IN', {maximumFractionDigits:0})}</div></div>`;
+            });
+
+            html += '<div class="top-section-title">Top Packages</div>';
+            topPackages.forEach((p, i) => {
+                html += `<div class="top-item-mini"><div class="top-item-left-mini"><div class="top-rank-mini" style="background:#cd7f32">${i+1}</div><div class="top-name-mini" title="${p.package_name}">${p.package_name}</div></div><div class="top-value-mini">₹${(p.net_revenue||0).toLocaleString('en-IN', {maximumFractionDigits:0})}</div></div>`;
+            });
+
+            document.getElementById('topPerformersList').innerHTML = html || '<div style="text-align:center;color:var(--text-muted);padding:0.75rem;font-size:0.7rem;">No data</div>';
+        }
+
+        function handleLogout() {
+            if (confirm('Are you sure you want to logout?')) {
+                TokenManager.removeToken();
+                TokenManager.removeUser();
+                localStorage.removeItem('refresh_token');
+                // Use relative path to avoid hardcoded URL issues
+                window.location.href = '../index.html';
+            }
+        }
+
+        function loadUserInfo() {
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            if (user) {
+                document.getElementById('userName').textContent = user.username || user.name || 'User';
+                document.getElementById('userRole').textContent = user.role || 'User';
+                const avatar = document.getElementById('userAvatar');
+                if (avatar) avatar.textContent = (user.username || user.name || 'U')[0].toUpperCase();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadUserInfo();
+            const now = new Date();
+            const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+            document.getElementById('startDate').value = firstDay.toISOString().split('T')[0];
+            document.getElementById('endDate').value = now.toISOString().split('T')[0];
+            loadDashboard();
+        });
+    </script>
+</body>
+</html>

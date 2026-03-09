@@ -73,3 +73,33 @@ $router->register('PATCH', '/api/customers/me', function() use ($customerControl
     authorize(['CUSTOMER']);
     $customerController->updateMe();
 });
+
+/*
+|--------------------------------------------------------------------------
+| CUSTOMER SELF-SERVICE ROUTES
+|--------------------------------------------------------------------------
+*/
+
+// 7️⃣ Get Own Appointments
+$router->register('GET', '/api/customers/me/appointments', function() use ($customerController) {
+    authorize(['CUSTOMER']);
+    $customerController->getMyAppointments();
+});
+
+// 8️⃣ Get Customer Appointments
+$router->register('GET', '/api/customers/{customer_id}/appointments', function($customerId) use ($customerController) {
+    authorize(['ADMIN', 'STAFF', 'CUSTOMER']);
+    $customerController->getAppointments($customerId);
+});
+
+// 9️⃣ Get Own Feedback
+$router->register('GET', '/api/customers/me/feedback', function() use ($customerController) {
+    authorize(['CUSTOMER']);
+    $customerController->getMyFeedback();
+});
+
+// 🔟 Get Customer Feedback
+$router->register('GET', '/api/customers/{customer_id}/feedback', function($customerId) use ($customerController) {
+    authorize(['ADMIN', 'STAFF', 'CUSTOMER']);
+    $customerController->getFeedback($customerId);
+});

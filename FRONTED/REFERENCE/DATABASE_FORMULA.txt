@@ -1,0 +1,172 @@
+==========================================
+DISCOUNT CALCULATION FORMULA
+==========================================
+
+LEVEL 1: Service Level
+----------------------
+For EACH service in appointment:
+    final_price = service_price - discount_amount
+
+Example:
+    Service 1: ₹500 - ₹50 = ₹450
+    Service 2: ₹300 - ₹0  = ₹300
+    Service 3: ₹800 - ₹100 = ₹700
+    ─────────────────────────────
+    Services Final Total: ₹1450
+
+
+LEVEL 2: Package Level
+----------------------
+For EACH package in appointment:
+    final_price = package_price - discount_amount
+
+Example:
+    Package 1: ₹1000 - ₹100 = ₹900
+    Package 2: ₹2500 - ₹0   = ₹2500
+    ─────────────────────────────
+    Packages Final Total: ₹3400
+
+
+LEVEL 3: Appointment Subtotal (total_amount)
+--------------------------------------------
+total_amount = Services Final Total + Packages Final Total
+
+Example:
+    total_amount = ₹1450 + ₹3400 = ₹4850
+
+
+LEVEL 4: Overall Appointment Discount
+-------------------------------------
+overall_discount = appointments.discount_amount
+
+Example:
+    overall_discount = ₹200
+
+
+LEVEL 5: Final Amount (final_amount)
+------------------------------------
+final_amount = total_amount - overall_discount
+
+Example:
+    final_amount = ₹4850 - ₹200 = ₹4650
+
+
+==========================================
+COMPLETE DISCOUNT BREAKDOWN
+==========================================
+
+Total Base Value (before ANY discounts):
+    = Σ(service_price) + Σ(package_price)
+    = (₹500+₹300+₹800) + (₹1000+₹2500)
+    = ₹1600 + ₹3500
+    = ₹5100
+
+Total Service-Level Discounts:
+    = Σ(service_discount_amount)
+    = ₹50 + ₹0 + ₹100
+    = ₹150
+
+Total Package-Level Discounts:
+    = Σ(package_discount_amount)
+    = ₹100 + ₹0
+    = ₹100
+
+Overall Appointment Discount:
+    = appointments.discount_amount
+    = ₹200
+
+GRAND TOTAL DISCOUNT:
+    = Service Discounts + Package Discounts + Overall Discount
+    = ₹150 + ₹100 + ₹200
+    = ₹450
+
+FINAL AMOUNT PAID BY CUSTOMER:
+    = Total Base Value - Grand Total Discount
+    = ₹5100 - ₹450
+    = ₹4650 ✓
+
+
+==========================================
+VERIFICATION FORMULA
+==========================================
+
+final_amount MUST equal:
+    (Σ(service_price - service_discount) + Σ(package_price - package_discount)) - overall_discount
+
+Check:
+    = ((₹500-₹50) + (₹300-₹0) + (₹800-₹100) + (₹1000-₹100) + (₹2500-₹0)) - ₹200
+    = (₹450 + ₹300 + ₹700 + ₹900 + ₹2500) - ₹200
+    = ₹4850 - ₹200
+    = ₹4650 ✓
+
+
+==========================================
+DATABASE FIELD MAPPING
+==========================================
+
+appointments table:
+    total_amount      = Services Final + Packages Final
+    discount_amount   = Overall appointment discount
+    final_amount      = total_amount - discount_amount
+
+appointment_services table:
+    service_price     = Base price from services catalog
+    discount_amount   = Service-level discount (can be 0)
+    final_price       = service_price - discount_amount
+
+appointment_packages table:
+    package_price     = Base price from packages catalog
+    discount_amount   = Package-level discount (can be 0)
+    final_price       = package_price - discount_amount
+
+
+==========================================
+API PAYLOAD STRUCTURE
+==========================================
+
+CREATE/UPDATE Appointment:
+{
+    "customer_id": 123,
+    "appointment_date": "2026-03-08",
+    "start_time": "10:00:00",
+    "estimated_duration": 60,
+    "total_amount": 4850,      ← SUBTOTAL
+    "discount_amount": 200,    ← OVERALL discount
+    "final_amount": 4650,      ← FINAL total
+    "services": [
+        {
+            "service_id": 1,
+            "staff_id": 5,
+            "price": 500,
+            "discount_amount": 50
+        }
+    ],
+    "packages": [
+        {
+            "package_id": 1,
+            "staff_id": 5,
+            "price": 1000,
+            "discount_amount": 100
+        }
+    ]
+}
+
+
+==========================================
+VALIDATION RULES
+==========================================
+
+1. Service discount cannot exceed service price:
+   if (service_discount > service_price) → BLOCK
+
+2. Package discount cannot exceed package price:
+   if (package_discount > package_price) → BLOCK
+
+3. Overall discount cannot exceed subtotal:
+   if (overall_discount > total_amount) → BLOCK
+
+4. At least one service OR package required:
+   if (services.length === 0 && packages.length === 0) → BLOCK
+
+5. Date and time required:
+   if (!date || !time) → BLOCK

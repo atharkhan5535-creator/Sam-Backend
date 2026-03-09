@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Document - Elite Salon Staff</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="../css/main.css">
+</head>
+<body>
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">Elite Salon</div>
+            <div class="sidebar-user">
+                <div class="sidebar-user-info">
+                    <div class="user-avatar" id="userAvatar">S</div>
+                    <div class="user-details">
+                        <div class="user-name" id="userName">Staff</div>
+                        <div class="user-role" id="userRole">Staff</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <div class="nav-section-title">Main Menu</div>
+                <a href="dashboard.html" class="nav-item">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="appointments.html" class="nav-item">
+                    <i class="fas fa-calendar-check"></i>
+                    <span>Appointments</span>
+                </a>
+                <a href="customers.html" class="nav-item">
+                    <i class="fas fa-users"></i>
+                    <span>Customers</span>
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Services</div>
+                <a href="services.html" class="nav-item">
+                    <i class="fas fa-cut"></i>
+                    <span>Services</span>
+                </a>
+                <a href="package.html" class="nav-item">
+                    <i class="fas fa-gift"></i>
+                    <span>Packages</span>
+                </a>
+                <a href="inventory.html" class="nav-item">
+                    <i class="fas fa-boxes"></i>
+                    <span>Inventory</span>
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">My</div>
+                <a href="schedules.html" class="nav-item">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>My Schedule</span>
+                </a>
+                <a href="profile.html" class="nav-item">
+                    <i class="fas fa-user"></i>
+                    <span>Profile</span>
+                </a>
+            </div>
+        </nav>
+
+        <div class="sidebar-footer">
+            <button class="logout-btn" onclick="handleLogout()">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Top Header -->
+        <header class="top-header">
+            <div class="page-title">
+                <div class="page-icon">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                </div>
+                <div>
+                    <h1>Upload Document</h1>
+                    <p class="page-subtitle">Add your certifications and ID documents</p>
+                </div>
+            </div>
+            <div class="header-actions">
+                <a href="document.html" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Documents
+                </a>
+            </div>
+        </header>
+
+        <!-- Content Wrapper -->
+        <div class="content-wrapper">
+            <!-- Upload Card -->
+            <div class="content-card" style="max-width:700px;margin:0 auto;">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-upload"></i>
+                        <span>Upload New Document</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Upload Area -->
+                    <div class="upload-area" id="dropZone" onclick="document.getElementById('fileInput').click()" style="border:2px dashed var(--card-border);border-radius:var(--radius-xl);padding:3rem;text-align:center;cursor:pointer;transition:all 0.3s;background:rgba(212, 175, 55, 0.02);">
+                        <i class="fas fa-cloud-upload-alt" style="font-size:3rem;color:var(--accent-gold);margin-bottom:1rem;"></i>
+                        <p style="color:var(--text-primary);font-size:1rem;margin-bottom:0.5rem;"><span style="color:var(--accent-gold);font-weight:600;">Click to browse</span> or drag & drop your file here</p>
+                        <p style="font-size:0.85rem;color:var(--text-muted);">PDF, JPG, PNG up to 10MB</p>
+                        <input type="file" id="fileInput" accept=".pdf,.jpg,.jpeg,.png" style="display:none" onchange="handleFile(this)">
+                    </div>
+
+                    <!-- File Preview -->
+                    <div class="file-preview" id="filePreview" style="display:none;align-items:center;gap:1rem;padding:1rem;background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius-lg);margin-top:1.5rem;">
+                        <i class="fas fa-file-pdf" id="fileIcon" style="font-size:2rem;color:var(--danger);"></i>
+                        <div class="file-info" style="flex:1;">
+                            <div class="file-name" id="fileName" style="font-weight:600;color:var(--text-primary);"></div>
+                            <div class="file-size" id="fileSize" style="font-size:0.85rem;color:var(--text-muted);"></div>
+                        </div>
+                        <button class="btn btn-danger btn-sm" onclick="clearFile()">
+                            <i class="fas fa-times"></i> Remove
+                        </button>
+                    </div>
+
+                    <!-- Form Fields -->
+                    <div style="margin-top:2rem;">
+                        <div class="form-grid">
+                            <div class="form-group full">
+                                <label class="form-label">Document Type *</label>
+                                <select id="docType" class="form-select">
+                                    <option value="">Select Type</option>
+                                    <option value="ID Proof">ID Proof</option>
+                                    <option value="Certification">Certification</option>
+                                    <option value="Contract">Contract</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div class="form-group full">
+                                <label class="form-label">Notes (optional)</label>
+                                <textarea id="docNotes" class="form-textarea" rows="3" placeholder="Any additional information about this document…"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="btn-group" style="margin-top:2rem;">
+                        <button class="btn btn-primary" onclick="uploadDoc()">
+                            <i class="fas fa-upload"></i> Upload Document
+                        </button>
+                        <a href="document.html" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="../js/core-api.js"></script>
+    <script src="../js/auth-api.js"></script>
+    <script>
+        const dropZone = document.getElementById('dropZone');
+        let selectedFile = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const user = TokenManager.getUser();
+            if (user) {
+                document.getElementById('userName').textContent = user.username || user.name || 'User';
+                document.getElementById('userRole').textContent = user.role || 'User';
+                document.getElementById('userAvatar').textContent = (user.username || user.name || 'U')[0].toUpperCase();
+            }
+
+            // Setup drag and drop
+            dropZone.addEventListener('dragover', e => {
+                e.preventDefault();
+                dropZone.style.borderColor = 'var(--accent-gold)';
+                dropZone.style.background = 'rgba(212, 175, 55, 0.05)';
+            });
+
+            dropZone.addEventListener('dragleave', () => {
+                dropZone.style.borderColor = 'var(--card-border)';
+                dropZone.style.background = 'rgba(212, 175, 55, 0.02)';
+            });
+
+            dropZone.addEventListener('drop', e => {
+                e.preventDefault();
+                dropZone.style.borderColor = 'var(--card-border)';
+                dropZone.style.background = 'rgba(212, 175, 55, 0.02)';
+                const file = e.dataTransfer.files[0];
+                if (file) showFilePreview(file);
+            });
+        });
+
+        function handleFile(input) {
+            if (input.files[0]) showFilePreview(input.files[0]);
+        }
+
+        function showFilePreview(file) {
+            // Validate file size (10MB max)
+            const maxSize = 10 * 1024 * 1024;
+            if (file.size > maxSize) {
+                alert('File size must be less than 10MB');
+                return;
+            }
+
+            selectedFile = file;
+            
+            // Update icon based on file type
+            const icon = document.getElementById('fileIcon');
+            if (file.type === 'application/pdf') {
+                icon.className = 'fas fa-file-pdf';
+                icon.style.color = 'var(--danger)';
+            } else if (file.type.startsWith('image/')) {
+                icon.className = 'fas fa-file-image';
+                icon.style.color = 'var(--info)';
+            } else {
+                icon.className = 'fas fa-file';
+                icon.style.color = 'var(--text-secondary)';
+            }
+
+            document.getElementById('fileName').textContent = file.name;
+            document.getElementById('fileSize').textContent = formatFileSize(file.size);
+            document.getElementById('filePreview').style.display = 'flex';
+            document.getElementById('dropZone').style.display = 'none';
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+        }
+
+        function clearFile() {
+            selectedFile = null;
+            document.getElementById('fileInput').value = '';
+            document.getElementById('filePreview').style.display = 'none';
+            document.getElementById('dropZone').style.display = 'block';
+        }
+
+        function uploadDoc() {
+            const type = document.getElementById('docType').value;
+            const notes = document.getElementById('docNotes').value.trim();
+
+            if (!selectedFile) {
+                alert('Please select a file to upload');
+                return;
+            }
+            if (!type) {
+                alert('Please select a document type');
+                return;
+            }
+
+            // Here you would call the API to upload the document
+            console.log('Upload:', { file: selectedFile, type, notes });
+
+            showToast('Document uploaded successfully!');
+            setTimeout(() => {
+                window.location.href = 'document.html';
+            }, 1500);
+        }
+
+        function showToast(msg) {
+            const toast = document.createElement('div');
+            toast.className = 'toast-notification toast-success';
+            toast.innerHTML = `<i class="fas fa-check-circle"></i><span>${msg}</span>`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        async function handleLogout() {
+            if (confirm('Are you sure you want to logout?')) {
+                await AuthAPI.logout();
+                TokenManager.removeToken();
+                TokenManager.removeUser();
+                localStorage.removeItem('refresh_token');
+                window.location.href = '../index.html';
+            }
+        }
+    </script>
+</body>
+</html>

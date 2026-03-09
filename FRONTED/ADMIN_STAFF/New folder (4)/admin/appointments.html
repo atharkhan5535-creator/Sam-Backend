@@ -1,0 +1,2265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appointments - Elite Salon</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="../css/main.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: var(--primary-dark); color: var(--text-primary); }
+        .dashboard-wrapper { display: flex; min-height: 100vh; }
+
+        /* Sidebar */
+        .sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 220px; background: linear-gradient(180deg, var(--primary-darker) 0%, var(--secondary-dark) 100%); border-right: 1px solid var(--card-border); display: flex; flex-direction: column; z-index: 1000; }
+        .sidebar-header { padding: 1rem; border-bottom: 1px solid var(--card-border); }
+        .sidebar-logo { font-size: 1.1rem; font-weight: 700; color: var(--text-primary); text-transform: uppercase; }
+        .sidebar-logo::before { content: '✂️'; font-size: 1.25rem; margin-right: 0.4rem; }
+        .sidebar-user { margin-top: 0.75rem; padding: 0.6rem; background: var(--card-bg); border-radius: 6px; border: 1px solid var(--card-border); }
+        .sidebar-user-info { display: flex; align-items: center; gap: 0.5rem; }
+        .user-avatar { width: 32px; height: 32px; border-radius: 6px; background: linear-gradient(135deg, var(--accent-gold), var(--accent-bronze)); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; color: var(--primary-dark); flex-shrink: 0; }
+        .user-details { flex: 1; min-width: 0; }
+        .user-name { font-weight: 600; font-size: 0.75rem; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .user-role { font-size: 0.6rem; color: var(--text-secondary); text-transform: uppercase; }
+        .sidebar-nav { padding: 0.75rem 0.5rem; flex: 1; overflow-y: auto; }
+        .nav-section-title { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.5rem; padding-left: 0.5rem; }
+        .nav-item { display: flex; align-items: center; gap: 0.6rem; padding: 0.6rem 0.65rem; margin-bottom: 0.2rem; border-radius: 6px; color: var(--text-secondary); text-decoration: none; transition: all 0.2s; font-weight: 500; font-size: 0.8rem; }
+        .nav-item:hover { background: rgba(212, 175, 55, 0.05); color: var(--text-primary); transform: translateX(3px); }
+        .nav-item.active { background: rgba(212, 175, 55, 0.1); border: 1px solid rgba(212, 175, 55, 0.3); color: var(--accent-gold); }
+        .nav-item i { width: 16px; text-align: center; font-size: 0.9rem; }
+        .sidebar-footer { padding: 0.75rem; border-top: 1px solid var(--card-border); }
+        .logout-btn { display: flex; align-items: center; justify-content: center; gap: 0.5rem; width: 100%; padding: 0.65rem; background: linear-gradient(135deg, var(--danger), #dc2626); color: white; border: none; border-radius: 6px; font-weight: 600; font-size: 0.8rem; cursor: pointer; transition: all 0.2s; }
+        .logout-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(239, 68, 68, 0.4); }
+
+        /* Main Content */
+        .main-content { margin-left: 220px; flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+        .dashboard-header { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 1rem; background: rgba(10, 14, 26, 0.95); border-bottom: 1px solid var(--card-border); height: 45px; flex-shrink: 0; }
+        .page-title-mini { display: flex; align-items: center; gap: 0.5rem; }
+        .page-icon-mini { width: 28px; height: 28px; background: linear-gradient(135deg, var(--accent-gold), var(--accent-bronze)); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; color: var(--primary-dark); }
+        .page-title-mini h1 { font-size: 0.9rem; font-weight: 700; }
+        .page-title-mini p { font-size: 0.6rem; color: var(--text-secondary); }
+
+        /* Appointments Content */
+        .dashboard-main { flex: 1; padding: 0.5rem; overflow-y: auto; display: flex; flex-direction: column; gap: 0.5rem; }
+        .content-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 6px; padding: 0.5rem; display: flex; flex-direction: column; }
+        .card-header-mini { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--card-border); }
+        .card-title-mini { display: flex; align-items: center; gap: 0.4rem; font-size: 0.7rem; font-weight: 600; color: var(--text-primary); }
+        .card-title-mini i { color: var(--accent-gold); font-size: 0.75rem; }
+        .card-body-mini { padding: 0.5rem; flex: 1; }
+
+        /* Toolbar & Filters */
+        .toolbar-mini { display: flex; gap: 0.35rem; margin-bottom: 0.5rem; flex-wrap: wrap; }
+        .search-wrapper-mini { position: relative; flex: 1; min-width: 180px; max-width: 250px; }
+        .search-input-mini { width: 100%; padding: 0.35rem 0.6rem 0.35rem 1.8rem; background: var(--primary-dark); border: 1px solid var(--card-border); border-radius: 4px; color: var(--text-primary); font-size: 0.7rem; }
+        .search-input-mini:focus { outline: none; border-color: var(--accent-gold); }
+        .search-icon-mini { position: absolute; left: 0.5rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.65rem; }
+
+        /* Compact Table */
+        .table-container { overflow-x: auto; }
+        .compact-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+        .compact-table thead th { padding: 0.4rem 0.5rem; text-align: left; font-size: 0.6rem; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); background: rgba(255, 255, 255, 0.02); border-bottom: 2px solid var(--card-border); }
+        .compact-table tbody tr { transition: all 0.2s; }
+        .compact-table tbody tr:hover { background: rgba(212, 175, 55, 0.03); }
+        .compact-table tbody td { padding: 0.5rem; border-bottom: 1px solid var(--card-border); color: var(--text-secondary); font-size: 0.7rem; vertical-align: middle; }
+        .compact-table tbody tr:last-child td { border-bottom: none; }
+        .table-avatar-mini { display: flex; align-items: center; gap: 0.4rem; }
+        .avatar-circle-mini { width: 26px; height: 26px; border-radius: 50%; background: linear-gradient(135deg, var(--accent-gold), var(--accent-bronze)); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.7rem; color: var(--primary-dark); flex-shrink: 0; }
+        .avatar-info-mini { display: flex; flex-direction: column; }
+        .avatar-name-mini { font-size: 0.7rem; color: var(--text-primary); font-weight: 500; }
+
+        /* Buttons - Compact */
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.35rem; padding: 0.4rem 0.65rem; font-family: inherit; font-size: 0.65rem; font-weight: 600; text-transform: uppercase; border: none; border-radius: 4px; cursor: pointer; transition: all 0.2s; text-decoration: none; }
+        .btn-primary { background: linear-gradient(135deg, var(--accent-gold), var(--accent-bronze)); color: var(--primary-dark); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(212, 175, 55, 0.4); }
+        .btn-secondary { background: var(--card-bg); color: var(--text-primary); border: 1px solid var(--card-border); }
+        .btn-secondary:hover { background: var(--secondary-dark); border-color: var(--accent-gold); }
+        .btn-success { background: linear-gradient(135deg, var(--success), #059669); color: white; }
+        .btn-danger { background: linear-gradient(135deg, var(--danger), #dc2626); color: white; }
+        .btn-warning { background: linear-gradient(135deg, var(--warning), #d97706); color: white; }
+        .btn-sm { padding: 0.3rem 0.5rem; font-size: 0.6rem; }
+        .btn-icon { width: 26px; height: 26px; padding: 0; border-radius: 4px; }
+        .btn-icon-sm { width: 24px; height: 24px; padding: 0; border-radius: 4px; }
+
+        /* Status Badge - Compact */
+        .status-badge { display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.2rem 0.45rem; font-size: 0.55rem; font-weight: 700; text-transform: uppercase; border-radius: 999px; }
+        .status-badge::before { content: ''; width: 4px; height: 4px; border-radius: 50%; background: currentColor; }
+        .status-pending { background: rgba(245, 158, 11, 0.1); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.3); }
+        .status-confirmed { background: rgba(59, 130, 246, 0.1); color: var(--info); border: 1px solid rgba(59, 130, 246, 0.3); }
+        .status-completed { background: rgba(16, 185, 129, 0.1); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.3); }
+        .status-cancelled { background: rgba(239, 68, 68, 0.1); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3); }
+
+        /* Modal - Compact */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; z-index: 2000; opacity: 0; visibility: hidden; transition: all 0.3s; }
+        .modal-overlay.open { opacity: 1; visibility: visible; }
+        .modal { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 8px; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto; transform: scale(0.9) translateY(20px); transition: transform 0.3s; }
+        .modal-overlay.open .modal { transform: scale(1) translateY(0); }
+        .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 0.6rem 0.85rem; border-bottom: 1px solid var(--card-border); }
+        .modal-title { display: flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; font-weight: 700; }
+        .modal-title i { color: var(--accent-gold); }
+        .modal-close { width: 24px; height: 24px; background: var(--primary-dark); border: 1px solid var(--card-border); border-radius: 4px; color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .modal-close:hover { background: var(--danger); border-color: var(--danger); color: white; }
+        .modal-body { padding: 0.75rem; }
+        .modal-footer { display: flex; gap: 0.4rem; justify-content: flex-end; padding: 0.6rem 0.85rem; border-top: 1px solid var(--card-border); flex-wrap: wrap; }
+        .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.6rem; }
+        .form-group { display: flex; flex-direction: column; gap: 0.25rem; }
+        .form-group.full { grid-column: 1 / -1; }
+        .form-label { font-size: 0.6rem; font-weight: 600; text-transform: uppercase; color: var(--text-secondary); }
+        .form-input, .form-select, .form-textarea { padding: 0.5rem 0.6rem; background: var(--primary-dark); border: 1px solid var(--card-border); border-radius: 4px; color: var(--text-primary); font-size: 0.75rem; font-family: inherit; }
+        .form-input:focus, .form-select:focus, .form-textarea:focus { outline: none; border-color: var(--accent-gold); }
+        .form-textarea { resize: vertical; min-height: 50px; }
+
+        /* Loading & Empty States */
+        .loading-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem 1rem; }
+        .loading-spinner { width: 28px; height: 28px; border: 2px solid var(--card-border); border-top-color: var(--accent-gold); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 0.5rem; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-text { color: var(--text-secondary); font-size: 0.7rem; }
+        .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1.5rem 1rem; text-align: center; }
+        .empty-icon { width: 40px; height: 40px; background: rgba(212, 175, 55, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; color: var(--accent-gold); margin-bottom: 0.5rem; }
+        .empty-title { font-size: 0.8rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.25rem; }
+        .empty-text { color: var(--text-secondary); font-size: 0.7rem; }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: var(--primary-dark); }
+        ::-webkit-scrollbar-thumb { background: var(--card-border); border-radius: 2px; }
+
+        /* Responsive */
+        @media (max-width: 768px) { .sidebar { transform: translateX(-100%); transition: transform 0.3s; } .sidebar.open { transform: translateX(0); } .main-content { margin-left: 0; } }
+    </style>
+</head>
+<body>
+    <div class="dashboard-wrapper">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">Elite Salon</div>
+                <div class="sidebar-user">
+                    <div class="sidebar-user-info">
+                        <div class="user-avatar" id="userAvatar">A</div>
+                        <div class="user-details">
+                            <div class="user-name" id="userName">Admin</div>
+                            <div class="user-role" id="userRole">Administrator</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section"><div class="nav-section-title">Main Menu</div>
+                    <a href="dashboard.html" class="nav-item"><i class="fas fa-chart-line"></i><span>Dashboard</span></a>
+                    <a href="appointments.html" class="nav-item active"><i class="fas fa-calendar-check"></i><span>Appointments</span></a>
+                    <a href="customers.html" class="nav-item"><i class="fas fa-users"></i><span>Customers</span></a>
+                    <a href="staff.html" class="nav-item"><i class="fas fa-user-tie"></i><span>Staff</span></a>
+                </div>
+                <div class="nav-section"><div class="nav-section-title">Services</div>
+                    <a href="services.html" class="nav-item"><i class="fas fa-cut"></i><span>Services</span></a>
+                    <a href="package.html" class="nav-item"><i class="fas fa-gift"></i><span>Packages</span></a>
+                    <a href="inventory.html" class="nav-item"><i class="fas fa-boxes"></i><span>Inventory</span></a>
+                </div>
+                <div class="nav-section"><div class="nav-section-title">Financial</div>
+                    <a href="payments.html" class="nav-item"><i class="fas fa-credit-card"></i><span>Payments</span></a>
+                    <a href="schedules.html" class="nav-item"><i class="fas fa-calendar-alt"></i><span>Schedules</span></a>
+                </div>
+                <div class="nav-section"><div class="nav-section-title">System</div>
+                    <a href="settings.html" class="nav-item"><i class="fas fa-cog"></i><span>Settings</span></a>
+                </div>
+            </nav>
+            <div class="sidebar-footer">
+                <button class="logout-btn" onclick="handleLogout()"><i class="fas fa-sign-out-alt"></i><span>Logout</span></button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Compact Header -->
+            <header class="dashboard-header">
+                <div class="page-title-mini">
+                    <div class="page-icon-mini"><i class="fas fa-calendar-check"></i></div>
+                    <div><h1>Appointments</h1><p>Manage all salon appointments</p></div>
+                </div>
+                <button class="btn btn-primary btn-sm" onclick="openCreateModal()">
+                    <i class="fas fa-plus"></i> New Appointment
+                </button>
+            </header>
+
+            <!-- Dashboard Main (same as dashboard) -->
+            <div class="dashboard-main">
+                <!-- Loading State -->
+                <div id="loadingState" class="loading-state">
+                    <div class="loading-spinner"></div>
+                    <p class="loading-text">Loading appointments...</p>
+                </div>
+
+                <!-- Appointments Card -->
+                <div class="content-card" id="appointmentsContent" style="display:none;">
+                    <div class="card-header-mini">
+                        <div class="card-title-mini">
+                            <i class="fas fa-list"></i>
+                            <span>All Appointments</span>
+                        </div>
+                        <div style="display:flex;gap:0.5rem;">
+                            <button class="btn btn-secondary btn-sm" onclick="toggleFilters()">
+                                <i class="fas fa-filter"></i> Filters
+                            </button>
+                            <button class="btn btn-secondary btn-sm" onclick="clearFilters()">
+                                <i class="fas fa-rotate-left"></i> Clear
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="card-body-mini">
+                        <!-- Filters -->
+                        <div class="toolbar-mini" id="filterBar" style="display:none;flex-direction:column;align-items:stretch;">
+                            <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));gap:0.75rem;">
+                                <div>
+                                    <label style="display:block;font-size:0.6rem;font-weight:600;text-transform:uppercase;color:var(--text-secondary);margin-bottom:0.35rem;">Status</label>
+                                    <select id="fStatus" class="form-select" onchange="loadAppointments()">
+                                        <option value="">All Statuses</option>
+                                        <option value="PENDING">Pending</option>
+                                        <option value="CONFIRMED">Confirmed</option>
+                                        <option value="COMPLETED">Completed</option>
+                                        <option value="CANCELLED">Cancelled</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style="display:block;font-size:0.6rem;font-weight:600;text-transform:uppercase;color:var(--text-secondary);margin-bottom:0.35rem;">Date</label>
+                                    <input type="date" id="fDate" class="form-input" onchange="loadAppointments()">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Search -->
+                        <div class="search-wrapper-mini" style="margin-bottom:0.75rem;">
+                            <input type="text" id="searchInput" class="search-input-mini" placeholder="Search by customer name…" onkeyup="handleSearch(event)">
+                            <i class="fas fa-search search-icon-mini"></i>
+                        </div>
+
+                        <!-- Table -->
+                        <div class="table-container">
+                            <table class="compact-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width:70px;">ID</th>
+                                        <th>Customer</th>
+                                        <th style="width:130px;">Date</th>
+                                        <th style="width:90px;">Time</th>
+                                        <th>Services</th>
+                                        <th style="width:100px;">Amount</th>
+                                        <th style="width:100px;">Status</th>
+                                        <th style="width:90px;">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="apptTableBody">
+                                    <tr>
+                                        <td colspan="8" class="loading-state">
+                                            <div class="loading-spinner"></div>
+                                            <p class="loading-text">Loading appointments...</p>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div id="resultsInfo" style="padding:0.75rem;color:var(--text-secondary);font-size:0.65rem;border-top:1px solid var(--card-border);margin-top:0.5rem;"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Create Appointment Modal -->
+    <div class="modal-overlay" id="createModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title"><i class="fas fa-plus"></i> New Appointment</h2>
+                <button class="modal-close" onclick="closeModal('createModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-grid">
+                    <div class="form-group full">
+                        <label class="form-label">Customer *</label>
+                        <div style="position:relative;">
+                            <input type="text" id="customerSearch" class="form-input" placeholder="Search customer by name or phone..." oninput="filterCustomers()" style="padding-right:2rem;">
+                            <i class="fas fa-search" style="position:absolute;right:1rem;top:50%;transform:translateY(-50%);color:var(--text-secondary);"></i>
+                        </div>
+                        <select id="newCustomerId" class="form-select" required onchange="onCustomerSelect()" style="margin-top:0.5rem;max-height:200px;overflow-y:auto;">
+                            <option value="">Select Customer</option>
+                        </select>
+                        <small id="customerError" style="color:var(--danger);display:none;">Please select a customer</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Date *</label>
+                        <input type="date" id="newDate" class="form-input" required min="" onchange="validateForm()">
+                        <small id="dateError" style="color:var(--danger);display:none;">Please select a date</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Start Time *</label>
+                        <input type="time" id="newTime" class="form-input" required onchange="validateForm()">
+                        <small id="timeError" style="color:var(--danger);display:none;">Please select a time</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">End Time</label>
+                        <input type="time" id="newEndTime" class="form-input" placeholder="Auto-calculated if not set">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Duration (min)</label>
+                        <input type="number" id="newDuration" class="form-input" placeholder="60" min="15" step="15" value="60" onchange="calculateEndTime()">
+                    </div>
+
+                    <div class="form-group full">
+                        <label class="form-label">Services</label>
+                        <div id="servicesSelector" style="max-height:150px;overflow-y:auto;border:1px solid var(--card-border);padding:0.75rem;border-radius:var(--radius-lg);"></div>
+                        <small id="servicesError" style="color:var(--danger);display:none;">Please select at least one service OR package</small>
+                    </div>
+
+                    <div class="form-group full">
+                        <label class="form-label">Packages</label>
+                        <div id="packagesSelector" style="max-height:150px;overflow-y:auto;border:1px solid var(--card-border);padding:0.75rem;border-radius:var(--radius-lg);"></div>
+                        <small id="packagesError" style="color:var(--danger);display:none;">Please select at least one service OR package</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Discount (₹)</label>
+                        <input type="number" id="newDiscount" class="form-input" placeholder="0" min="0" step="0.01" value="0" onchange="validateForm()">
+                    </div>
+
+                    <div class="form-group full">
+                        <label class="form-label">Notes</label>
+                        <textarea id="newNotes" class="form-textarea" rows="2" placeholder="Optional notes about the appointment…"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="createAppointment()" id="createBtn">
+                    <i class="fas fa-save"></i> Create Appointment
+                </button>
+                <button class="btn btn-secondary" onclick="closeModal('createModal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Detail Modal -->
+    <div class="modal-overlay" id="detailModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title"><i class="fas fa-calendar-check"></i> Appointment Details</h2>
+                <button class="modal-close" onclick="closeModal('detailModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body" id="detailContent"></div>
+            <div class="modal-footer" id="detailActions">
+                <button class="btn btn-primary" onclick="saveAppointmentEdit()"><i class="fas fa-save"></i> Save Changes</button>
+                <button class="btn btn-success" id="btnConfirm" onclick="updateStatus('CONFIRMED')" style="display:none;"><i class="fas fa-check"></i> Confirm</button>
+                <button class="btn btn-primary" id="btnComplete" onclick="updateStatus('COMPLETED')" style="display:none;"><i class="fas fa-flag-checkered"></i> Complete</button>
+                <button class="btn btn-danger" id="btnCancel" onclick="openCancelModal()" style="display:none;"><i class="fas fa-times"></i> Cancel</button>
+                <button class="btn btn-secondary" onclick="closeModal('detailModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cancel Modal -->
+    <div class="modal-overlay" id="cancelModal">
+        <div class="modal">
+            <div class="modal-header" style="background:linear-gradient(135deg, var(--danger) 0%, #dc2626 100%);">
+                <h2 class="modal-title" style="-webkit-text-fill-color:white;"><i class="fas fa-calendar-times"></i> Cancel Appointment</h2>
+                <button class="modal-close" onclick="closeModal('cancelModal')" style="background:rgba(255,255,255,0.2);border:none;color:white;"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <p style="color:var(--text-secondary);margin-bottom:1rem;">Are you sure you want to cancel this appointment?</p>
+                <div class="form-group full">
+                    <label class="form-label">Reason (Optional)</label>
+                    <textarea id="cancelReason" class="form-textarea" rows="3" placeholder="Cancellation reason…"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" onclick="confirmCancel()"><i class="fas fa-times"></i> Confirm Cancel</button>
+                <button class="btn btn-secondary" onclick="closeModal('cancelModal')">Keep</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Generate Invoice Modal -->
+    <div class="modal-overlay" id="invoiceModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title"><i class="fas fa-file-invoice"></i> Generate Invoice</h2>
+                <button class="modal-close" onclick="closeModal('invoiceModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <!-- Appointment Summary -->
+                <div style="margin-bottom:1rem;padding:0.75rem;background:rgba(212, 175, 55, 0.05);border-radius:var(--radius-md);border:1px solid var(--card-border);">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+                        <div>
+                            <div style="font-size:0.65rem;font-weight:600;text-transform:uppercase;color:var(--text-secondary);">Appointment ID</div>
+                            <div id="invApptId" style="font-size:0.9rem;font-weight:600;color:var(--text-primary);">#-</div>
+                        </div>
+                        <div>
+                            <div style="font-size:0.65rem;font-weight:600;text-transform:uppercase;color:var(--text-secondary);">Customer</div>
+                            <div id="invCustomer" style="font-size:0.9rem;color:var(--text-primary);">-</div>
+                        </div>
+                        <div>
+                            <div style="font-size:0.65rem;font-weight:600;text-transform:uppercase;color:var(--text-secondary);">Appointment Total</div>
+                            <div id="invApptTotal" style="font-size:0.9rem;font-weight:600;color:var(--accent-gold);">₹0.00</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Subtotal (₹) *</label>
+                        <input type="number" id="invSubtotal" class="form-input" placeholder="0" min="0" max="10000000" step="0.01" required>
+                        <small style="color:var(--text-muted);font-size:0.65rem;">Max: ₹10,000,000</small>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Tax Amount (₹) *</label>
+                        <input type="number" id="invTax" class="form-input" placeholder="0" min="0" max="1000000" step="0.01" value="0" required>
+                        <small style="color:var(--text-muted);font-size:0.65rem;">Max: ₹1,000,000</small>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Discount (₹) *</label>
+                        <input type="number" id="invDiscount" class="form-input" placeholder="0" min="0" step="0.01" value="0" required onchange="validateDiscount()">
+                        <small id="discountError" style="color:var(--danger);font-size:0.65rem;display:none;">Discount cannot exceed subtotal</small>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Due Date *</label>
+                        <input type="date" id="invDueDate" class="form-input" required min="">
+                        <small style="color:var(--text-muted);font-size:0.65rem;">Default: 7 days from today</small>
+                    </div>
+                    <div class="form-group full">
+                        <label class="form-label">Notes</label>
+                        <textarea id="invNotes" class="form-textarea" rows="2" placeholder="Invoice notes (max 500 characters)…" maxlength="500"></textarea>
+                        <small id="notesCount" style="color:var(--text-muted);font-size:0.65rem;">0/500 characters</small>
+                    </div>
+                </div>
+                <div style="margin-top:1rem;padding:0.75rem;background:rgba(212, 175, 55, 0.05);border-radius:var(--radius-md);border:1px solid var(--card-border);">
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <span style="font-size:0.85rem;font-weight:600;color:var(--text-secondary);">Invoice Total:</span>
+                        <span id="invTotalDisplay" style="font-size:1.25rem;font-weight:700;color:var(--accent-gold);">₹0.00</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="generateInvoice()" id="generateInvoiceBtn"><i class="fas fa-file-invoice"></i> Generate Invoice</button>
+                <button class="btn btn-secondary" onclick="closeModal('invoiceModal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Update Service Modal -->
+    <div class="modal-overlay" id="servicesModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title"><i class="fas fa-plus"></i> Add/Update Service</h2>
+                <button class="modal-close" onclick="closeModal('servicesModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-grid">
+                    <div class="form-group full">
+                        <label class="form-label">Service *</label>
+                        <select id="serviceSelect" class="form-select">
+                            <option value="">Select Service</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Staff</label>
+                        <select id="serviceStaff" class="form-select">
+                            <option value="">Select Staff</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Price (₹)</label>
+                        <input type="number" id="servicePrice" class="form-input" placeholder="0" min="0" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Discount (₹)</label>
+                        <input type="number" id="serviceDiscount" class="form-input" placeholder="0" min="0" step="0.01">
+                    </div>
+                    <div class="form-group full">
+                        <label class="form-label">Notes</label>
+                        <textarea id="serviceNotes" class="form-textarea" rows="2" placeholder="Service notes…"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="addServiceToAppointment()"><i class="fas fa-plus"></i> Add Service</button>
+                <button class="btn btn-secondary" onclick="closeModal('servicesModal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script src="../js/core-api.js"></script>
+    <script src="../js/auth-api.js"></script>
+    <script src="../js/navigation.js"></script>
+    <script src="../js/utils.js"></script>
+    <script src="../js/notifications.js"></script>
+    <script src="../js/appointments-api.js"></script>
+    <script src="../js/customers-api.js"></script>
+    <script src="../js/services-packages-api.js"></script>
+    <script src="../js/staff-api-module.js"></script>
+    <script>
+        /* =============================================
+           GLOBAL STATE VARIABLES - DISCOUNT CALCULATION
+           ============================================= */
+        let appointments = [];
+        let selectedAppointmentId = null;
+        let defaultStaffId = null;
+        let isLoading = false;
+
+        // Edit state for appointment update (reset on each modal open)
+        window.editSelectedServices = [];           // Array of service_ids (as NUMBERS)
+        window.editSelectedPackages = [];           // Array of package_ids (as NUMBERS)
+        window.editServiceData = {};                // { serviceId: { price, discount, staff_id } }
+        window.editPackageData = {};                // { packageId: { price, discount, staff_id } }
+        window.originalAppointmentData = null;      // Original data from DB (for comparison)
+
+        // Helper function to reset all edit state
+        function resetEditState() {
+            window.editSelectedServices = [];
+            window.editSelectedPackages = [];
+            window.editServiceData = {};
+            window.editPackageData = {};
+            window.originalAppointmentData = null;
+        }
+
+        // Legacy variables (for create appointment - will be removed later)
+        let selectedServices = [];
+        let selectedPackages = [];
+
+        function handleLogout() {
+            if (confirm('Are you sure you want to logout?')) {
+                TokenManager.removeToken();
+                TokenManager.removeUser();
+                localStorage.removeItem('refresh_token');
+                // Use relative path to avoid hardcoded URL issues
+                window.location.href = '../index.html';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const user = TokenManager.getUser();
+            if (user) {
+                document.getElementById('userName').textContent = user.username || user.name || 'User';
+                document.getElementById('userRole').textContent = user.role || 'User';
+                document.getElementById('userAvatar').textContent = (user.username || user.name || 'U')[0].toUpperCase();
+            }
+
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('newDate').setAttribute('min', today);
+
+            loadDefaultStaff().then(() => {
+                loadAppointments();
+                loadCustomersForDropdown();
+                loadServicesForSelector();
+            });
+        });
+
+        async function loadDefaultStaff() {
+            try {
+                console.log('📊 Loading staff for default assignment...');
+                const result = await StaffAPI.list();
+                console.log('📊 Staff API response:', result);
+                
+                if (result.success && result.data && result.data.items && result.data.items.length > 0) {
+                    const activeStaff = result.data.items.find(s => s.status === 'ACTIVE') || result.data.items[0];
+                    defaultStaffId = activeStaff.staff_id;
+                    console.log('✅ Default staff set to ID:', defaultStaffId, '(', activeStaff.name, ')');
+                } else {
+                    console.error('❌ No staff members found in system!');
+                    alert('⚠️ No staff members found. Please create at least one staff member before creating appointments.');
+                }
+            } catch (error) {
+                console.error('❌ Failed to load staff:', error);
+            }
+        }
+
+        async function loadAppointments() {
+            if (isLoading) return;
+            isLoading = true;
+
+            const tbody = document.getElementById('apptTableBody');
+            tbody.innerHTML = '<tr><td colspan="8" class="loading-state"><div class="loading-spinner"></div><p class="loading-text">Loading appointments...</p></td></tr>';
+
+            try {
+                const status = document.getElementById('fStatus').value;
+                const date = document.getElementById('fDate').value;
+                const params = {};
+                if (status) params.status = status;
+                if (date) params.date = date;
+
+                const result = await AppointmentsAPI.list(params);
+
+                if (result.success && result.data && result.data.items) {
+                    appointments = result.data.items;
+                    renderTable();
+                    document.getElementById('loadingState').style.display = 'none';
+                    document.getElementById('appointmentsContent').style.display = 'block';
+                } else {
+                    appointments = [];
+                    renderTable();
+                    document.getElementById('loadingState').style.display = 'none';
+                    document.getElementById('appointmentsContent').style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error loading appointments:', error);
+                tbody.innerHTML = '<tr><td colspan="8" class="empty-state"><div class="empty-icon"><i class="fas fa-exclamation-triangle"></i></div><h3 class="empty-title">Failed to Load</h3><p class="empty-text">' + error.message + '</p></td></tr>';
+            } finally {
+                isLoading = false;
+            }
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('apptTableBody');
+            const q = document.getElementById('searchInput').value.toLowerCase();
+
+            let filtered = appointments;
+            if (q) {
+                filtered = appointments.filter(appt =>
+                    (appt.customer_name && appt.customer_name.toLowerCase().includes(q))
+                );
+            }
+
+            if (!filtered || filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="empty-state"><div class="empty-icon"><i class="fas fa-calendar-xmark"></i></div><h3 class="empty-title">No Appointments</h3><p class="empty-text">No appointments found matching your criteria</p></td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(appt => {
+                const serviceName = appt.services && appt.services.length > 0
+                    ? appt.services.map(s => s.service_name).join(', ')
+                    : 'No services';
+
+                const statusClass = getStatusBadgeClass(appt.status);
+                const initials = getInitials(appt.customer_name);
+
+                return `
+                    <tr>
+                        <td><strong style="color:var(--accent-gold);font-size:0.65rem;">#${appt.appointment_id}</strong></td>
+                        <td>
+                            <div class="table-avatar-mini">
+                                <div class="avatar-circle-mini">${initials}</div>
+                                <div class="avatar-info-mini">
+                                    <span class="avatar-name-mini">${appt.customer_name || 'N/A'}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td style="color:var(--text-secondary);font-size:0.65rem;">${formatDate(appt.appointment_date)}</td>
+                        <td style="color:var(--text-secondary);font-size:0.65rem;">${appt.start_time || 'N/A'}</td>
+                        <td style="max-width:250px;">
+                            <div style="font-size:0.65rem;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${serviceName}</div>
+                        </td>
+                        <td><strong style="color:var(--accent-gold);font-size:0.65rem;">₹${parseFloat(appt.final_amount || 0).toFixed(2)}</strong></td>
+                        <td><span class="status-badge ${statusClass}">${appt.status}</span></td>
+                        <td>
+                            <button class="btn btn-primary btn-icon-sm" onclick="viewDetail(${appt.appointment_id})" title="View">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-secondary btn-icon-sm" onclick="openInvoiceModal(${appt.appointment_id})" title="Invoice">
+                                <i class="fas fa-file-invoice"></i>
+                            </button>
+                            <button class="btn btn-warning btn-icon-sm" onclick="openServicesModal(${appt.appointment_id})" title="Add Service">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            document.getElementById('resultsInfo').textContent = `Showing ${filtered.length} appointment(s)`;
+        }
+
+        let allCustomers = [];
+
+        async function loadCustomersForDropdown() {
+            try {
+                const result = await CustomersAPI.list();
+                if (result.success && result.data && result.data.items) {
+                    allCustomers = result.data.items;
+                    filterCustomers();
+                }
+            } catch (error) {
+                console.error('Failed to load customers:', error);
+            }
+        }
+
+        function filterCustomers() {
+            const searchTerm = document.getElementById('customerSearch').value.toLowerCase();
+            const select = document.getElementById('newCustomerId');
+
+            const filtered = allCustomers.filter(c =>
+                !searchTerm ||
+                (c.name && c.name.toLowerCase().includes(searchTerm)) ||
+                (c.phone && c.phone.includes(searchTerm)) ||
+                (c.email && c.email.toLowerCase().includes(searchTerm))
+            );
+
+            select.innerHTML = '<option value="">Select Customer</option>' +
+                filtered.map(c => `<option value="${c.customer_id}">${c.name} - ${c.phone || c.email}</option>`).join('');
+        }
+
+        function onCustomerSelect() {
+            validateForm();
+        }
+
+        async function loadServicesForSelector() {
+            try {
+                const result = await ServicesAPI.list();
+                const container = document.getElementById('servicesSelector');
+                if (result.success && result.data && result.data.items) {
+                    container.innerHTML = result.data.items.map(s => `
+                        <label style="display:flex;align-items:center;gap:0.75rem;padding:0.5rem;cursor:pointer;border-radius:var(--radius-md);transition:background 0.2s;${selectedServices.some(ss => ss.service_id === s.service_id) ? 'background:rgba(212, 175, 55, 0.1);' : ''}">
+                            <input type="checkbox" value="${s.service_id}" data-price="${s.price}" data-name="${s.service_name}" onchange="toggleService(this)" ${selectedServices.some(ss => ss.service_id === s.service_id) ? 'checked' : ''} style="cursor:pointer;">
+                            <span style="flex:1;color:var(--text-secondary);font-size:0.9rem;">${s.service_name}</span>
+                            <span style="color:var(--accent-gold);font-weight:600;font-size:0.9rem;">₹${s.price}</span>
+                        </label>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Failed to load services:', error);
+            }
+        }
+
+        async function loadPackagesForSelector() {
+            try {
+                const result = await PackagesAPI.list();
+                const container = document.getElementById('packagesSelector');
+                if (result.success && result.data && result.data.items) {
+                    container.innerHTML = result.data.items.map(p => `
+                        <label style="display:flex;align-items:center;gap:0.75rem;padding:0.5rem;cursor:pointer;border-radius:var(--radius-md);transition:background 0.2s;${selectedPackages.some(pp => pp.package_id === p.package_id) ? 'background:rgba(212, 175, 55, 0.1);' : ''}">
+                            <input type="checkbox" value="${p.package_id}" data-price="${p.total_price}" data-name="${p.package_name}" onchange="togglePackage(this)" ${selectedPackages.some(pp => pp.package_id === p.package_id) ? 'checked' : ''} style="cursor:pointer;">
+                            <span style="flex:1;color:var(--text-secondary);font-size:0.9rem;">${p.package_name}</span>
+                            <span style="color:var(--accent-gold);font-weight:600;font-size:0.9rem;">₹${p.total_price}</span>
+                        </label>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Failed to load packages:', error);
+            }
+        }
+
+        function toggleService(checkbox) {
+            const serviceId = parseInt(checkbox.value);
+            if (checkbox.checked) {
+                selectedServices.push({ service_id: serviceId, price: parseFloat(checkbox.dataset.price), service_name: checkbox.dataset.name });
+                checkbox.parentElement.style.background = 'rgba(212, 175, 55, 0.1)';
+            } else {
+                selectedServices = selectedServices.filter(s => s.service_id !== serviceId);
+                checkbox.parentElement.style.background = '';
+            }
+            validateForm();
+        }
+
+        function togglePackage(checkbox) {
+            const packageId = parseInt(checkbox.value);
+            if (checkbox.checked) {
+                selectedPackages.push({ package_id: packageId, price: parseFloat(checkbox.dataset.price), package_name: checkbox.dataset.name });
+                checkbox.parentElement.style.background = 'rgba(212, 175, 55, 0.1)';
+            } else {
+                selectedPackages = selectedPackages.filter(p => p.package_id !== packageId);
+                checkbox.parentElement.style.background = '';
+            }
+            validateForm();
+        }
+
+        function calculateEndTime() {
+            const startTime = document.getElementById('newTime').value;
+            const duration = parseInt(document.getElementById('newDuration').value) || 60;
+
+            if (startTime) {
+                // Parse time (handle both HH:MM and HH:MM:SS formats)
+                const timeParts = startTime.split(':').map(Number);
+                const hours = timeParts[0] || 0;
+                const minutes = timeParts[1] || 0;
+                
+                const startDate = new Date();
+                startDate.setHours(hours, minutes, 0);
+                startDate.setMinutes(startDate.getMinutes() + duration);
+
+                const endHours = String(startDate.getHours()).padStart(2, '0');
+                const endMinutes = String(startDate.getMinutes()).padStart(2, '0');
+                const endSeconds = '00';
+                document.getElementById('newEndTime').value = `${endHours}:${endMinutes}:${endSeconds}`;
+            }
+        }
+
+        function validateForm() {
+            let isValid = true;
+            const customerId = document.getElementById('newCustomerId').value;
+            document.getElementById('customerError').style.display = !customerId ? 'block' : 'none';
+            if (!customerId) isValid = false;
+
+            const date = document.getElementById('newDate').value;
+            document.getElementById('dateError').style.display = !date ? 'block' : 'none';
+            if (!date) isValid = false;
+
+            const time = document.getElementById('newTime').value;
+            document.getElementById('timeError').style.display = !time ? 'block' : 'none';
+            if (!time) isValid = false;
+
+            const hasServices = selectedServices.length > 0;
+            const hasPackages = selectedPackages.length > 0;
+
+            const servicesError = document.getElementById('servicesError');
+            const packagesError = document.getElementById('packagesError');
+
+            servicesError.style.display = !hasServices && !hasPackages ? 'block' : 'none';
+            packagesError.style.display = !hasServices && !hasPackages ? 'block' : 'none';
+
+            if (!hasServices && !hasPackages) isValid = false;
+
+            const createBtn = document.getElementById('createBtn');
+            createBtn.disabled = !isValid;
+            createBtn.style.opacity = isValid ? '1' : '0.6';
+            
+            // Debug logging
+            console.log('Form validation:', {
+                customerId: customerId,
+                date: date,
+                time: time,
+                hasServices: hasServices,
+                hasPackages: hasPackages,
+                isValid: isValid
+            });
+            
+            return isValid;
+        }
+
+        function openCreateModal() {
+            selectedServices = [];
+            selectedPackages = [];
+            document.getElementById('newCustomerId').value = '';
+            document.getElementById('customerSearch').value = '';
+            document.getElementById('newDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('newTime').value = '09:00:00'; // Backend expects HH:MM:SS format
+            document.getElementById('newEndTime').value = '';
+            document.getElementById('newDuration').value = '60';
+            document.getElementById('newDiscount').value = '0';
+            document.getElementById('newNotes').value = '';
+            loadCustomersForDropdown();
+            loadServicesForSelector();
+            loadPackagesForSelector();
+            validateForm();
+            document.getElementById('createModal').classList.add('open');
+        }
+
+        async function createAppointment() {
+            console.log('=== CREATE APPOINTMENT STARTED ===');
+            console.log('defaultStaffId:', defaultStaffId);
+
+            // CRITICAL: Check if staff is loaded
+            if (!defaultStaffId) {
+                alert('⚠️ Staff not loaded yet. Please wait a moment and try again.\n\nIf this persists, please ensure you have at least one active staff member in the system.');
+                return;
+            }
+
+            if (!validateForm()) {
+                console.error('Form validation failed');
+                alert('Please fill all required fields');
+                return;
+            }
+
+            const customerId = document.getElementById('newCustomerId').value;
+            let date = document.getElementById('newDate').value;
+            let time = document.getElementById('newTime').value;
+            const endTime = document.getElementById('newEndTime').value;
+            const duration = parseInt(document.getElementById('newDuration').value) || 60;
+            const discount = parseFloat(document.getElementById('newDiscount').value) || 0;
+            let notes = document.getElementById('newNotes').value.trim();
+
+            // Validate duration (1-1440 minutes per backend validation)
+            if (duration < 1 || duration > 1440) {
+                alert('Duration must be between 1 and 1440 minutes');
+                return;
+            }
+
+            // Validate discount (0 <= discount <= total_amount)
+            if (discount < 0) {
+                alert('Discount cannot be negative');
+                return;
+            }
+
+            // Validate notes length (max 500 characters per backend)
+            if (notes.length > 500) {
+                alert('Notes cannot exceed 500 characters');
+                return;
+            }
+
+            // Ensure date is in YYYY-MM-DD format (per backend validation)
+            if (date) {
+                const dateObj = new Date(date);
+                if (!isNaN(dateObj.getTime())) {
+                    const year = dateObj.getFullYear();
+                    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+                    const day = String(dateObj.getDate()).padStart(2, '0');
+                    date = `${year}-${month}-${day}`;
+                }
+            }
+
+            // Ensure time is in HH:MM:SS format (backend expects this format)
+            if (time) {
+                // If time already has seconds (HH:MM:SS), keep it
+                if (time.includes(':') && time.split(':').length === 3) {
+                    // Already in correct format
+                } else if (time.split(':').length === 2) {
+                    // Add seconds if missing (HH:MM → HH:MM:00)
+                    time = time + ':00';
+                }
+                // Validate HH:MM:SS format
+                const timeParts = time.split(':');
+                if (timeParts.length === 3) {
+                    const hours = String(parseInt(timeParts[0]) || 0).padStart(2, '0');
+                    const minutes = String(parseInt(timeParts[1]) || 0).padStart(2, '0');
+                    const seconds = String(parseInt(timeParts[2]) || 0).padStart(2, '0');
+                    time = `${hours}:${minutes}:${seconds}`;
+                }
+            }
+
+            console.log('Form data:', {
+                customerId,
+                date,
+                time,
+                endTime,
+                duration,
+                discount,
+                notes,
+                servicesCount: selectedServices.length,
+                packagesCount: selectedPackages.length
+            });
+
+            // Validate date format (YYYY-MM-DD) per backend validation
+            const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+            if (!dateRegex.test(date)) {
+                console.error('Invalid date format:', date);
+                alert('Invalid date format. Please use YYYY-MM-DD format.');
+                return;
+            }
+
+            // Validate time format (HH:MM:SS) per backend validation
+            const timeRegex = /^\d{2}:\d{2}:\d{2}$/;
+            if (!timeRegex.test(time)) {
+                console.error('Invalid time format:', time);
+                alert('Invalid time format. Please use HH:MM:SS format.');
+                return;
+            }
+
+            // Validate date is not in the past (per backend: must be >= today)
+            const today = new Date().toISOString().split('T')[0];
+            if (date < today) {
+                console.error('Date is in the past:', date);
+                alert('Cannot book appointments in the past.');
+                return;
+            }
+
+            const servicesData = selectedServices.map(s => ({
+                service_id: s.service_id,
+                staff_id: defaultStaffId,
+                price: s.price,
+                discount_amount: 0  // On create, service-level discount is always 0
+            }));
+
+            const packagesData = selectedPackages.map(p => ({
+                package_id: p.package_id,
+                staff_id: defaultStaffId,
+                price: p.price,
+                discount_amount: 0  // On create, package-level discount is always 0
+            }));
+
+            // Validate at least one service OR package is selected (per backend)
+            if (servicesData.length === 0 && packagesData.length === 0) {
+                console.error('No services or packages selected');
+                alert('At least one service or package is required');
+                return;
+            }
+
+            // ===== PHASE 3 FIX: Calculate all three amounts =====
+            // Services final total (price - discount for each service)
+            const servicesFinalTotal = servicesData.reduce((sum, s) => {
+                return sum + (parseFloat(s.price) - parseFloat(s.discount_amount || 0));
+            }, 0);
+
+            // Packages final total (price - discount for each package)
+            const packagesFinalTotal = packagesData.reduce((sum, p) => {
+                return sum + (parseFloat(p.price) - parseFloat(p.discount_amount || 0));
+            }, 0);
+
+            // Subtotal (total_amount) = services + packages
+            const totalAmount = servicesFinalTotal + packagesFinalTotal;
+
+            // Validate: overall discount cannot exceed subtotal
+            if (discount > totalAmount) {
+                alert('Discount (₹' + discount.toFixed(2) + ') cannot exceed subtotal (₹' + totalAmount.toFixed(2) + ')');
+                return;
+            }
+
+            // Final amount = subtotal - overall discount
+            const finalAmount = totalAmount - discount;
+
+            console.log('=== AMOUNT CALCULATION ===');
+            console.log('Services Final Total: ₹' + servicesFinalTotal.toFixed(2));
+            console.log('Packages Final Total: ₹' + packagesFinalTotal.toFixed(2));
+            console.log('Subtotal (total_amount): ₹' + totalAmount.toFixed(2));
+            console.log('Overall Discount: ₹' + discount.toFixed(2));
+            console.log('Final Amount: ₹' + finalAmount.toFixed(2));
+
+            const appointmentData = {
+                customer_id: parseInt(customerId),
+                appointment_date: date,
+                start_time: time,
+                estimated_duration: duration,
+                notes: notes,
+                total_amount: totalAmount,        // ← NEW: Subtotal before overall discount
+                discount_amount: discount,         // Overall appointment discount
+                final_amount: finalAmount,         // ← NEW: Final total after discount
+                services: servicesData,
+                packages: packagesData
+            };
+
+            console.log('Sending to API:', JSON.stringify(appointmentData, null, 2));
+
+            const createBtn = document.getElementById('createBtn');
+            createBtn.disabled = true;
+            createBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Creating...';
+
+            try {
+                const result = await AppointmentsAPI.create(appointmentData);
+                console.log('API Response:', result);
+                
+                if (result.success) {
+                    alert('Appointment created successfully!');
+                    closeModal('createModal');
+                    await loadAppointments();
+                } else {
+                    console.error('API returned error:', result.message);
+                    alert(result.message || 'Failed to create appointment');
+                }
+            } catch (error) {
+                console.error('API call failed:', error);
+                alert('Error: ' + (error.message || 'Failed to create appointment'));
+            } finally {
+                createBtn.disabled = false;
+                createBtn.innerHTML = '<i class="fas fa-save"></i> Create Appointment';
+            }
+        }
+
+        /* =============================================
+           PHASE 4: VIEW DETAIL FUNCTION - COMPLETE REWRITE
+           Properly initializes global state, doesn't recalc on open
+           ============================================= */
+        async function viewDetail(id) {
+            selectedAppointmentId = id;
+            
+            // Reset edit state before loading new appointment
+            resetEditState();
+            
+            try {
+                console.log('=== PHASE 4: OPENING APPOINTMENT DETAIL ===');
+                console.log('Appointment ID:', id);
+
+                const result = await AppointmentsAPI.view(id);
+                if (!result.success || !result.data) {
+                    alert('Failed to load appointment details');
+                    return;
+                }
+
+                const appt = result.data;
+                
+                // ===== STEP 1: Store original data for comparison =====
+                window.originalAppointmentData = {
+                    appointment_id: appt.appointment_id,
+                    total_amount: parseFloat(appt.total_amount || 0),
+                    discount_amount: parseFloat(appt.discount_amount || 0),
+                    final_amount: parseFloat(appt.final_amount || 0),
+                    services: appt.services || [],
+                    packages: appt.packages || []
+                };
+
+                console.log('=== ORIGINAL DATA FROM DB ===');
+                console.log('total_amount:', window.originalAppointmentData.total_amount);
+                console.log('discount_amount:', window.originalAppointmentData.discount_amount);
+                console.log('final_amount:', window.originalAppointmentData.final_amount);
+                console.log('Services:', appt.services);
+                console.log('Packages:', appt.packages);
+
+                // ===== STEP 2: Initialize global state (convert to NUMBERS!) =====
+                window.editSelectedServices = (appt.services || []).map(s => parseInt(s.service_id) || 0);
+                window.editSelectedPackages = (appt.packages || []).map(p => parseInt(p.package_id) || 0);
+
+                console.log('editSelectedServices:', window.editSelectedServices);
+                console.log('editSelectedPackages:', window.editSelectedPackages);
+
+                // Initialize service data with ACTUAL values from database
+                window.editServiceData = {};
+                (appt.services || []).forEach(s => {
+                    const serviceId = parseInt(s.service_id) || 0;
+                    window.editServiceData[serviceId] = {
+                        price: parseFloat(s.service_price || s.price || 0),
+                        discount: parseFloat(s.discount_amount || 0),
+                        staff_id: parseInt(s.staff_id) || defaultStaffId,
+                        final_price: parseFloat(s.final_price || 0)
+                    };
+                    console.log(`Service ${serviceId}:`, window.editServiceData[serviceId]);
+                });
+
+                // Initialize package data with ACTUAL values from database
+                window.editPackageData = {};
+                (appt.packages || []).forEach(p => {
+                    const packageId = parseInt(p.package_id) || 0;
+                    window.editPackageData[packageId] = {
+                        price: parseFloat(p.package_price || p.total_price || 0),
+                        discount: parseFloat(p.discount_amount || 0),
+                        staff_id: parseInt(p.staff_id) || defaultStaffId,
+                        final_price: parseFloat(p.final_price || 0)
+                    };
+                    console.log(`Package ${packageId}:`, window.editPackageData[packageId]);
+                });
+
+                // ===== STEP 3: Load all services/packages for HTML generation =====
+                const [servicesResult, packagesResult, staffResult] = await Promise.all([
+                    ServicesAPI.list(),
+                    PackagesAPI.list(),
+                    StaffAPI.list()
+                ]);
+
+                const allServices = servicesResult.success ? (servicesResult.data.items || []) : [];
+                const allPackages = packagesResult.success ? (packagesResult.data.items || []) : [];
+                const allStaff = staffResult.success ? (staffResult.data.items || []) : [];
+
+                // ===== STEP 4: Build services HTML with price/discount inputs =====
+                const servicesHtml = allServices.map(s => {
+                    const serviceId = parseInt(s.service_id) || 0;
+                    const isSelected = window.editSelectedServices.includes(serviceId);
+                    const data = window.editServiceData[serviceId];
+                    
+                    const price = data ? data.price : s.price;
+                    const discount = data ? data.discount : 0;
+                    const staffId = data ? data.staff_id : defaultStaffId;
+
+                    console.log(`Service ${serviceId} (${s.service_name}): isSelected=${isSelected}`);
+
+                    return `
+                        <div style="border:1px solid ${isSelected ? 'var(--accent-gold)' : 'var(--card-border)'};border-radius:var(--radius-md);padding:0.75rem;margin-bottom:0.5rem;background:${isSelected ? 'rgba(212, 175, 55, 0.05)' : 'transparent'};">
+                            <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;">
+                                <input type="checkbox" id="editService_${serviceId}" value="${serviceId}" 
+                                    onchange="toggleEditService(this, ${serviceId})" 
+                                    ${isSelected ? 'checked' : ''} 
+                                    style="cursor:pointer;width:18px;height:18px;">
+                                <div style="flex:1;">
+                                    <div style="font-weight:600;color:var(--text-primary);">${s.service_name}</div>
+                                    <div style="font-size:0.8rem;color:var(--text-secondary);">Default: ₹${s.price}</div>
+                                </div>
+                            </div>
+                            ${isSelected ? `
+                                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.5rem;margin-left:24px;padding:0.5rem;background:var(--primary-dark);border-radius:var(--radius-md);">
+                                    <div>
+                                        <label style="font-size:0.65rem;color:var(--text-secondary);">Price (₹)</label>
+                                        <input type="number" id="editServicePrice_${serviceId}" 
+                                            value="${price}" min="0" step="0.01" 
+                                            onchange="updateServicePrice(${serviceId}, this.value)"
+                                            style="width:100%;padding:0.4rem;background:var(--card-bg);border:1px solid var(--card-border);border-radius:4px;color:var(--text-primary);font-size:0.85rem;">
+                                    </div>
+                                    <div>
+                                        <label style="font-size:0.65rem;color:var(--text-secondary);">Discount (₹)</label>
+                                        <input type="number" id="editServiceDiscount_${serviceId}" 
+                                            value="${discount}" min="0" step="0.01" 
+                                            onchange="updateServiceDiscount(${serviceId}, this.value)"
+                                            style="width:100%;padding:0.4rem;background:var(--card-bg);border:1px solid var(--card-border);border-radius:4px;color:var(--text-primary);font-size:0.85rem;">
+                                    </div>
+                                    <div>
+                                        <label style="font-size:0.65rem;color:var(--text-secondary);">Staff</label>
+                                        <select id="editServiceStaff_${serviceId}" 
+                                            onchange="updateServiceStaff(${serviceId}, this.value)"
+                                            style="width:100%;padding:0.4rem;background:var(--card-bg);border:1px solid var(--card-border);border-radius:4px;color:var(--text-primary);font-size:0.85rem;">
+                                            ${allStaff.map(staff => `<option value="${staff.staff_id}" ${parseInt(staff.staff_id) === staffId ? 'selected' : ''}>${staff.name}</option>`).join('')}
+                                        </select>
+                                    </div>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                }).join('');
+
+                // ===== STEP 5: Build packages HTML with price/discount inputs =====
+                const packagesHtml = allPackages.map(p => {
+                    const packageId = parseInt(p.package_id) || 0;
+                    const isSelected = window.editSelectedPackages.includes(packageId);
+                    const data = window.editPackageData[packageId];
+                    
+                    const price = data ? data.price : p.total_price;
+                    const discount = data ? data.discount : 0;
+                    const staffId = data ? data.staff_id : defaultStaffId;
+
+                    console.log(`Package ${packageId} (${p.package_name}): isSelected=${isSelected}`);
+
+                    return `
+                        <div style="border:1px solid ${isSelected ? 'var(--accent-gold)' : 'var(--card-border)'};border-radius:var(--radius-md);padding:0.75rem;margin-bottom:0.5rem;background:${isSelected ? 'rgba(212, 175, 55, 0.05)' : 'transparent'};">
+                            <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;">
+                                <input type="checkbox" id="editPackage_${packageId}" value="${packageId}" 
+                                    onchange="toggleEditPackage(this, ${packageId})" 
+                                    ${isSelected ? 'checked' : ''} 
+                                    style="cursor:pointer;width:18px;height:18px;">
+                                <div style="flex:1;">
+                                    <div style="font-weight:600;color:var(--text-primary);">${p.package_name}</div>
+                                    <div style="font-size:0.8rem;color:var(--text-secondary);">Default: ₹${p.total_price}</div>
+                                </div>
+                            </div>
+                            ${isSelected ? `
+                                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.5rem;margin-left:24px;padding:0.5rem;background:var(--primary-dark);border-radius:var(--radius-md);">
+                                    <div>
+                                        <label style="font-size:0.65rem;color:var(--text-secondary);">Price (₹)</label>
+                                        <input type="number" id="editPackagePrice_${packageId}" 
+                                            value="${price}" min="0" step="0.01" 
+                                            onchange="updatePackagePrice(${packageId}, this.value)"
+                                            style="width:100%;padding:0.4rem;background:var(--card-bg);border:1px solid var(--card-border);border-radius:4px;color:var(--text-primary);font-size:0.85rem;">
+                                    </div>
+                                    <div>
+                                        <label style="font-size:0.65rem;color:var(--text-secondary);">Discount (₹)</label>
+                                        <input type="number" id="editPackageDiscount_${packageId}" 
+                                            value="${discount}" min="0" step="0.01" 
+                                            onchange="updatePackageDiscount(${packageId}, this.value)"
+                                            style="width:100%;padding:0.4rem;background:var(--card-bg);border:1px solid var(--card-border);border-radius:4px;color:var(--text-primary);font-size:0.85rem;">
+                                    </div>
+                                    <div>
+                                        <label style="font-size:0.65rem;color:var(--text-secondary);">Staff</label>
+                                        <select id="editPackageStaff_${packageId}" 
+                                            onchange="updatePackageStaff(${packageId}, this.value)"
+                                            style="width:100%;padding:0.4rem;background:var(--card-bg);border:1px solid var(--card-border);border-radius:4px;color:var(--text-primary);font-size:0.85rem;">
+                                            ${allStaff.map(staff => `<option value="${staff.staff_id}" ${parseInt(staff.staff_id) === staffId ? 'selected' : ''}>${staff.name}</option>`).join('')}
+                                        </select>
+                                    </div>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                }).join('');
+
+                // ===== STEP 6: Build HTML display =====
+                document.getElementById('detailContent').innerHTML = `
+                    <div style="margin-bottom:2rem;">
+                        <h3 style="color:var(--text-primary);margin-bottom:1rem;"><i class="fas fa-info-circle" style="color:var(--accent-gold);margin-right:0.5rem;"></i>Appointment Details</h3>
+                        <div style="display:grid;grid-template-columns:repeat(2, 1fr);gap:1.5rem;">
+                            <div>
+                                <label class="form-label">Appointment ID</label>
+                                <div style="font-size:1.1rem;font-weight:600;color:var(--text-primary);">#${appt.appointment_id}</div>
+                            </div>
+                            <div>
+                                <label class="form-label">Status</label>
+                                <div><span class="status-badge ${getStatusBadgeClass(appt.status)}">${appt.status}</span></div>
+                            </div>
+                            <div>
+                                <label class="form-label">Customer</label>
+                                <div style="color:var(--text-primary);">${appt.customer_name || 'N/A'}</div>
+                            </div>
+                            <div>
+                                <label class="form-label">Phone</label>
+                                <div style="color:var(--text-secondary);">${appt.customer_phone || 'N/A'}</div>
+                            </div>
+                            <div>
+                                <label class="form-label">Date</label>
+                                <div style="color:var(--text-primary);">${formatDate(appt.appointment_date)}</div>
+                            </div>
+                            <div>
+                                <label class="form-label">Time</label>
+                                <div style="color:var(--text-secondary);">${appt.start_time || 'N/A'} - ${appt.end_time || 'N/A'}</div>
+                            </div>
+                            <div>
+                                <label class="form-label">Duration</label>
+                                <div style="color:var(--text-secondary);">${appt.estimated_duration || 60} min</div>
+                            </div>
+                            <div>
+                                <label class="form-label">Current Total</label>
+                                <div style="font-size:1.5rem;font-weight:700;color:var(--accent-gold);">₹${parseFloat(appt.final_amount || 0).toFixed(2)}</div>
+                                <small style="color:var(--text-muted);">From database (no recalc)</small>
+                            </div>
+                            ${appt.notes ? `<div style="grid-column:1/-1;"><label class="form-label">Notes</label><div style="color:var(--text-secondary);">${appt.notes}</div></div>` : ''}
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom:2rem;">
+                        <h3 style="color:var(--text-primary);margin-bottom:1rem;"><i class="fas fa-cut" style="color:var(--accent-gold);margin-right:0.5rem;"></i>Services</h3>
+                        <div style="max-height:300px;overflow-y:auto;border:1px solid var(--card-border);border-radius:var(--radius-lg);padding:1rem;" id="editServicesContainer">
+                            ${servicesHtml || '<div style="color:var(--text-secondary);text-align:center;padding:1rem;">No services available</div>'}
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom:2rem;">
+                        <h3 style="color:var(--text-primary);margin-bottom:1rem;"><i class="fas fa-gift" style="color:var(--accent-gold);margin-right:0.5rem;"></i>Packages</h3>
+                        <div style="max-height:300px;overflow-y:auto;border:1px solid var(--card-border);border-radius:var(--radius-lg);padding:1rem;" id="editPackagesContainer">
+                            ${packagesHtml || '<div style="color:var(--text-secondary);text-align:center;padding:1rem;">No packages available</div>'}
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom:1.5rem;">
+                        <h3 style="color:var(--text-primary);margin-bottom:1rem;"><i class="fas fa-calendar-alt" style="color:var(--accent-gold);margin-right:0.5rem;"></i>Update Appointment</h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label">Date</label>
+                                <input type="date" id="editDate" class="form-input" value="${appt.appointment_date}" onchange="validateEditForm()">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Start Time</label>
+                                <input type="time" id="editStartTime" class="form-input" value="${appt.start_time || ''}" onchange="validateEditForm()">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">End Time</label>
+                                <input type="time" id="editEndTime" class="form-input" value="${appt.end_time || ''}">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Duration (min)</label>
+                                <input type="number" id="editDuration" class="form-input" value="${appt.estimated_duration || 60}" min="15" step="15">
+                            </div>
+                            <div class="form-group full">
+                                <label class="form-label">Overall Discount (₹)</label>
+                                <input type="number" id="editDiscount" class="form-input" value="${parseFloat(appt.discount_amount || 0).toFixed(2)}" min="0" step="0.01" onchange="calculateNewTotal()" style="font-weight:600;color:var(--accent-gold);">
+                                <small style="color:var(--text-muted);">Applied to entire appointment</small>
+                            </div>
+                            <div class="form-group full">
+                                <label class="form-label">Notes</label>
+                                <textarea id="editNotes" class="form-textarea" rows="2">${appt.notes || ''}</textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="background:rgba(16, 185, 129, 0.1);padding:1rem;border-radius:var(--radius-lg);border:1px solid rgba(16, 185, 129, 0.3);">
+                        <div style="display:flex;justify-content:space-between;align-items:center;">
+                            <div style="font-size:0.9rem;font-weight:600;color:var(--text-secondary);">New Estimated Total:</div>
+                            <div style="font-size:1.5rem;font-weight:700;color:var(--success);" id="newTotalDisplay">₹${parseFloat(appt.final_amount || 0).toFixed(2)}</div>
+                        </div>
+                        <small style="color:var(--text-muted);display:block;margin-top:0.5rem;">Updates when you make changes</small>
+                    </div>
+                `;
+
+                // ===== STEP 7: Set button visibility =====
+                document.getElementById('btnConfirm').style.display = appt.status === 'PENDING' ? 'inline-flex' : 'none';
+                document.getElementById('btnComplete').style.display = appt.status === 'CONFIRMED' ? 'inline-flex' : 'none';
+                document.getElementById('btnCancel').style.display = ['PENDING', 'CONFIRMED'].includes(appt.status) ? 'inline-flex' : 'none';
+
+                // ===== STEP 8: Open modal =====
+                document.getElementById('detailModal').classList.add('open');
+
+                console.log('=== MODAL OPENED ===');
+                console.log('Current Total (from DB):', appt.final_amount);
+                console.log('New Estimate (initial):', appt.final_amount);
+                console.log('editSelectedServices:', window.editSelectedServices);
+                console.log('editSelectedPackages:', window.editSelectedPackages);
+
+            } catch (error) {
+                console.error('Error loading appointment:', error);
+                alert('Failed to load details: ' + error.message);
+            }
+        }
+
+        /* =============================================
+           PHASE 5: TOGGLE & UPDATE FUNCTIONS
+           Uses new global state (editServiceData, editPackageData)
+           ============================================= */
+        
+        // Toggle service checkbox in edit modal
+        function toggleEditService(checkbox, serviceId) {
+            const serviceIdNum = parseInt(serviceId) || 0;
+            
+            if (checkbox.checked) {
+                // Add to selection
+                window.editSelectedServices.push(serviceIdNum);
+                
+                // Initialize with default price if not already set
+                if (!window.editServiceData[serviceIdNum]) {
+                    const priceInput = document.getElementById(`editServicePrice_${serviceIdNum}`);
+                    const defaultPrice = priceInput ? parseFloat(priceInput.value) || 0 : 0;
+                    
+                    window.editServiceData[serviceIdNum] = {
+                        price: defaultPrice,
+                        discount: 0,
+                        staff_id: defaultStaffId
+                    };
+                }
+                
+                // Update visual styling
+                checkbox.closest('div[style*="border"]').style.borderColor = 'var(--accent-gold)';
+                checkbox.closest('div[style*="border"]').style.background = 'rgba(212, 175, 55, 0.05)';
+                
+                console.log(`Service ${serviceIdNum} CHECKED`);
+            } else {
+                // Remove from selection (but KEEP data in case user re-checks)
+                window.editSelectedServices = window.editSelectedServices.filter(id => id !== serviceIdNum);
+                
+                // Update visual styling
+                checkbox.closest('div[style*="border"]').style.borderColor = 'var(--card-border)';
+                checkbox.closest('div[style*="border"]').style.background = 'transparent';
+                
+                console.log(`Service ${serviceIdNum} UNCHECKED`);
+            }
+            
+            // Recalculate total
+            calculateNewTotal();
+        }
+
+        // Toggle package checkbox in edit modal
+        function toggleEditPackage(checkbox, packageId) {
+            const packageIdNum = parseInt(packageId) || 0;
+            
+            if (checkbox.checked) {
+                // Add to selection
+                window.editSelectedPackages.push(packageIdNum);
+                
+                // Initialize with default price if not already set
+                if (!window.editPackageData[packageIdNum]) {
+                    const priceInput = document.getElementById(`editPackagePrice_${packageIdNum}`);
+                    const defaultPrice = priceInput ? parseFloat(priceInput.value) || 0 : 0;
+                    
+                    window.editPackageData[packageIdNum] = {
+                        price: defaultPrice,
+                        discount: 0,
+                        staff_id: defaultStaffId
+                    };
+                }
+                
+                // Update visual styling
+                checkbox.closest('div[style*="border"]').style.borderColor = 'var(--accent-gold)';
+                checkbox.closest('div[style*="border"]').style.background = 'rgba(212, 175, 55, 0.05)';
+                
+                console.log(`Package ${packageIdNum} CHECKED`);
+            } else {
+                // Remove from selection (but KEEP data in case user re-checks)
+                window.editSelectedPackages = window.editSelectedPackages.filter(id => id !== packageIdNum);
+                
+                // Update visual styling
+                checkbox.closest('div[style*="border"]').style.borderColor = 'var(--card-border)';
+                checkbox.closest('div[style*="border"]').style.background = 'transparent';
+                
+                console.log(`Package ${packageIdNum} UNCHECKED`);
+            }
+            
+            // Recalculate total
+            calculateNewTotal();
+        }
+
+        // Update service price when user edits input
+        function updateServicePrice(serviceId, value) {
+            const serviceIdNum = parseInt(serviceId) || 0;
+            const price = parseFloat(value) || 0;
+            
+            if (window.editServiceData[serviceIdNum]) {
+                window.editServiceData[serviceIdNum].price = price;
+                console.log(`Service ${serviceIdNum} price updated to ₹${price}`);
+                calculateNewTotal();
+            }
+        }
+
+        // Update service discount when user edits input
+        function updateServiceDiscount(serviceId, value) {
+            const serviceIdNum = parseInt(serviceId) || 0;
+            const discount = parseFloat(value) || 0;
+            
+            if (window.editServiceData[serviceIdNum]) {
+                // Validate: discount cannot exceed price
+                const currentPrice = window.editServiceData[serviceIdNum].price || 0;
+                if (discount > currentPrice) {
+                    alert(`Service discount (₹${discount}) cannot exceed service price (₹${currentPrice})`);
+                    // Revert to previous value
+                    document.getElementById(`editServiceDiscount_${serviceIdNum}`).value = window.editServiceData[serviceIdNum].discount;
+                    return;
+                }
+                
+                window.editServiceData[serviceIdNum].discount = discount;
+                console.log(`Service ${serviceIdNum} discount updated to ₹${discount}`);
+                calculateNewTotal();
+            }
+        }
+
+        // Update service staff when user changes selection
+        function updateServiceStaff(serviceId, value) {
+            const serviceIdNum = parseInt(serviceId) || 0;
+            const staffId = parseInt(value) || defaultStaffId;
+            
+            if (window.editServiceData[serviceIdNum]) {
+                window.editServiceData[serviceIdNum].staff_id = staffId;
+                console.log(`Service ${serviceIdNum} staff updated to ${staffId}`);
+            }
+        }
+
+        // Update package price when user edits input
+        function updatePackagePrice(packageId, value) {
+            const packageIdNum = parseInt(packageId) || 0;
+            const price = parseFloat(value) || 0;
+            
+            if (window.editPackageData[packageIdNum]) {
+                window.editPackageData[packageIdNum].price = price;
+                console.log(`Package ${packageIdNum} price updated to ₹${price}`);
+                calculateNewTotal();
+            }
+        }
+
+        // Update package discount when user edits input
+        function updatePackageDiscount(packageId, value) {
+            const packageIdNum = parseInt(packageId) || 0;
+            const discount = parseFloat(value) || 0;
+            
+            if (window.editPackageData[packageIdNum]) {
+                // Validate: discount cannot exceed price
+                const currentPrice = window.editPackageData[packageIdNum].price || 0;
+                if (discount > currentPrice) {
+                    alert(`Package discount (₹${discount}) cannot exceed package price (₹${currentPrice})`);
+                    // Revert to previous value
+                    document.getElementById(`editPackageDiscount_${packageIdNum}`).value = window.editPackageData[packageIdNum].discount;
+                    return;
+                }
+                
+                window.editPackageData[packageIdNum].discount = discount;
+                console.log(`Package ${packageIdNum} discount updated to ₹${discount}`);
+                calculateNewTotal();
+            }
+        }
+
+        // Update package staff when user changes selection
+        function updatePackageStaff(packageId, value) {
+            const packageIdNum = parseInt(packageId) || 0;
+            const staffId = parseInt(value) || defaultStaffId;
+            
+            if (window.editPackageData[packageIdNum]) {
+                window.editPackageData[packageIdNum].staff_id = staffId;
+                console.log(`Package ${packageIdNum} staff updated to ${staffId}`);
+            }
+        }
+
+        /* =============================================
+           PHASE 6: CALCULATE NEW TOTAL FUNCTION
+           Calculates from editServiceData and editPackageData
+           ============================================= */
+        
+        function calculateNewTotal() {
+            console.log('=== CALCULATING NEW TOTAL ===');
+            
+            // Sum service final prices (price - discount for each)
+            let servicesTotal = 0;
+            window.editSelectedServices.forEach(id => {
+                const data = window.editServiceData[id];
+                if (data) {
+                    const serviceFinal = Math.max(0, data.price - data.discount);
+                    servicesTotal += serviceFinal;
+                    console.log(`Service ${id}: ${data.price} - ${data.discount} = ${serviceFinal}`);
+                }
+            });
+            
+            // Sum package final prices (price - discount for each)
+            let packagesTotal = 0;
+            window.editSelectedPackages.forEach(id => {
+                const data = window.editPackageData[id];
+                if (data) {
+                    const packageFinal = Math.max(0, data.price - data.discount);
+                    packagesTotal += packageFinal;
+                    console.log(`Package ${id}: ${data.price} - ${data.discount} = ${packageFinal}`);
+                }
+            });
+            
+            // Calculate subtotal
+            const subtotal = servicesTotal + packagesTotal;
+            
+            // Get overall discount from input field
+            const discountInput = document.getElementById('editDiscount');
+            const overallDiscount = discountInput ? parseFloat(discountInput.value) || 0 : 0;
+            
+            // Calculate final total
+            const newTotal = Math.max(0, subtotal - overallDiscount);
+            
+            console.log('Services Total:', servicesTotal.toFixed(2));
+            console.log('Packages Total:', packagesTotal.toFixed(2));
+            console.log('Subtotal:', subtotal.toFixed(2));
+            console.log('Overall Discount:', overallDiscount.toFixed(2));
+            console.log('NEW TOTAL:', newTotal.toFixed(2));
+            
+            // Update display
+            const totalDisplay = document.getElementById('newTotalDisplay');
+            if (totalDisplay) {
+                totalDisplay.textContent = '₹' + newTotal.toFixed(2);
+            }
+            
+            return newTotal;
+        }
+
+        // Validate edit form
+        function validateEditForm() {
+            const date = document.getElementById('editDate').value;
+            const startTime = document.getElementById('editStartTime').value;
+            return date && startTime;
+        }
+
+        /* =============================================
+           PHASE 7: SAVE APPOINTMENT EDIT FUNCTION
+           Uses editServiceData and editPackageData
+           Calculates all 3 amounts for backend
+           ============================================= */
+        
+        async function saveAppointmentEdit() {
+            if (!validateEditForm()) {
+                alert('Please fill required fields (date and start time)');
+                return;
+            }
+
+            if (window.editSelectedServices.length === 0 && window.editSelectedPackages.length === 0) {
+                alert('Appointment must have at least one service or package');
+                return;
+            }
+
+            try {
+                console.log('=== PHASE 7: SAVING APPOINTMENT EDIT ===');
+
+                // Get new overall discount from input
+                const newOverallDiscount = parseFloat(document.getElementById('editDiscount').value) || 0;
+
+                // ===== STEP 1: Calculate new amounts =====
+                // Services final total
+                let servicesFinalTotal = 0;
+                const servicesToSend = [];
+                window.editSelectedServices.forEach(id => {
+                    const data = window.editServiceData[id];
+                    if (data) {
+                        const finalPrice = Math.max(0, data.price - data.discount);
+                        servicesFinalTotal += finalPrice;
+                        servicesToSend.push({
+                            service_id: id,
+                            staff_id: data.staff_id || defaultStaffId,
+                            price: data.price,
+                            discount_amount: data.discount,
+                            final_price: finalPrice
+                        });
+                    }
+                });
+
+                // Packages final total
+                let packagesFinalTotal = 0;
+                const packagesToSend = [];
+                window.editSelectedPackages.forEach(id => {
+                    const data = window.editPackageData[id];
+                    if (data) {
+                        const finalPrice = Math.max(0, data.price - data.discount);
+                        packagesFinalTotal += finalPrice;
+                        packagesToSend.push({
+                            package_id: id,
+                            staff_id: data.staff_id || defaultStaffId,
+                            price: data.price,
+                            discount_amount: data.discount,
+                            final_price: finalPrice
+                        });
+                    }
+                });
+
+                // Calculate new total_amount and final_amount
+                const newTotalAmount = servicesFinalTotal + packagesFinalTotal;
+                const newFinalAmount = newTotalAmount - newOverallDiscount;
+
+                console.log('=== NEW AMOUNTS ===');
+                console.log('Services Final Total:', servicesFinalTotal.toFixed(2));
+                console.log('Packages Final Total:', packagesFinalTotal.toFixed(2));
+                console.log('New total_amount:', newTotalAmount.toFixed(2));
+                console.log('New discount_amount:', newOverallDiscount.toFixed(2));
+                console.log('New final_amount:', newFinalAmount.toFixed(2));
+
+                // Validate: overall discount cannot exceed subtotal
+                if (newOverallDiscount > newTotalAmount) {
+                    alert('Overall discount (₹' + newOverallDiscount.toFixed(2) + ') cannot exceed subtotal (₹' + newTotalAmount.toFixed(2) + ')');
+                    return;
+                }
+
+                // ===== STEP 2: Load current appointment for comparison =====
+                const currentApptResult = await AppointmentsAPI.view(selectedAppointmentId);
+                if (!currentApptResult.success) {
+                    alert('Failed to load current appointment data');
+                    return;
+                }
+
+                const currentAppt = currentApptResult.data;
+                const currentServiceIds = (currentAppt.services || []).map(s => parseInt(s.service_id) || 0);
+                const currentPackageIds = (currentAppt.packages || []).map(p => parseInt(p.package_id) || 0);
+
+                // ===== STEP 3: Build changes object =====
+                const changes = {
+                    servicesAdded: [],
+                    servicesUpdated: [],
+                    servicesRemoved: [],
+                    packagesAdded: [],
+                    packagesUpdated: [],
+                    packagesRemoved: [],
+                    discountChanged: false,
+                    detailsChanged: false
+                };
+
+                // Find removed services
+                for (const serviceId of currentServiceIds) {
+                    if (!window.editSelectedServices.includes(serviceId)) {
+                        changes.servicesRemoved.push(serviceId);
+                    }
+                }
+
+                // Find added or updated services
+                for (const serviceId of window.editSelectedServices) {
+                    if (!currentServiceIds.includes(serviceId)) {
+                        changes.servicesAdded.push(serviceId);
+                    } else {
+                        // Service exists - check if data changed
+                        const currentService = currentAppt.services.find(s => parseInt(s.service_id) === serviceId);
+                        const newData = window.editServiceData[serviceId];
+                        if (currentService && newData) {
+                            const priceChanged = parseFloat(currentService.service_price || 0) !== newData.price;
+                            const discountChanged = parseFloat(currentService.discount_amount || 0) !== newData.discount;
+                            const staffChanged = parseInt(currentService.staff_id || 0) !== newData.staff_id;
+                            
+                            if (priceChanged || discountChanged || staffChanged) {
+                                changes.servicesUpdated.push({ 
+                                    serviceId, 
+                                    data: newData 
+                                });
+                            }
+                        }
+                    }
+                }
+
+                // Find removed packages
+                for (const packageId of currentPackageIds) {
+                    if (!window.editSelectedPackages.includes(packageId)) {
+                        changes.packagesRemoved.push(packageId);
+                    }
+                }
+
+                // Find added or updated packages
+                for (const packageId of window.editSelectedPackages) {
+                    if (!currentPackageIds.includes(packageId)) {
+                        changes.packagesAdded.push(packageId);
+                    } else {
+                        // Package exists - check if data changed
+                        const currentPackage = currentAppt.packages.find(p => parseInt(p.package_id) === packageId);
+                        const newData = window.editPackageData[packageId];
+                        if (currentPackage && newData) {
+                            const priceChanged = parseFloat(currentPackage.package_price || 0) !== newData.price;
+                            const discountChanged = parseFloat(currentPackage.discount_amount || 0) !== newData.discount;
+                            const staffChanged = parseInt(currentPackage.staff_id || 0) !== newData.staff_id;
+                            
+                            if (priceChanged || discountChanged || staffChanged) {
+                                changes.packagesUpdated.push({ 
+                                    packageId, 
+                                    data: newData 
+                                });
+                            }
+                        }
+                    }
+                }
+
+                // Check if overall discount changed
+                const currentOverallDiscount = parseFloat(currentAppt.discount_amount || 0);
+                if (newOverallDiscount !== currentOverallDiscount) {
+                    changes.discountChanged = true;
+                }
+
+                // Check if basic details changed
+                const newDate = document.getElementById('editDate').value;
+                const newStartTime = document.getElementById('editStartTime').value;
+                const newEndTime = document.getElementById('editEndTime').value || null;
+                const newDuration = parseInt(document.getElementById('editDuration').value) || 60;
+                const newNotes = document.getElementById('editNotes').value.trim();
+
+                if (newDate !== currentAppt.appointment_date ||
+                    newStartTime !== currentAppt.start_time ||
+                    newEndTime !== currentAppt.end_time ||
+                    newDuration !== currentAppt.estimated_duration ||
+                    newNotes !== currentAppt.notes) {
+                    changes.detailsChanged = true;
+                }
+
+                console.log('=== CHANGES DETECTED ===');
+                console.log('Services to add:', changes.servicesAdded);
+                console.log('Services to update:', changes.servicesUpdated);
+                console.log('Services to remove:', changes.servicesRemoved);
+                console.log('Packages to add:', changes.packagesAdded);
+                console.log('Packages to update:', changes.packagesUpdated);
+                console.log('Packages to remove:', changes.packagesRemoved);
+                console.log('Discount changed:', changes.discountChanged);
+                console.log('Details changed:', changes.detailsChanged);
+
+                // ===== STEP 4: API Call 1 - UPDATE appointment details =====
+                const updateData = {
+                    appointment_date: newDate,
+                    start_time: newStartTime,
+                    end_time: newEndTime,
+                    estimated_duration: newDuration,
+                    total_amount: newTotalAmount,        // ← NEW
+                    discount_amount: newOverallDiscount,
+                    final_amount: newFinalAmount,        // ← NEW
+                    notes: newNotes
+                };
+
+                console.log('Step 1 - Updating appointment details:', updateData);
+                const result = await AppointmentsAPI.update(selectedAppointmentId, updateData);
+                console.log('Update result:', result);
+
+                if (!result.success) {
+                    alert(result.message || 'Failed to update appointment details');
+                    return;
+                }
+                changes.detailsChanged = true;
+
+                // ===== STEP 5: API Call 2 - DELETE removed services =====
+                for (const serviceId of changes.servicesRemoved) {
+                    console.log(`Step 2 - Removing service ${serviceId}...`);
+                    try {
+                        await apiRequest(`/appointments/${selectedAppointmentId}/services/${serviceId}`, {
+                            method: 'DELETE'
+                        });
+                        console.log(`Service ${serviceId} removed`);
+                    } catch (error) {
+                        console.error(`Failed to remove service ${serviceId}:`, error);
+                    }
+                }
+
+                // ===== STEP 6: API Call 3 - DELETE removed packages =====
+                for (const packageId of changes.packagesRemoved) {
+                    console.log(`Step 3 - Removing package ${packageId}...`);
+                    try {
+                        await apiRequest(`/appointments/${selectedAppointmentId}/packages/${packageId}`, {
+                            method: 'DELETE'
+                        });
+                        console.log(`Package ${packageId} removed`);
+                    } catch (error) {
+                        console.error(`Failed to remove package ${packageId}:`, error);
+                    }
+                }
+
+                // ===== STEP 7: API Call 4 - ADD new services =====
+                for (const serviceId of changes.servicesAdded) {
+                    const data = window.editServiceData[serviceId];
+                    const serviceData = {
+                        staff_id: data.staff_id || defaultStaffId,
+                        price: data.price || 0,
+                        discount_amount: data.discount || 0
+                    };
+                    console.log(`Step 4 - Adding service ${serviceId}:`, serviceData);
+                    try {
+                        await AppointmentsAPI.addService(selectedAppointmentId, serviceId, serviceData);
+                        console.log(`Service ${serviceId} added`);
+                    } catch (error) {
+                        console.error(`Failed to add service ${serviceId}:`, error);
+                    }
+                }
+
+                // ===== STEP 8: API Call 5 - UPDATE changed services =====
+                for (const item of changes.servicesUpdated) {
+                    const serviceData = {
+                        staff_id: item.data.staff_id || defaultStaffId,
+                        price: item.data.price || 0,
+                        discount_amount: item.data.discount || 0
+                    };
+                    console.log(`Step 5 - Updating service ${item.serviceId}:`, serviceData);
+                    try {
+                        await AppointmentsAPI.updateService(selectedAppointmentId, item.serviceId, serviceData);
+                        console.log(`Service ${item.serviceId} updated`);
+                    } catch (error) {
+                        console.error(`Failed to update service ${item.serviceId}:`, error);
+                    }
+                }
+
+                // ===== STEP 9: API Call 6 - ADD new packages =====
+                for (const packageId of changes.packagesAdded) {
+                    const data = window.editPackageData[packageId];
+                    const packageData = {
+                        package_id: packageId,
+                        staff_id: data.staff_id || defaultStaffId,
+                        price: data.price || 0,
+                        discount_amount: data.discount || 0
+                    };
+                    console.log(`Step 6 - Adding package ${packageId}:`, packageData);
+                    try {
+                        await apiRequest(`/appointments/${selectedAppointmentId}/packages`, {
+                            method: 'POST',
+                            body: JSON.stringify(packageData)
+                        });
+                        console.log(`Package ${packageId} added`);
+                    } catch (error) {
+                        console.error(`Failed to add package ${packageId}:`, error);
+                    }
+                }
+
+                // ===== STEP 10: API Call 7 - UPDATE changed packages =====
+                for (const item of changes.packagesUpdated) {
+                    const packageData = {
+                        staff_id: item.data.staff_id || defaultStaffId,
+                        price: item.data.price || 0,
+                        discount_amount: item.data.discount || 0
+                    };
+                    console.log(`Step 7 - Updating package ${item.packageId}:`, packageData);
+                    try {
+                        await apiRequest(`/appointments/${selectedAppointmentId}/packages/${item.packageId}`, {
+                            method: 'PUT',
+                            body: JSON.stringify(packageData)
+                        });
+                        console.log(`Package ${item.packageId} updated`);
+                    } catch (error) {
+                        console.error(`Failed to update package ${item.packageId}:`, error);
+                    }
+                }
+
+                // ===== STEP 11: Build success summary =====
+                let summary = '✅ Appointment updated!\n\n';
+                if (changes.detailsChanged) summary += '✓ Details updated\n';
+                if (changes.servicesAdded.length > 0) summary += `✓ Added ${changes.servicesAdded.length} service(s)\n`;
+                if (changes.servicesUpdated.length > 0) summary += `✓ Updated ${changes.servicesUpdated.length} service(s)\n`;
+                if (changes.servicesRemoved.length > 0) summary += `✓ Removed ${changes.servicesRemoved.length} service(s)\n`;
+                if (changes.packagesAdded.length > 0) summary += `✓ Added ${changes.packagesAdded.length} package(s)\n`;
+                if (changes.packagesUpdated.length > 0) summary += `✓ Updated ${changes.packagesUpdated.length} package(s)\n`;
+                if (changes.packagesRemoved.length > 0) summary += `✓ Removed ${changes.packagesRemoved.length} package(s)\n`;
+                if (changes.discountChanged) summary += `✓ Discount: ₹${currentOverallDiscount.toFixed(2)} → ₹${newOverallDiscount.toFixed(2)}\n`;
+                
+                summary += `\nNew Total: ₹${newTotalAmount.toFixed(2)}\n`;
+                summary += `New Final: ₹${newFinalAmount.toFixed(2)}`;
+
+                // ===== STEP 12: Close modal and reload =====
+                alert(summary);
+                closeModal('detailModal');
+
+                // Force reload of appointments to get fresh data
+                await loadAppointments();
+
+            } catch (error) {
+                console.error('Error saving appointment:', error);
+                alert('❌ Error: ' + error.message);
+            }
+        }
+
+        async function updateStatus(newStatus) {
+            if (!selectedAppointmentId) return;
+            try {
+                let result;
+                if (newStatus === 'CONFIRMED') result = await AppointmentsAPI.approve(selectedAppointmentId);
+                else if (newStatus === 'COMPLETED') result = await AppointmentsAPI.complete(selectedAppointmentId, {});
+                if (result && result.success) {
+                    alert(`Appointment ${newStatus.toLowerCase()}!`);
+                    closeModal('detailModal');
+                    await loadAppointments();
+                }
+            } catch (error) {
+                alert(error.message || 'Failed to update');
+            }
+        }
+
+        function openCancelModal() {
+            document.getElementById('cancelModal').classList.add('open');
+        }
+
+        async function confirmCancel() {
+            const reason = document.getElementById('cancelReason').value.trim();
+            try {
+                const result = await AppointmentsAPI.cancel(selectedAppointmentId, reason || 'No reason provided');
+                if (result.success) {
+                    alert('Appointment cancelled!');
+                    closeModal('cancelModal');
+                    closeModal('detailModal');
+                    await loadAppointments();
+                }
+            } catch (error) {
+                alert(error.message || 'Failed to cancel');
+            }
+        }
+
+        function handleSearch(event) {
+            if (event.key === 'Enter') renderTable();
+        }
+
+        function toggleFilters() {
+            document.getElementById('filterBar').style.display = document.getElementById('filterBar').style.display === 'none' ? 'flex' : 'none';
+        }
+
+        function clearFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('fStatus').value = '';
+            document.getElementById('fDate').value = '';
+            loadAppointments();
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('open');
+            if (id === 'cancelModal') document.getElementById('cancelReason').value = '';
+        }
+
+        function getInitials(name) {
+            if (!name) return '??';
+            return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+        }
+
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal-overlay')) {
+                event.target.classList.remove('open');
+            }
+        };
+
+        // ===== GENERATE INVOICE FUNCTION =====
+        let currentInvoiceApptId = null;
+        
+        // Validate discount when user changes it
+        function validateDiscount() {
+            const subtotal = parseFloat(document.getElementById('invSubtotal').value) || 0;
+            const discount = parseFloat(document.getElementById('invDiscount').value) || 0;
+            const discountError = document.getElementById('discountError');
+            
+            if (discount > subtotal) {
+                discountError.style.display = 'block';
+                document.getElementById('invDiscount').style.borderColor = 'var(--danger)';
+            } else {
+                discountError.style.display = 'none';
+                document.getElementById('invDiscount').style.borderColor = 'var(--card-border)';
+            }
+            
+            updateInvoiceTotal();
+        }
+        
+        // Update total amount display
+        function updateInvoiceTotal() {
+            const subtotal = parseFloat(document.getElementById('invSubtotal').value) || 0;
+            const tax = parseFloat(document.getElementById('invTax').value) || 0;
+            const discount = parseFloat(document.getElementById('invDiscount').value) || 0;
+            const total = subtotal + tax - discount;
+            
+            document.getElementById('invTotalDisplay').textContent = '₹' + total.toFixed(2);
+        }
+        
+        // Update notes character count
+        function updateNotesCount() {
+            const notes = document.getElementById('invNotes').value;
+            document.getElementById('notesCount').textContent = notes.length + '/500 characters';
+        }
+        
+        // Add event listeners for invoice modal
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set minimum date for due date to today
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('invDueDate').setAttribute('min', today);
+            
+            // Add listeners for real-time total calculation
+            document.getElementById('invSubtotal').addEventListener('input', updateInvoiceTotal);
+            document.getElementById('invTax').addEventListener('input', updateInvoiceTotal);
+            document.getElementById('invDiscount').addEventListener('input', validateDiscount);
+            document.getElementById('invNotes').addEventListener('input', updateNotesCount);
+        });
+        
+        /* =============================================
+           PHASE 8: INVOICE GENERATION - FIXED
+           Uses total_amount as subtotal (NOT final_amount)
+           Pre-fills existing discount_amount
+           ============================================= */
+        
+        function openInvoiceModal(apptId) {
+            currentInvoiceApptId = apptId;
+            
+            // Find the appointment from the loaded list
+            const appt = appointments.find(a => a.appointment_id === apptId);
+
+            if (appt) {
+                console.log('=== PHASE 8: OPENING INVOICE MODAL ===');
+                console.log('Appointment:', appt);
+                console.log('total_amount:', appt.total_amount);
+                console.log('discount_amount:', appt.discount_amount);
+                console.log('final_amount:', appt.final_amount);
+
+                // Populate appointment summary
+                document.getElementById('invApptId').textContent = '#' + appt.appointment_id;
+                document.getElementById('invCustomer').textContent = appt.customer_name || 'N/A';
+                document.getElementById('invApptTotal').textContent = '₹' + parseFloat(appt.final_amount || 0).toFixed(2);
+
+                // ===== FIX: Use total_amount as subtotal (NOT final_amount) =====
+                // total_amount is the subtotal BEFORE overall discount
+                const subtotal = parseFloat(appt.total_amount || appt.final_amount || 0);
+                
+                // Pre-fill existing discount_amount
+                const existingDiscount = parseFloat(appt.discount_amount || 0);
+
+                console.log('=== INVOICE PRE-FILL ===');
+                console.log('Subtotal (from total_amount):', subtotal.toFixed(2));
+                console.log('Existing Discount:', existingDiscount.toFixed(2));
+                console.log('Final Amount (for reference):', appt.final_amount);
+                console.log('Verification:', subtotal.toFixed(2) + ' - ' + existingDiscount.toFixed(2) + ' = ' + (subtotal - existingDiscount).toFixed(2));
+
+                document.getElementById('invSubtotal').value = subtotal.toFixed(2);
+                document.getElementById('invTax').value = '0';
+                document.getElementById('invDiscount').value = existingDiscount.toFixed(2);  // ← FIX: Pre-fill existing discount
+
+                // Default due date: 7 days from now (per backend validation)
+                const dueDate = new Date();
+                dueDate.setDate(dueDate.getDate() + 7);
+                document.getElementById('invDueDate').value = dueDate.toISOString().split('T')[0];
+                document.getElementById('invNotes').value = '';
+
+                // Reset validation states
+                document.getElementById('discountError').style.display = 'none';
+                document.getElementById('invDiscount').style.borderColor = 'var(--card-border)';
+                updateNotesCount();
+                updateInvoiceTotal();
+
+                console.log('Invoice Total:', (subtotal + 0 - existingDiscount).toFixed(2));
+            }
+            document.getElementById('invoiceModal').classList.add('open');
+        }
+
+        async function generateInvoice() {
+            const subtotal = parseFloat(document.getElementById('invSubtotal').value) || 0;
+            const tax = parseFloat(document.getElementById('invTax').value) || 0;
+            const discount = parseFloat(document.getElementById('invDiscount').value) || 0;
+            let dueDate = document.getElementById('invDueDate').value;
+            let notes = document.getElementById('invNotes').value.trim();
+
+            // Validate appointment ID
+            if (!currentInvoiceApptId) {
+                alert('Appointment ID is missing');
+                return;
+            }
+
+            // Validate subtotal (0 - 10,000,000 per backend)
+            if (subtotal < 0 || subtotal > 10000000) {
+                alert('Subtotal must be between 0 and 10,000,000');
+                return;
+            }
+
+            // Validate tax (0 - 1,000,000 per backend)
+            if (tax < 0 || tax > 1000000) {
+                alert('Tax amount must be between 0 and 1,000,000');
+                return;
+            }
+
+            // Validate discount (0 <= discount <= subtotal per backend)
+            if (discount < 0) {
+                alert('Discount cannot be negative');
+                return;
+            }
+            if (discount > subtotal) {
+                alert('Discount cannot exceed subtotal amount');
+                return;
+            }
+
+            // Validate due date format (YYYY-MM-DD per backend)
+            const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+            if (!dueDate || !dateRegex.test(dueDate)) {
+                alert('Invalid due date format. Please use YYYY-MM-DD format.');
+                return;
+            }
+
+            // Validate notes length (max 500 characters per backend)
+            if (notes.length > 500) {
+                alert('Notes cannot exceed 500 characters');
+                return;
+            }
+
+            // Ensure due date is in YYYY-MM-DD format
+            const dueDateObj = new Date(dueDate);
+            if (!isNaN(dueDateObj.getTime())) {
+                const year = dueDateObj.getFullYear();
+                const month = String(dueDateObj.getMonth() + 1).padStart(2, '0');
+                const day = String(dueDateObj.getDate()).padStart(2, '0');
+                dueDate = `${year}-${month}-${day}`;
+            }
+
+            const invoiceData = {
+                subtotal_amount: subtotal,
+                tax_amount: tax,
+                discount_amount: discount,
+                due_date: dueDate,
+                notes: notes
+            };
+
+            console.log('Generating invoice:', invoiceData);
+
+            const generateBtn = document.getElementById('generateInvoiceBtn');
+            generateBtn.disabled = true;
+            generateBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Generating...';
+
+            try {
+                const result = await AppointmentsAPI.generateInvoice(currentInvoiceApptId, invoiceData);
+                console.log('Invoice API Response:', result);
+                
+                if (result.success) {
+                    alert('✅ Invoice generated successfully!');
+                    closeModal('invoiceModal');
+                } else {
+                    console.error('API returned error:', result.message);
+                    alert('❌ Failed: ' + (result.message || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('API call failed:', error);
+                alert('❌ Error: ' + error.message);
+            } finally {
+                generateBtn.disabled = false;
+                generateBtn.innerHTML = '<i class="fas fa-file-invoice"></i> Generate Invoice';
+            }
+        }
+
+        // ===== ADD/UPDATE SERVICE FUNCTIONS =====
+        let currentServiceApptId = null;
+        let servicesList = [];
+        let staffList = [];
+
+        async function openServicesModal(apptId) {
+            currentServiceApptId = apptId;
+
+            try {
+                const servicesResult = await ServicesAPI.list();
+                if (servicesResult.success && servicesResult.data && servicesResult.data.items) {
+                    servicesList = servicesResult.data.items;
+                    const serviceSelect = document.getElementById('serviceSelect');
+                    serviceSelect.innerHTML = '<option value="">Select Service</option>' +
+                        servicesList.map(s => `<option value="${s.service_id}" data-price="${s.price}">${s.service_name} - ₹${s.price}</option>`).join('');
+                }
+
+                const staffResult = await StaffAPI.list();
+                if (staffResult.success && staffResult.data && staffResult.data.items) {
+                    staffList = staffResult.data.items;
+                    const staffSelect = document.getElementById('serviceStaff');
+                    staffSelect.innerHTML = '<option value="">Select Staff</option>' +
+                        staffList.filter(s => s.status === 'ACTIVE').map(s => `<option value="${s.staff_id}">${s.name}</option>`).join('');
+                }
+
+                document.getElementById('servicePrice').value = '';
+                document.getElementById('serviceDiscount').value = '';
+                document.getElementById('serviceNotes').value = '';
+                document.getElementById('servicesModal').classList.add('open');
+            } catch (error) {
+                alert('Failed to load data: ' + error.message);
+            }
+        }
+
+        async function addServiceToAppointment() {
+            const serviceId = parseInt(document.getElementById('serviceSelect').value);
+            const staffId = parseInt(document.getElementById('serviceStaff').value);
+            const price = parseFloat(document.getElementById('servicePrice').value) || 0;
+            const discount = parseFloat(document.getElementById('serviceDiscount').value) || 0;
+
+            if (!serviceId) {
+                alert('Please select a service');
+                return;
+            }
+            if (!currentServiceApptId) {
+                alert('Appointment ID is missing');
+                return;
+            }
+
+            const serviceData = {
+                staff_id: staffId || null,
+                service_price: price,
+                discount_amount: discount
+            };
+
+            try {
+                const result = await AppointmentsAPI.addService(currentServiceApptId, serviceId, serviceData);
+                if (result.success) {
+                    alert('✅ Service added to appointment!');
+                    closeModal('servicesModal');
+                    await loadAppointments();
+                } else {
+                    alert('❌ Failed: ' + (result.message || 'Unknown error'));
+                }
+            } catch (error) {
+                alert('❌ Error: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - SAM Super Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../../CSS/Base/sidebar-layout.css">
+    <style>
+        /* Dashboard Specific Styles */
+        .welcome-banner {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-radius: var(--radius-xl);
+            padding: 32px;
+            color: white;
+            margin-bottom: 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .welcome-text h1 {
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .welcome-text p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .quick-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .quick-action-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: var(--radius-md);
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all var(--transition-base);
+            text-decoration: none;
+        }
+
+        .quick-action-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        /* Recent Activity Section */
+        .activity-section {
+            margin-top: 32px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .view-all-link {
+            font-size: 14px;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            transition: color var(--transition-base);
+        }
+
+        .view-all-link:hover {
+            color: var(--primary-dark);
+        }
+
+        .activity-card {
+            background: var(--bg-surface);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-light);
+            padding: 24px;
+        }
+
+        .activity-list {
+            list-style: none;
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            padding: 16px 0;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .activity-item:first-child {
+            padding-top: 0;
+        }
+
+        .activity-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .activity-icon.add { background: var(--success-bg); color: var(--success); }
+        .activity-icon.update { background: var(--info-bg); color: var(--info); }
+        .activity-icon.alert { background: var(--warning-bg); color: var(--warning); }
+        .activity-icon.system { background: var(--primary-bg); color: var(--primary); }
+
+        .activity-details {
+            flex: 1;
+        }
+
+        .activity-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .activity-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .activity-time {
+            font-size: 12px;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+
+        /* Salon Overview Grid */
+        .overview-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+            margin-top: 32px;
+        }
+
+        .overview-card {
+            background: var(--bg-surface);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-light);
+            padding: 24px;
+        }
+
+        .overview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .overview-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .overview-value {
+            font-size: 36px;
+            font-weight: 800;
+            color: var(--text-primary);
+            letter-spacing: -1px;
+        }
+
+        .overview-trend {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+
+        .trend-up { color: var(--success); }
+        .trend-down { color: var(--danger); }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .overview-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .welcome-banner {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+
+            .quick-actions {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <a href="sa-dashboard.html" class="sidebar-logo">
+                <div class="logo-icon">
+                    <i class="fa-solid fa-scissors"></i>
+                </div>
+                <span class="logo-text">sam<span>.com</span></span>
+            </a>
+
+            <div class="sidebar-user">
+                <div class="user-avatar">SA</div>
+                <div class="user-info">
+                    <div class="user-name">Super Admin</div>
+                    <div class="user-role">Administrator</div>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Main Menu</div>
+                    <ul class="nav-list">
+                        <li class="nav-item">
+                            <a href="sa-dashboard.html" class="nav-link active">
+                                <span class="nav-icon"><i class="fa-solid fa-gauge"></i></span>
+                                <span>Dashboard</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="sa-salons.html" class="nav-link">
+                                <span class="nav-icon"><i class="fa-solid fa-shop"></i></span>
+                                <span>Salons</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="sa-subscription.html" class="nav-link">
+                                <span class="nav-icon"><i class="fa-solid fa-crown"></i></span>
+                                <span>Subscriptions</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="sa-invoices.html" class="nav-link">
+                                <span class="nav-icon"><i class="fa-solid fa-file-invoice-dollar"></i></span>
+                                <span>Invoices</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="sa-users.html" class="nav-link">
+                                <span class="nav-icon"><i class="fa-solid fa-users"></i></span>
+                                <span>Users</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">System</div>
+                    <ul class="nav-list">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">
+                                <span class="nav-icon"><i class="fa-solid fa-gear"></i></span>
+                                <span>Settings</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <div class="sidebar-logout">
+                <a href="javascript:void(0);" class="logout-link" id="logoutBtn">
+                    <span class="nav-icon"><i class="fa-solid fa-arrow-right-from-bracket"></i></span>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Wrapper -->
+        <div class="main-wrapper">
+            <!-- Header -->
+            <header class="main-header">
+                <div class="header-left">
+                    <h1 class="page-title">Dashboard</h1>
+                </div>
+                <div class="header-right">
+                    <button class="header-action">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="badge">3</span>
+                    </button>
+                    <button class="header-action">
+                        <i class="fa-regular fa-circle-question"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Main Content -->
+            <main class="main-content">
+                <!-- Welcome Banner -->
+                <div class="welcome-banner">
+                    <div class="welcome-text">
+                        <h1>Welcome back, Super Admin!</h1>
+                        <p>Here's what's happening with your salons today.</p>
+                    </div>
+                    <div class="quick-actions">
+                        <a href="sa-salons.html" class="quick-action-btn" title="Add Salon">
+                            <i class="fa-solid fa-plus"></i>
+                        </a>
+                        <a href="sa-invoices.html" class="quick-action-btn" title="View Invoices">
+                            <i class="fa-solid fa-file-invoice"></i>
+                        </a>
+                        <a href="#" class="quick-action-btn" title="Reports">
+                            <i class="fa-solid fa-chart-line"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Stats Grid -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon primary">
+                            <i class="fa-solid fa-shop"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-label">Total Salons</div>
+                            <div class="stat-value" id="totalSalons">0</div>
+                            <div class="stat-change positive">
+                                <i class="fa-solid fa-arrow-up"></i>
+                                <span id="salonsChange">0</span> this month
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon success">
+                            <i class="fa-solid fa-circle-check"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-label">Active Salons</div>
+                            <div class="stat-value" id="activeSalons">0</div>
+                            <div class="stat-change positive">
+                                <i class="fa-solid fa-arrow-up"></i>
+                                <span id="activeChange">0</span> this month
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon warning">
+                            <i class="fa-solid fa-circle-exclamation"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-label">Inactive Salons</div>
+                            <div class="stat-value" id="inactiveSalons">0</div>
+                            <div class="stat-change negative">
+                                <i class="fa-solid fa-arrow-down"></i>
+                                <span id="inactiveChange">0</span> this month
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon info">
+                            <i class="fa-solid fa-file-invoice-dollar"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-label">Pending Invoices</div>
+                            <div class="stat-value" id="pendingInvoices">0</div>
+                            <div class="stat-change">
+                                <span id="invoicesChange">Updated today</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Overview Grid -->
+                <div class="overview-grid">
+                    <div class="overview-card">
+                        <div class="overview-header">
+                            <span class="overview-label">Total Revenue (This Month)</span>
+                            <i class="fa-solid fa-ellipsis" style="color: var(--text-muted); cursor: pointer;"></i>
+                        </div>
+                        <div class="overview-value">₹<span id="totalRevenue">0</span></div>
+                        <div class="overview-trend trend-up">
+                            <i class="fa-solid fa-arrow-trend-up"></i>
+                            <span id="revenueTrend">+12.5%</span> from last month
+                        </div>
+                    </div>
+
+                    <div class="overview-card">
+                        <div class="overview-header">
+                            <span class="overview-label">Active Subscriptions</span>
+                            <i class="fa-solid fa-ellipsis" style="color: var(--text-muted); cursor: pointer;"></i>
+                        </div>
+                        <div class="overview-value" id="activeSubscriptions">0</div>
+                        <div class="overview-trend trend-up">
+                            <i class="fa-solid fa-arrow-trend-up"></i>
+                            <span id="subscriptionTrend">+5.2%</span> from last month
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="activity-section">
+                    <div class="section-header">
+                        <h2 class="section-title">Recent Activity</h2>
+                        <a href="#" class="view-all-link">View All</a>
+                    </div>
+                    <div class="activity-card">
+                        <ul class="activity-list" id="activityList">
+                            <!-- Activity items will be loaded here -->
+                            <li class="activity-item">
+                                <div class="activity-icon add">
+                                    <i class="fa-solid fa-shop"></i>
+                                </div>
+                                <div class="activity-details">
+                                    <div class="activity-title">New salon registered</div>
+                                    <div class="activity-desc">Urban Unisex Salon joined the platform</div>
+                                </div>
+                                <div class="activity-time">2 hours ago</div>
+                            </li>
+                            <li class="activity-item">
+                                <div class="activity-icon update">
+                                    <i class="fa-solid fa-rotate"></i>
+                                </div>
+                                <div class="activity-details">
+                                    <div class="activity-title">Subscription updated</div>
+                                    <div class="activity-desc">Premium Salon upgraded to Business plan</div>
+                                </div>
+                                <div class="activity-time">5 hours ago</div>
+                            </li>
+                            <li class="activity-item">
+                                <div class="activity-icon alert">
+                                    <i class="fa-solid fa-triangle-exclamation"></i>
+                                </div>
+                                <div class="activity-details">
+                                    <div class="activity-title">Payment pending</div>
+                                    <div class="activity-desc">Invoice #INV-2025-001 payment overdue</div>
+                                </div>
+                                <div class="activity-time">1 day ago</div>
+                            </li>
+                            <li class="activity-item">
+                                <div class="activity-icon system">
+                                    <i class="fa-solid fa-gear"></i>
+                                </div>
+                                <div class="activity-details">
+                                    <div class="activity-title">System maintenance</div>
+                                    <div class="activity-desc">Scheduled maintenance completed successfully</div>
+                                </div>
+                                <div class="activity-time">2 days ago</div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Toastify CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    
+    <script src="../../Js/Core/config.js"></script>
+    <script src="../../Js/Core/api.js"></script>
+    <script src="../../Js/pages/sa-dashboard.js"></script>
+</body>
+</html>

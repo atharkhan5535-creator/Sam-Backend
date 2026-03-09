@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Packages - Elite Salon</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="../css/main.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: var(--primary-dark); color: var(--text-primary); }
+        .dashboard-wrapper { display: flex; min-height: 100vh; }
+
+        /* Sidebar */
+        .sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 220px; background: linear-gradient(180deg, var(--primary-darker) 0%, var(--secondary-dark) 100%); border-right: 1px solid var(--card-border); display: flex; flex-direction: column; z-index: 1000; }
+        .sidebar-header { padding: 1rem; border-bottom: 1px solid var(--card-border); }
+        .sidebar-logo { font-size: 1.1rem; font-weight: 700; color: var(--text-primary); text-transform: uppercase; }
+        .sidebar-logo::before { content: '✂️'; font-size: 1.25rem; margin-right: 0.4rem; }
+        .sidebar-user { margin-top: 0.75rem; padding: 0.6rem; background: var(--card-bg); border-radius: 6px; border: 1px solid var(--card-border); }
+        .sidebar-user-info { display: flex; align-items: center; gap: 0.5rem; }
+        .user-avatar { width: 32px; height: 32px; border-radius: 6px; background: linear-gradient(135deg, var(--accent-gold), var(--accent-bronze)); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; color: var(--primary-dark); flex-shrink: 0; }
+        .user-details { flex: 1; min-width: 0; }
+        .user-name { font-weight: 600; font-size: 0.75rem; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .user-role { font-size: 0.6rem; color: var(--text-secondary); text-transform: uppercase; }
+        .sidebar-nav { padding: 0.75rem 0.5rem; flex: 1; overflow-y: auto; }
+        .nav-section-title { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.5rem; padding-left: 0.5rem; }
+        .nav-item { display: flex; align-items: center; gap: 0.6rem; padding: 0.6rem 0.65rem; margin-bottom: 0.2rem; border-radius: 6px; color: var(--text-secondary); text-decoration: none; transition: all 0.2s; font-weight: 500; font-size: 0.8rem; }
+        .nav-item:hover { background: rgba(212, 175, 55, 0.05); color: var(--text-primary); transform: translateX(3px); }
+        .nav-item.active { background: rgba(212, 175, 55, 0.1); border: 1px solid rgba(212, 175, 55, 0.3); color: var(--accent-gold); }
+        .nav-item i { width: 16px; text-align: center; font-size: 0.9rem; }
+        .sidebar-footer { padding: 0.75rem; border-top: 1px solid var(--card-border); }
+        .logout-btn { display: flex; align-items: center; justify-content: center; gap: 0.5rem; width: 100%; padding: 0.65rem; background: linear-gradient(135deg, var(--danger), #dc2626); color: white; border: none; border-radius: 6px; font-weight: 600; font-size: 0.8rem; cursor: pointer; transition: all 0.2s; }
+        .logout-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(239, 68, 68, 0.4); }
+
+        /* Main Content */
+        .main-content { margin-left: 220px; flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+        .dashboard-header { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 1rem; background: rgba(10, 14, 26, 0.95); border-bottom: 1px solid var(--card-border); height: 45px; flex-shrink: 0; }
+        .page-title-mini { display: flex; align-items: center; gap: 0.5rem; }
+        .page-icon-mini { width: 28px; height: 28px; background: linear-gradient(135deg, var(--accent-gold), var(--accent-bronze)); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; color: var(--primary-dark); }
+        .page-title-mini h1 { font-size: 0.9rem; font-weight: 700; }
+        .page-title-mini p { font-size: 0.6rem; color: var(--text-secondary); }
+
+        /* Content */
+        .dashboard-main { flex: 1; padding: 0.5rem; overflow-y: auto; display: flex; flex-direction: column; gap: 0.5rem; }
+        .content-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 6px; margin-bottom: 0.5rem; overflow: hidden; }
+        .card-header-mini { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--card-border); }
+        .card-title-mini { display: flex; align-items: center; gap: 0.4rem; font-size: 0.7rem; font-weight: 600; }
+        .card-title-mini i { color: var(--accent-gold); }
+        .card-body-mini { padding: 0.5rem; }
+
+        /* Search */
+        .search-wrapper-mini { position: relative; max-width: 300px; margin-bottom: 0.5rem; }
+        .search-input-mini { width: 100%; padding: 0.4rem 0.6rem 0.4rem 1.8rem; background: var(--primary-dark); border: 1px solid var(--card-border); border-radius: 4px; color: var(--text-primary); font-size: 0.7rem; }
+        .search-input-mini:focus { outline: none; border-color: var(--accent-gold); }
+        .search-icon-mini { position: absolute; left: 0.5rem; top: 50%; transform: translateY(-50%); color: var(--text-secondary); font-size: 0.65rem; }
+
+        /* Table */
+        .table-container { overflow-x: auto; }
+        .compact-table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
+        .compact-table thead th { padding: 0.5rem 0.6rem; text-align: left; font-weight: 600; font-size: 0.6rem; text-transform: uppercase; color: var(--text-secondary); border-bottom: 1px solid var(--card-border); }
+        .compact-table tbody td { padding: 0.6rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05); vertical-align: middle; }
+        .compact-table tbody tr:hover { background: rgba(255, 255, 255, 0.02); }
+
+        /* Status Badge */
+        .status-badge { padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.6rem; font-weight: 600; text-transform: uppercase; }
+        .status-badge.active { background: rgba(34, 197, 94, 0.15); color: #22c55e; }
+        .status-badge.inactive { background: rgba(100, 116, 139, 0.15); color: #94a3b8; }
+
+        /* Buttons */
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.35rem; padding: 0.45rem 0.75rem; font-family: inherit; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; border: none; border-radius: 4px; cursor: pointer; transition: all 0.2s; text-decoration: none; }
+        .btn-primary { background: linear-gradient(135deg, var(--accent-gold), var(--accent-bronze)); color: var(--primary-dark); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(212, 175, 55, 0.4); }
+        .btn-secondary { background: var(--card-bg); color: var(--text-primary); border: 1px solid var(--card-border); }
+        .btn-secondary:hover { background: var(--secondary-dark); border-color: var(--accent-gold); }
+        .btn-warning { background: linear-gradient(135deg, var(--warning), #d97706); color: white; }
+        .btn-success { background: linear-gradient(135deg, var(--success), #059669); color: white; }
+        .btn-sm { padding: 0.35rem 0.55rem; font-size: 0.65rem; }
+
+        /* Modal */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; z-index: 2000; opacity: 0; visibility: hidden; transition: all 0.3s; }
+        .modal-overlay.open { opacity: 1; visibility: visible; }
+        .modal { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 8px; width: 90%; max-width: 550px; max-height: 90vh; overflow-y: auto; transform: scale(0.9) translateY(20px); transition: transform 0.3s; }
+        .modal-overlay.open .modal { transform: scale(1) translateY(0); }
+        .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 0.6rem 0.85rem; border-bottom: 1px solid var(--card-border); }
+        .modal-title { display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; font-weight: 700; }
+        .modal-title i { color: var(--accent-gold); }
+        .modal-close { width: 26px; height: 26px; background: var(--primary-dark); border: 1px solid var(--card-border); border-radius: 4px; color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; }
+        .modal-close:hover { background: var(--danger); border-color: var(--danger); color: white; }
+        .modal-body { padding: 0.85rem; }
+        .modal-footer { display: flex; gap: 0.4rem; justify-content: flex-end; padding: 0.6rem 0.85rem; border-top: 1px solid var(--card-border); }
+
+        /* Forms */
+        .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.65rem; }
+        .form-group { display: flex; flex-direction: column; gap: 0.3rem; }
+        .form-group.full { grid-column: 1 / -1; }
+        .form-label { font-size: 0.6rem; font-weight: 600; text-transform: uppercase; color: var(--text-secondary); }
+        .form-input, .form-select, .form-textarea { padding: 0.5rem 0.65rem; background: var(--primary-dark); border: 1px solid var(--card-border); border-radius: 4px; color: var(--text-primary); font-size: 0.75rem; font-family: inherit; }
+        .form-input:focus, .form-select:focus, .form-textarea:focus { outline: none; border-color: var(--accent-gold); }
+        .form-textarea { resize: vertical; min-height: 55px; }
+
+        /* Empty State */
+        .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1.75rem 1rem; text-align: center; }
+        .empty-icon { font-size: 1.75rem; margin-bottom: 0.5rem; color: var(--text-muted); }
+        .empty-title { font-size: 0.85rem; font-weight: 600; margin-bottom: 0.25rem; color: var(--text-primary); }
+        .empty-text { font-size: 0.75rem; }
+
+        /* Loading */
+        .loading-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2.5rem 1rem; }
+        .loading-spinner { width: 30px; height: 30px; border: 2px solid var(--card-border); border-top-color: var(--accent-gold); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 0.65rem; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-text { color: var(--text-secondary); font-size: 0.75rem; }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: var(--primary-dark); }
+        ::-webkit-scrollbar-thumb { background: var(--card-border); border-radius: 2px; }
+
+        /* Responsive */
+        @media (max-width: 768px) { .sidebar { transform: translateX(-100%); transition: transform 0.3s; } .sidebar.open { transform: translateX(0); } .main-content { margin-left: 0; } }
+    </style>
+</head>
+<body>
+    <div class="dashboard-wrapper">
+        <aside class="sidebar">
+            <div class="sidebar-header"><div class="sidebar-logo">Elite Salon</div>
+                <div class="sidebar-user"><div class="sidebar-user-info"><div class="user-avatar" id="userAvatar">A</div><div class="user-details"><div class="user-name" id="userName">Admin</div><div class="user-role" id="userRole">Administrator</div></div></div></div>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section"><div class="nav-section-title">Main Menu</div>
+                    <a href="dashboard.html" class="nav-item"><i class="fas fa-chart-line"></i><span>Dashboard</span></a>
+                    <a href="appointments.html" class="nav-item"><i class="fas fa-calendar-check"></i><span>Appointments</span></a>
+                    <a href="customers.html" class="nav-item"><i class="fas fa-users"></i><span>Customers</span></a>
+                    <a href="staff.html" class="nav-item"><i class="fas fa-user-tie"></i><span>Staff</span></a>
+                </div>
+                <div class="nav-section"><div class="nav-section-title">Services</div>
+                    <a href="services.html" class="nav-item"><i class="fas fa-cut"></i><span>Services</span></a>
+                    <a href="package.html" class="nav-item active"><i class="fas fa-gift"></i><span>Packages</span></a>
+                    <a href="inventory.html" class="nav-item"><i class="fas fa-boxes"></i><span>Inventory</span></a>
+                </div>
+                <div class="nav-section"><div class="nav-section-title">Financial</div>
+                    <a href="payments.html" class="nav-item"><i class="fas fa-credit-card"></i><span>Payments</span></a>
+                    <a href="schedules.html" class="nav-item"><i class="fas fa-calendar-alt"></i><span>Schedules</span></a>
+                </div>
+                <div class="nav-section"><div class="nav-section-title">System</div>
+                    <a href="settings.html" class="nav-item"><i class="fas fa-cog"></i><span>Settings</span></a>
+                </div>
+            </nav>
+            <div class="sidebar-footer"><button class="logout-btn" onclick="handleLogout()"><i class="fas fa-sign-out-alt"></i><span>Logout</span></button></div>
+        </aside>
+
+        <div class="main-content">
+            <header class="dashboard-header">
+                <div class="page-title-mini"><div class="page-icon-mini"><i class="fas fa-gift"></i></div><div><h1>Packages</h1><p>Manage service bundles</p></div></div>
+                <div class="header-actions"><button class="btn btn-primary" onclick="openAdd()" id="addPackageBtn"><i class="fas fa-plus"></i> Create Package</button></div>
+            </header>
+
+            <div class="dashboard-main">
+                <div id="loadingState" class="loading-state"><div class="loading-spinner"></div><p class="loading-text">Loading packages...</p></div>
+
+                <div class="content-card" id="packagesContent" style="display:none;">
+                    <div class="card-header-mini"><div class="card-title-mini"><i class="fas fa-list"></i><span>All Packages</span></div>
+                        <div style="display:flex;gap:0.65rem;">
+                            <select id="pStatus" class="form-select" style="min-width:130px;font-size:0.7rem;" onchange="render()">
+                                <option value="">All Status</option>
+                                <option value="ACTIVE">Active</option>
+                                <option value="INACTIVE">Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="card-body-mini">
+                        <div class="search-wrapper-mini" style="margin-bottom:1.25rem;">
+                            <input type="text" id="pSearch" class="search-input-mini" placeholder="Search packages…" onkeyup="render()">
+                            <i class="fas fa-search search-icon-mini"></i>
+                        </div>
+
+                        <div class="table-container">
+                            <table class="compact-table">
+                                <thead><tr><th style="width:70px;">ID</th><th>Package Name</th><th>Description</th><th style="width:100px;">Price</th><th style="width:85px;">Validity</th><th style="width:85px;">Status</th><th style="width:140px;">Actions</th></tr></thead>
+                                <tbody id="pkgBody"></tbody>
+                            </table>
+                        </div>
+                        <div id="pkgInfo" style="padding:0.85rem;color:var(--text-secondary);font-size:0.7rem;border-top:1px solid var(--card-border);margin-top:0.85rem;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Package Modal -->
+    <div class="modal-overlay" id="pkgModal">
+        <div class="modal modal-lg">
+            <div class="modal-header"><h2 class="modal-title" id="pkgModalTitle"><i class="fas fa-gift"></i> Create Package</h2><button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button></div>
+            <div class="modal-body">
+                <div class="form-grid">
+                    <div class="form-group full"><label class="form-label">Package Name *</label><input type="text" id="fPName" class="form-input" placeholder="e.g. Bridal Package"></div>
+                    <div class="form-group full"><label class="form-label">Description</label><textarea id="fPDesc" class="form-textarea" rows="3" placeholder="Describe this package…"></textarea></div>
+                    <div class="form-group"><label class="form-label">Total Price (₹) *</label><input type="number" id="fTotalPrice" class="form-input" placeholder="5000" min="0" step="0.01" onchange="manualPriceOverride=true"></div>
+                    <div class="form-group"><label class="form-label">Validity (days)</label><input type="number" id="fValidity" class="form-input" value="30" min="1"></div>
+                    <div class="form-group"><label class="form-label">Status</label><select id="fPStatus" class="form-select"><option value="ACTIVE">Active</option><option value="INACTIVE">Inactive</option></select></div>
+                    <div class="form-group full"><label class="form-label">Services *</label><div id="serviceSelector" style="max-height:200px;overflow-y:auto;border:1px solid var(--card-border);padding:0.65rem;border-radius:var(--radius-lg);"></div><small id="servicesError" style="color:var(--danger);display:none;">Please select at least one service</small></div>
+                    <div class="form-group full" style="background:rgba(212, 175, 55, 0.1);padding:0.85rem;border-radius:var(--radius-lg);border:1px solid var(--accent-gold);">
+                        <div style="display:flex;justify-content:space-between;align-items:center;">
+                            <div style="font-size:0.75rem;font-weight:600;color:var(--text-secondary);">
+                                <i class="fas fa-calculator" style="margin-right:0.4rem;"></i>Auto-calculated from services:
+                            </div>
+                            <div style="font-size:1.1rem;font-weight:700;color:var(--accent-gold);" id="autoCalculatedPrice">₹0.00</div>
+                        </div>
+                        <small style="color:var(--text-muted);font-size:0.7rem;display:block;margin-top:0.4rem;">💡 You can manually adjust the Total Price above to offer discounts or increase profit</small>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-primary" onclick="savePackage()"><i class="fas fa-save"></i> Save</button><button class="btn btn-secondary" onclick="closeModal()">Cancel</button></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script src="../js/core-api.js"></script><script src="../js/auth-api.js"></script><script src="../js/utils.js"></script><script src="../js/notifications.js"></script><script src="../js/services-packages-api.js"></script>
+    <script>
+        let packages = [];
+        let services = [];
+        let selectedServiceIds = [];
+        let editId = null;
+        let manualPriceOverride = false;
+
+        function handleLogout() {
+            if (confirm('Are you sure you want to logout?')) {
+                TokenManager.removeToken();
+                TokenManager.removeUser();
+                localStorage.removeItem('refresh_token');
+                // Use relative path to avoid hardcoded URL issues
+                window.location.href = '../index.html';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const user = TokenManager.getUser();
+            if (user) { document.getElementById('userName').textContent = user.username || user.name || 'User'; document.getElementById('userRole').textContent = user.role || 'User'; document.getElementById('userAvatar').textContent = (user.username || user.name || 'U')[0].toUpperCase(); }
+            if (user && user.role !== 'ADMIN') document.getElementById('addPackageBtn').style.display = 'none';
+            loadPackages();
+            loadServicesForSelector();
+        });
+
+        // Calculate total price from selected services
+        function calculateAutoPrice() {
+            let total = 0;
+            selectedServiceIds.forEach(serviceId => {
+                const service = services.find(s => s.service_id === serviceId);
+                if (service) {
+                    total += parseFloat(service.price || 0);
+                }
+            });
+
+            const autoDisplay = document.getElementById('autoCalculatedPrice');
+            if (autoDisplay) {
+                autoDisplay.textContent = '₹' + total.toFixed(2);
+            }
+
+            // Only update the price input if user hasn't manually overridden it
+            if (!manualPriceOverride && total > 0) {
+                document.getElementById('fTotalPrice').value = total.toFixed(2);
+            }
+        }
+
+        async function loadPackages() {
+            document.getElementById('loadingState').style.display = 'flex';
+            document.getElementById('packagesContent').style.display = 'none';
+            try {
+                const result = await PackagesAPI.list();
+                if (result.success && result.data && result.data.items) {
+                    packages = result.data.items;
+                    console.log('Loaded packages:', packages.length, 'Statuses:', packages.map(p => p.status));
+                    render();
+                    document.getElementById('loadingState').style.display = 'none';
+                    document.getElementById('packagesContent').style.display = 'block';
+                }
+            } catch (error) {
+                document.getElementById('loadingState').style.display = 'none';
+                alert('Failed to load packages: ' + error.message);
+            }
+        }
+
+        async function loadServicesForSelector(preselectedIds = null) {
+            try {
+                console.log('📊 Loading services... preselectedIds:', preselectedIds);
+                
+                const result = await ServicesAPI.list();
+                const container = document.getElementById('serviceSelector');
+                if (result.success && result.data && result.data.items) {
+                    services = result.data.items;
+                    console.log('✅ Services loaded:', services.length);
+                    
+                    // Use preselected IDs if provided, otherwise use current selectedServiceIds
+                    const idsToUse = preselectedIds !== null ? preselectedIds : selectedServiceIds;
+                    console.log('🔧 Using IDs:', idsToUse);
+                    
+                    container.innerHTML = services.map(s => {
+                        const isSelected = idsToUse.includes(s.service_id);
+                        console.log(`Service ${s.service_id} (${s.service_name}): isSelected=${isSelected}`);
+                        return `<label style="display:flex;align-items:center;gap:0.65rem;padding:0.45rem;cursor:pointer;border-radius:var(--radius-md);transition:background 0.2s;${isSelected ? 'background:rgba(212, 175, 55, 0.1);' : ''}"><input type="checkbox" value="${s.service_id}" onchange="toggleService(this)" ${isSelected ? 'checked' : ''} style="cursor:pointer;"><span style="flex:1;color:var(--text-secondary);font-size:0.8rem;">${s.service_name}</span><span style="color:var(--accent-gold);font-weight:600;font-size:0.8rem;">₹${s.price}</span></label>`;
+                    }).join('');
+                    
+                    calculateAutoPrice();
+                }
+            } catch (error) { console.error('Failed to load services:', error); }
+        }
+
+        function toggleService(checkbox) {
+            const serviceId = parseInt(checkbox.value);
+            if (checkbox.checked) {
+                selectedServiceIds.push(serviceId);
+                checkbox.parentElement.style.background = 'rgba(212, 175, 55, 0.1)';
+            } else {
+                selectedServiceIds = selectedServiceIds.filter(id => id !== serviceId);
+                checkbox.parentElement.style.background = '';
+            }
+            calculateAutoPrice();
+        }
+
+        function render() {
+            const q = document.getElementById('pSearch').value.toLowerCase();
+            const statusFilter = document.getElementById('pStatus').value;
+
+            console.log('=== RENDER CALLED ===');
+            console.log('Status filter value:', statusFilter);
+            console.log('Search query:', q);
+            console.log('Total packages loaded:', packages.length);
+            console.log('All packages statuses:', packages.map(p => p.status));
+
+            let filtered = packages.filter(s => {
+                const matchesSearch = !q || (s.package_name && s.package_name.toLowerCase().includes(q)) || (s.description && s.description.toLowerCase().includes(q));
+                const matchesStatus = !statusFilter || s.status === statusFilter;
+                return matchesSearch && matchesStatus;
+            });
+
+            console.log('Filtered results:', filtered.length);
+            console.log('Filtered packages:', filtered.map(p => ({ name: p.package_name, status: p.status })));
+
+            const tbody = document.getElementById('pkgBody');
+
+            if (!filtered.length) {
+                tbody.innerHTML = '<tr><td colspan="7" class="empty-state"><div class="empty-icon"><i class="fas fa-gift"></i></div><h3 class="empty-title">No Packages</h3><p class="empty-text">No packages found matching your criteria</p></td></tr>';
+            } else {
+                tbody.innerHTML = filtered.map(p => `<tr>
+                    <td><strong style="color:var(--accent-gold);">#${p.package_id}</strong></td>
+                    <td><div style="font-weight:600;color:var(--text-primary);">${p.package_name}</div></td>
+                    <td style="max-width:300px;font-size:0.75rem;color:var(--text-secondary);">${p.description ? p.description.substring(0, 50) + '...' : '-'}</td>
+                    <td><strong style="color:var(--accent-gold);">₹${parseFloat(p.total_price).toFixed(2)}</strong></td>
+                    <td><span style="padding:0.2rem 0.6rem;background:var(--card-bg);border-radius:var(--radius-full);font-size:0.65rem;color:var(--text-secondary);">${p.validity_days || 30} days</span></td>
+                    <td><span class="status-badge ${getStatusBadgeClass(p.status)}">${p.status}</span></td>
+                    <td><button class="btn btn-primary btn-sm" onclick="openEdit(${p.package_id})">Edit</button> <button class="btn btn-${p.status === 'ACTIVE' ? 'warning' : 'success'} btn-sm" onclick="toggleStatus(${p.package_id})">${p.status === 'ACTIVE' ? 'Disable' : 'Enable'}</button></td>
+                </tr>`).join('');
+            }
+            document.getElementById('pkgInfo').textContent = `${filtered.length} package(s)` + (statusFilter ? ` (${statusFilter})` : '');
+        }
+
+        function openAdd() {
+            editId = null;
+            selectedServiceIds = [];
+            manualPriceOverride = false;
+            document.getElementById('pkgModalTitle').innerHTML = '<i class="fas fa-plus"></i> Create Package';
+            ['fPName','fPDesc'].forEach(id => document.getElementById(id).value = '');
+            ['fTotalPrice','fValidity'].forEach(id => document.getElementById(id).value = '');
+            document.getElementById('fPStatus').value = 'ACTIVE';
+            document.getElementById('autoCalculatedPrice').textContent = '₹0.00';
+            loadServicesForSelector();
+            document.getElementById('pkgModal').classList.add('open');
+        }
+
+        function openEdit(id) {
+            editId = id;
+            const p = packages.find(x => x.package_id === id);
+            if (!p) {
+                console.error('❌ Package not found with ID:', id);
+                return;
+            }
+            
+            console.log('📦 Editing package:', p.package_name);
+            console.log('📦 Full package data:', p);
+            console.log('📦 Package services:', p.services);
+            console.log('📦 Services type:', Array.isArray(p.services));
+            
+            manualPriceOverride = false;
+            document.getElementById('pkgModalTitle').innerHTML = '<i class="fas fa-edit"></i> Edit Package';
+            document.getElementById('fPName').value = p.package_name || '';
+            document.getElementById('fPDesc').value = p.description || '';
+            document.getElementById('fTotalPrice').value = p.total_price || 0;
+            document.getElementById('fValidity').value = p.validity_days || 30;
+            document.getElementById('fPStatus').value = p.status || 'ACTIVE';
+            
+            // Get existing service IDs from package - handle different data structures
+            let existingServiceIds = [];
+            if (p.services && Array.isArray(p.services)) {
+                existingServiceIds = p.services.map(s => {
+                    console.log('Service object:', s);
+                    return parseInt(s.service_id) || parseInt(s.id) || 0;
+                }).filter(id => id > 0);
+            }
+            
+            selectedServiceIds = existingServiceIds;
+            
+            console.log('✅ Existing service IDs:', existingServiceIds);
+            console.log('✅ selectedServiceIds:', selectedServiceIds);
+            
+            // Load services with pre-selected IDs
+            loadServicesForSelector(existingServiceIds);
+            document.getElementById('pkgModal').classList.add('open');
+        }
+
+        async function savePackage() {
+            const package_name = document.getElementById('fPName').value.trim();
+            const description = document.getElementById('fPDesc').value.trim();
+            const total_price = parseFloat(document.getElementById('fTotalPrice').value) || 0;
+            const validity_days = parseInt(document.getElementById('fValidity').value) || 30;
+            const status = document.getElementById('fPStatus').value;
+            const service_ids = selectedServiceIds;
+
+            console.log('💾 Saving package...');
+            console.log('Service IDs:', service_ids);
+            console.log('Selected services count:', service_ids.length);
+
+            // Validate at least one service is selected
+            if (!service_ids || service_ids.length === 0) {
+                showError('Validation Error', 'Please select at least one service');
+                document.getElementById('servicesError').style.display = 'block';
+                return;
+            }
+            document.getElementById('servicesError').style.display = 'none';
+
+            // Build package data object
+            const packageData = {
+                package_name: package_name || null,
+                description: description || null,
+                total_price: total_price,
+                validity_days: validity_days,
+                status: status,
+                service_ids: service_ids
+            };
+
+            // Validate using ValidationUtils (matches backend rules)
+            const validation = ValidationUtils.validatePackageData(packageData, editId !== null);
+            if (!validation.valid) {
+                showValidationErrors(validation.errors);
+                return;
+            }
+
+            try {
+                let result;
+                if (editId) {
+                    result = await PackagesAPI.update(editId, packageData);
+                } else {
+                    result = await PackagesAPI.create(packageData);
+                }
+                if (result.success) {
+                    showSuccess(editId ? 'Package updated successfully!' : 'Package created successfully!');
+                    closeModal();
+                    await loadPackages();
+                } else {
+                    showError('Failed to save', result.message || 'Unknown error');
+                }
+            } catch (error) {
+                showError('Error', error.message);
+            }
+        }
+
+        async function toggleStatus(id) {
+            const p = packages.find(x => x.package_id === id);
+            if (!p) return;
+            const newStatus = p.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
+            try {
+                const result = await PackagesAPI.toggleStatus(id, newStatus);
+                if (result.success) { alert('Status updated!'); await loadPackages(); }
+                else { alert(result.message || 'Failed'); }
+            } catch (error) { alert(error.message || 'Failed'); }
+        }
+
+        function closeModal() { document.getElementById('pkgModal').classList.remove('open'); }
+        window.onclick = function(event) { if (event.target.id === 'pkgModal') closeModal(); };
+
+        function getStatusBadgeClass(status) {
+            return status === 'ACTIVE' ? 'active' : 'inactive';
+        }
+    </script>
+</body>
+</html>

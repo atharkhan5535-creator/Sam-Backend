@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Incentives - Elite Salon</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="../css/main.css">
+</head>
+<body>
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">Elite Salon</div>
+            <div class="sidebar-user">
+                <div class="sidebar-user-info">
+                    <div class="user-avatar" id="userAvatar">A</div>
+                    <div class="user-details">
+                        <div class="user-name" id="userName">Admin</div>
+                        <div class="user-role" id="userRole">Administrator</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <div class="nav-section-title">Main Menu</div>
+                <a href="dashboard.html" class="nav-item">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="appointments.html" class="nav-item">
+                    <i class="fas fa-calendar-check"></i>
+                    <span>Appointments</span>
+                </a>
+                <a href="customers.html" class="nav-item">
+                    <i class="fas fa-users"></i>
+                    <span>Customers</span>
+                </a>
+                <a href="staff.html" class="nav-item">
+                    <i class="fas fa-user-tie"></i>
+                    <span>Staff</span>
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Services</div>
+                <a href="services.html" class="nav-item">
+                    <i class="fas fa-cut"></i>
+                    <span>Services</span>
+                </a>
+                <a href="package.html" class="nav-item">
+                    <i class="fas fa-gift"></i>
+                    <span>Packages</span>
+                </a>
+                <a href="inventory.html" class="nav-item">
+                    <i class="fas fa-boxes"></i>
+                    <span>Inventory</span>
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Financial</div>
+                <a href="payments.html" class="nav-item">
+                    <i class="fas fa-credit-card"></i>
+                    <span>Payments</span>
+                </a>
+                <a href="schedules.html" class="nav-item">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>Schedules</span>
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">System</div>
+                <a href="settings.html" class="nav-item">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
+            </div>
+        </nav>
+
+        <div class="sidebar-footer">
+            <button class="logout-btn" onclick="handleLogout()">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Top Header -->
+        <header class="top-header">
+            <div class="page-title">
+                <div class="page-icon">
+                    <i class="fas fa-trophy"></i>
+                </div>
+                <div>
+                    <h1>Staff Incentives</h1>
+                    <p class="page-subtitle">Manage commissions, bonuses, and rewards</p>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-primary" onclick="openCreateIncentiveModal()">
+                    <i class="fas fa-plus"></i> Create Incentive
+                </button>
+                <button class="btn btn-secondary" onclick="openCreateByAppointmentModal()">
+                    <i class="fas fa-calendar-check"></i> By Appointment
+                </button>
+                <a href="staff.html" class="btn btn-secondary">
+                    <i class="fas fa-users"></i> Staff List
+                </a>
+            </div>
+        </header>
+
+        <!-- Content Wrapper -->
+        <div class="content-wrapper">
+            <!-- Period Info Banner -->
+            <div class="content-card" style="margin-bottom:1.5rem;padding:1rem;">
+                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;">
+                    <div style="display:flex;align-items:center;gap:1rem;">
+                        <i class="fas fa-calendar-alt" style="font-size:1.5rem;color:var(--accent-gold);"></i>
+                        <div>
+                            <div style="font-size:0.75rem;font-weight:600;text-transform:uppercase;color:var(--text-secondary);">Report Period</div>
+                            <div id="reportPeriod" style="font-size:1rem;font-weight:600;color:var(--text-primary);">Loading...</div>
+                        </div>
+                    </div>
+                    <button class="btn btn-secondary btn-sm" onclick="loadData()">
+                        <i class="fas fa-redo"></i> Refresh
+                    </button>
+                </div>
+            </div>
+
+            <!-- Incentives Card -->
+            <div class="content-card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-list"></i>
+                        <span>Staff-wise Incentive Breakdown</span>
+                    </div>
+                </div>
+                <div class="card-body" style="padding:0;">
+                    <div class="table-container">
+                        <table class="modern-table">
+                            <thead>
+                                <tr>
+                                    <th style="width:80px;">ID</th>
+                                    <th>Staff Member</th>
+                                    <th style="width:100px;">Incentives</th>
+                                    <th style="width:120px;">Total Earned</th>
+                                    <th style="width:120px;">Total Paid</th>
+                                    <th style="width:120px;">Outstanding</th>
+                                    <th style="width:150px;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="incentivesTableBody"></tbody>
+                        </table>
+                    </div>
+                    <div id="resultsInfo" style="padding:1rem;color:var(--text-secondary);font-size:0.875rem;border-top:1px solid var(--card-border);margin-top:1rem;"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Payout Modal -->
+    <div class="modal-overlay" id="payoutModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title"><i class="fas fa-money-bill-wave"></i> Process Payout</h2>
+                <button class="modal-close" onclick="closeModal('payoutModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div style="background:rgba(212, 175, 55, 0.1);padding:1rem;border-radius:var(--radius-lg);margin-bottom:1.5rem;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <div>
+                            <div style="font-size:0.75rem;font-weight:600;text-transform:uppercase;color:var(--text-secondary);">Staff Member</div>
+                            <div style="font-size:1.1rem;font-weight:600;color:var(--text-primary);" id="payoutStaffName">-</div>
+                        </div>
+                        <div style="text-align:right;">
+                            <div style="font-size:0.75rem;font-weight:600;text-transform:uppercase;color:var(--text-secondary);">Outstanding</div>
+                            <div style="font-size:1.25rem;font-weight:700;color:var(--warning);" id="payoutOutstanding">₹0.00</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group full">
+                        <label class="form-label">Payout Amount (₹) *</label>
+                        <input type="number" id="payoutAmount" class="form-input" placeholder="0" min="0" step="0.01">
+                    </div>
+                    <div class="form-group full">
+                        <label class="form-label">Payment Mode *</label>
+                        <select id="payoutPaymentMode" class="form-select">
+                            <option value="">Select Mode</option>
+                            <option value="CASH">Cash</option>
+                            <option value="UPI">UPI</option>
+                            <option value="BANK">Bank Transfer</option>
+                            <option value="CHEQUE">Cheque</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Payout Date</label>
+                        <input type="date" id="payoutDate" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Transaction Reference</label>
+                        <input type="text" id="payoutTransactionRef" class="form-input" placeholder="TXN123456">
+                    </div>
+                    <div class="form-group full">
+                        <label class="form-label">Remarks</label>
+                        <textarea id="payoutRemarks" class="form-textarea" rows="2" placeholder="Optional notes…"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-success" onclick="processPayout()"><i class="fas fa-check"></i> Process Payout</button>
+                <button class="btn btn-secondary" onclick="closeModal('payoutModal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Incentive Modal -->
+    <div class="modal-overlay" id="createIncentiveModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title"><i class="fas fa-trophy"></i> Create Incentive</h2>
+                <button class="modal-close" onclick="closeModal('createIncentiveModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-grid">
+                    <div class="form-group full">
+                        <label class="form-label">Staff Member *</label>
+                        <select id="newIncentiveStaff" class="form-select" onchange="populateAppointmentDropdown()">
+                            <option value="">Select Staff</option>
+                        </select>
+                    </div>
+                    <div class="form-group full">
+                        <label class="form-label">Incentive Type *</label>
+                        <select id="newIncentiveType" class="form-select">
+                            <option value="">Select Type</option>
+                            <option value="SERVICE_COMMISSION">Service Commission</option>
+                            <option value="BONUS">Bonus</option>
+                            <option value="TARGET_ACHIEVEMENT">Target Achievement</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Calculation Type</label>
+                        <select id="newCalcType" class="form-select" onchange="toggleCalculationFields()">
+                            <option value="FIXED">Fixed Amount</option>
+                            <option value="PERCENTAGE">Percentage</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="percentageField" style="display:none;">
+                        <label class="form-label">Percentage Rate (%)</label>
+                        <input type="number" id="newPercentageRate" class="form-input" placeholder="10" min="0" max="100" step="0.1" oninput="calculateIncentiveAmount()">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Base Amount (₹)</label>
+                        <input type="number" id="newBaseAmount" class="form-input" placeholder="1000" min="0" step="0.01" oninput="calculateIncentiveAmount()">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Fixed Amount (₹)</label>
+                        <input type="number" id="newFixedAmount" class="form-input" placeholder="500" min="0" step="0.01" oninput="calculateIncentiveAmount()">
+                    </div>
+                    <div class="form-group full">
+                        <label class="form-label">Incentive Amount (₹) *</label>
+                        <input type="number" id="newIncentiveAmount" class="form-input" placeholder="0" min="0" step="0.01" required>
+                    </div>
+                    <div class="form-group full">
+                        <label class="form-label">Remarks</label>
+                        <textarea id="newIncentiveRemarks" class="form-textarea" rows="2" placeholder="Optional notes…"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="createIncentive()"><i class="fas fa-plus"></i> Create Incentive</button>
+                <button class="btn btn-secondary" onclick="closeModal('createIncentiveModal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create by Appointment Modal -->
+    <div class="modal-overlay" id="createByAppointmentModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title"><i class="fas fa-calendar-check"></i> Create Incentive by Appointment</h2>
+                <button class="modal-close" onclick="closeModal('createByAppointmentModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-grid">
+                    <div class="form-group full">
+                        <label class="form-label">Select Appointment *</label>
+                        <select id="appointmentSelect" class="form-select" onchange="onAppointmentChange()">
+                            <option value="">Select Appointment</option>
+                        </select>
+                    </div>
+                    <div class="form-group full">
+                        <label class="form-label">Staff Member</label>
+                        <input type="text" id="apptStaffName" class="form-input" readonly style="background:var(--card-bg);color:var(--text-muted);">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Appointment Date</label>
+                        <input type="text" id="apptDate" class="form-input" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Final Amount</label>
+                        <input type="text" id="apptAmount" class="form-input" readonly>
+                    </div>
+                    <div class="form-group full">
+                        <label class="form-label">Incentive Type *</label>
+                        <select id="apptIncentiveType" class="form-select">
+                            <option value="">Select Type</option>
+                            <option value="SERVICE_COMMISSION">Service Commission</option>
+                            <option value="BONUS">Bonus</option>
+                            <option value="TARGET_ACHIEVEMENT">Target Achievement</option>
+                        </select>
+                    </div>
+                    <div class="form-group full">
+                        <label class="form-label">Incentive Amount (₹) *</label>
+                        <input type="number" id="apptIncentiveAmount" class="form-input" placeholder="0" min="0" step="0.01">
+                        <small style="color:var(--text-muted);font-size:0.75rem;">Enter commission amount or percentage of final amount</small>
+                    </div>
+                    <div class="form-group full">
+                        <label class="form-label">Remarks</label>
+                        <textarea id="apptIncentiveRemarks" class="form-textarea" rows="2" placeholder="Optional notes…"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="createIncentiveByAppointment()"><i class="fas fa-plus"></i> Create Incentive</button>
+                <button class="btn btn-secondary" onclick="closeModal('createByAppointmentModal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script src="../js/core-api.js"></script>
+    <script src="../js/auth-api.js"></script>
+    <script src="../js/utils.js"></script>
+    <script src="../js/notifications.js"></script>
+    <script src="../js/staff-api-module.js"></script>
+    <script>
+        let incentives = [];
+        let staffList = [];
+        let selectedStaffId = null;
+        let selectedStaffName = null;
+        let selectedOutstanding = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const user = TokenManager.getUser();
+            if (user) {
+                document.getElementById('userName').textContent = user.username || user.name || 'User';
+                document.getElementById('userRole').textContent = user.role || 'User';
+                document.getElementById('userAvatar').textContent = (user.username || user.name || 'U')[0].toUpperCase();
+            }
+            loadData();
+        });
+
+        async function loadData() {
+            try {
+                console.log('=== LOADING INCENTIVES DATA ===');
+
+                // Load staff list
+                const staffResult = await StaffAPI.list();
+                if (staffResult.success && staffResult.data && staffResult.data.items) {
+                    staffList = staffResult.data.items;
+                    console.log('✅ Staff loaded:', staffList.length);
+                } else {
+                    console.warn('⚠️ Staff API returned no data');
+                    staffList = [];
+                }
+
+                // ===== TEMPORARY FIX: Mock data for presentation =====
+                // API endpoint /reports/incentives doesn't exist yet
+                // Using mock data until backend is implemented
+                console.log('⚠️ Using MOCK DATA (API not implemented yet)');
+                
+                const mockReportData = {
+                    period: {
+                        start_date: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
+                        end_date: new Date().toISOString().split('T')[0]
+                    },
+                    summary: {
+                        total_incentives: 38500,
+                        total_paid: 28000,
+                        total_outstanding: 10500,
+                        incentives_count: 12
+                    },
+                    by_staff: [
+                        {
+                            staff_id: 1,
+                            name: 'Rohit Sharma',
+                            incentives_count: 5,
+                            total_incentives: 15000,
+                            total_paid: 12000,
+                            outstanding: 3000
+                        },
+                        {
+                            staff_id: 2,
+                            name: 'Neha Patel',
+                            incentives_count: 4,
+                            total_incentives: 12500,
+                            total_paid: 10000,
+                            outstanding: 2500
+                        },
+                        {
+                            staff_id: 3,
+                            name: 'Anjali Mehta',
+                            incentives_count: 3,
+                            total_incentives: 11000,
+                            total_paid: 6000,
+                            outstanding: 5000
+                        }
+                    ]
+                };
+
+                const reportData = mockReportData;
+                console.log('📊 Using mock data:', reportData);
+                // ====================================================
+
+                // Update period display
+                if (reportData.period) {
+                    document.getElementById('reportPeriod').textContent =
+                        `${formatDate(reportData.period.start_date)} to ${formatDate(reportData.period.end_date)}`;
+                }
+
+                // Process by_staff data
+                console.log('📊 by_staff content:', reportData.by_staff);
+                
+                if (reportData.by_staff && Array.isArray(reportData.by_staff) && reportData.by_staff.length > 0) {
+                    incentives = reportData.by_staff.map(staff => ({
+                        staff_id: staff.staff_id,
+                        staff_name: staff.name,
+                        incentives_count: staff.incentives_count || 0,
+                        total_amount: parseFloat(staff.total_incentives || 0),
+                        paid_amount: parseFloat(staff.total_paid || 0),
+                        outstanding: parseFloat(staff.outstanding || 0)
+                    }));
+
+                    console.log('✅ Incentives loaded:', incentives.length, 'staff members');
+                    renderStaffIncentives();
+                } else {
+                    console.log('⚠️ No incentives data in by_staff array');
+                    incentives = [];
+                    renderStaffIncentives();
+                }
+            } catch (error) {
+                console.error('❌ Error loading data:', error);
+                console.error('Stack trace:', error.stack);
+                incentives = [];
+                renderStaffIncentives();
+            }
+        }
+
+        function renderStaffIncentives() {
+            const tbody = document.getElementById('incentivesTableBody');
+            
+            if (!incentives.length) {
+                tbody.innerHTML = '<tr><td colspan="7" class="empty-state"><div class="empty-icon"><i class="fas fa-trophy"></i></div><h3 class="empty-title">No Incentives</h3><p class="empty-text">No incentive records found</p></td></tr>';
+                document.getElementById('resultsInfo').textContent = '';
+                return;
+            }
+            
+            tbody.innerHTML = incentives.map(item => {
+                const staff = staffList.find(s => s.staff_id === item.staff_id);
+                const outstandingClass = item.outstanding > 0 ? 'status-pending' : 'status-active';
+                
+                return `<tr>
+                    <td><strong style="color:var(--accent-gold);">#${item.staff_id}</strong></td>
+                    <td>
+                        <div class="table-avatar">
+                            <div class="avatar-circle">${getInitials(item.staff_name)}</div>
+                            <div class="avatar-info">
+                                <span class="avatar-name">${item.staff_name}</span>
+                                ${staff ? `<span class="avatar-sub">${staff.specialization || 'Staff'}</span>` : ''}
+                            </div>
+                        </div>
+                    </td>
+                    <td><span style="padding:0.25rem 0.75rem;background:var(--card-bg);border-radius:var(--radius-full);font-size:0.75rem;color:var(--text-secondary);">${item.incentives_count} incentives</span></td>
+                    <td><strong style="color:var(--text-primary);">₹${item.total_amount.toFixed(2)}</strong></td>
+                    <td><strong style="color:var(--success);">₹${item.paid_amount.toFixed(2)}</strong></td>
+                    <td>
+                        <strong style="color:var(--warning);">₹${item.outstanding.toFixed(2)}</strong>
+                        <span class="status-badge ${outstandingClass}" style="margin-left:0.5rem;">${item.outstanding > 0 ? 'Pending' : 'Paid'}</span>
+                    </td>
+                    <td>
+                        <button class="btn btn-primary btn-sm" onclick="goToStaff(${item.staff_id})" title="View Staff">
+                            <i class="fas fa-user"></i>
+                        </button>
+                        ${item.outstanding > 0 ? `
+                            <button class="btn btn-success btn-sm" onclick="showPayoutOption(${item.staff_id}, '${item.staff_name}', ${item.outstanding})" title="Pay Outstanding">
+                                <i class="fas fa-money-bill-wave"></i>
+                            </button>
+                        ` : ''}
+                    </td>
+                </tr>`;
+            }).join('');
+            
+            document.getElementById('resultsInfo').textContent = `Showing ${incentives.length} staff member(s) with incentives`;
+        }
+
+        function goToStaff(staffId) {
+            window.location.href = `staff.html?id=${staffId}`;
+        }
+
+        function showPayoutOption(staffId, staffName, amount) {
+            selectedStaffId = staffId;
+            selectedStaffName = staffName;
+            selectedOutstanding = amount;
+            
+            document.getElementById('payoutStaffName').textContent = staffName;
+            document.getElementById('payoutOutstanding').textContent = '₹' + amount.toFixed(2);
+            document.getElementById('payoutAmount').value = amount.toFixed(2);
+            document.getElementById('payoutPaymentMode').value = '';
+            document.getElementById('payoutTransactionRef').value = '';
+            document.getElementById('payoutRemarks').value = '';
+            document.getElementById('payoutDate').value = new Date().toISOString().split('T')[0];
+            
+            document.getElementById('payoutModal').classList.add('open');
+        }
+
+        async function processPayout() {
+            const payoutAmount = parseFloat(document.getElementById('payoutAmount').value);
+            const paymentMode = document.getElementById('payoutPaymentMode').value;
+            const transactionRef = document.getElementById('payoutTransactionRef').value;
+            const remarks = document.getElementById('payoutRemarks').value.trim();
+            const payoutDate = document.getElementById('payoutDate').value;
+
+            if (!payoutAmount || payoutAmount <= 0) {
+                alert('Please enter a valid payout amount');
+                return;
+            }
+            if (!paymentMode) {
+                alert('Please select a payment mode');
+                return;
+            }
+
+            try {
+                // Step 1: Create a bonus incentive for the outstanding amount
+                const incentiveData = {
+                    staff_id: selectedStaffId,
+                    incentive_type: 'BONUS',
+                    calculation_type: 'FIXED',
+                    fixed_amount: payoutAmount,
+                    incentive_amount: payoutAmount,
+                    remarks: remarks || 'Payout for outstanding incentives',
+                    status: 'PENDING'
+                };
+
+                console.log('Creating incentive:', incentiveData);
+                const incentiveResult = await StaffAPI.createIncentive(incentiveData);
+
+                if (!incentiveResult.success) {
+                    throw new Error(incentiveResult.message || 'Failed to create incentive');
+                }
+
+                const incentiveId = incentiveResult.data.incentive_id;
+                console.log('Incentive created with ID:', incentiveId);
+
+                // Step 2: Process the payout
+                const payoutData = {
+                    payout_amount: payoutAmount,
+                    payment_mode: paymentMode,
+                    payout_date: payoutDate,
+                    transaction_reference: transactionRef,
+                    remarks: remarks || 'Payout for outstanding incentives'
+                };
+
+                console.log('Processing payout:', payoutData);
+                const payoutResult = await StaffAPI.processPayout(incentiveId, payoutData);
+
+                if (!payoutResult.success) {
+                    throw new Error(payoutResult.message || 'Failed to process payout');
+                }
+
+                // Success!
+                closeModal('payoutModal');
+                alert(`✅ Payout Successful!\n\nStaff: ${selectedStaffName}\nAmount: ₹${payoutAmount.toFixed(2)}\nMode: ${paymentMode}\n\nThe incentive has been created and paid.`);
+                
+                // Reload data
+                console.log('Reloading data after processing payout...');
+                setTimeout(() => loadData(), 500);
+
+            } catch (error) {
+                console.error('Payout error:', error);
+                alert('❌ Payout Failed: ' + error.message);
+            }
+        }
+
+        function getInitials(name) {
+            if (!name) return '??';
+            return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('open');
+        }
+
+        // ===== CREATE INCENTIVE FUNCTIONS =====
+        
+        function openCreateIncentiveModal() {
+            // Populate staff dropdown
+            const staffSelect = document.getElementById('newIncentiveStaff');
+            staffSelect.innerHTML = '<option value="">Select Staff</option>' + 
+                staffList.map(s => `<option value="${s.staff_id}">${s.name}</option>`).join('');
+            
+            // Reset form
+            document.getElementById('newIncentiveType').value = '';
+            document.getElementById('newCalcType').value = 'FIXED';
+            document.getElementById('newPercentageRate').value = '';
+            document.getElementById('newBaseAmount').value = '';
+            document.getElementById('newFixedAmount').value = '';
+            document.getElementById('newIncentiveAmount').value = '';
+            document.getElementById('newIncentiveRemarks').value = '';
+            
+            toggleCalculationFields();
+            document.getElementById('createIncentiveModal').classList.add('open');
+        }
+
+        function toggleCalculationFields() {
+            const calcType = document.getElementById('newCalcType').value;
+            document.getElementById('percentageField').style.display = calcType === 'PERCENTAGE' ? 'block' : 'none';
+            calculateIncentiveAmount();
+        }
+
+        function calculateIncentiveAmount() {
+            const calcType = document.getElementById('newCalcType').value;
+            const baseAmount = parseFloat(document.getElementById('newBaseAmount').value) || 0;
+            const percentageRate = parseFloat(document.getElementById('newPercentageRate').value) || 0;
+            const fixedAmount = parseFloat(document.getElementById('newFixedAmount').value) || 0;
+            
+            let amount = 0;
+            if (calcType === 'PERCENTAGE' && baseAmount > 0) {
+                amount = (baseAmount * percentageRate) / 100;
+            } else {
+                amount = fixedAmount;
+            }
+            
+            document.getElementById('newIncentiveAmount').value = amount.toFixed(2);
+        }
+
+        async function createIncentive() {
+            const staffId = parseInt(document.getElementById('newIncentiveStaff').value);
+            const incentiveType = document.getElementById('newIncentiveType').value;
+            const calcType = document.getElementById('newCalcType').value;
+            const percentageRate = parseFloat(document.getElementById('newPercentageRate').value) || null;
+            const baseAmount = parseFloat(document.getElementById('newBaseAmount').value) || null;
+            const fixedAmount = parseFloat(document.getElementById('newFixedAmount').value) || null;
+            const incentiveAmount = parseFloat(document.getElementById('newIncentiveAmount').value);
+            const remarks = document.getElementById('newIncentiveRemarks').value.trim();
+
+            if (!staffId) {
+                alert('Please select a staff member');
+                return;
+            }
+            if (!incentiveType) {
+                alert('Please select an incentive type');
+                return;
+            }
+            if (!incentiveAmount || incentiveAmount <= 0) {
+                alert('Please enter a valid incentive amount');
+                return;
+            }
+
+            const incentiveData = {
+                staff_id: staffId,
+                incentive_type: incentiveType,
+                calculation_type: calcType,
+                percentage_rate: percentageRate,
+                base_amount: baseAmount,
+                fixed_amount: fixedAmount,
+                incentive_amount: incentiveAmount,
+                remarks: remarks,
+                status: 'PENDING'
+            };
+
+            try {
+                const result = await StaffAPI.createIncentive(incentiveData);
+                if (result.success) {
+                    alert('✅ Incentive created successfully!');
+                    closeModal('createIncentiveModal');
+                    console.log('Reloading data after creating incentive...');
+                    setTimeout(() => loadData(), 500);
+                } else {
+                    alert('❌ Failed: ' + (result.message || 'Unknown error'));
+                }
+            } catch (error) {
+                alert('❌ Error: ' + error.message);
+            }
+        }
+
+        // ===== CREATE BY APPOINTMENT FUNCTIONS =====
+        
+        let appointmentsList = [];
+
+        async function openCreateByAppointmentModal() {
+            // Load appointments
+            try {
+                const apptResult = await apiRequest('/appointments', { method: 'GET' });
+                if (apptResult.status === 'success' && apptResult.data) {
+                    appointmentsList = apptResult.data.items || apptResult.data || [];
+                    
+                    const select = document.getElementById('appointmentSelect');
+                    select.innerHTML = '<option value="">Select Appointment</option>' + 
+                        appointmentsList.map(a => `<option value="${a.appointment_id}">#${a.appointment_id} - ${a.customer_name || 'Customer'} (${a.appointment_date})</option>`).join('');
+                }
+            } catch (error) {
+                alert('Failed to load appointments: ' + error.message);
+            }
+
+            // Reset form
+            document.getElementById('apptStaffName').value = '';
+            document.getElementById('apptDate').value = '';
+            document.getElementById('apptAmount').value = '';
+            document.getElementById('apptIncentiveType').value = '';
+            document.getElementById('apptIncentiveAmount').value = '';
+            document.getElementById('apptIncentiveRemarks').value = '';
+
+            document.getElementById('createByAppointmentModal').classList.add('open');
+        }
+
+        function onAppointmentChange() {
+            const apptId = parseInt(document.getElementById('appointmentSelect').value);
+            const appointment = appointmentsList.find(a => a.appointment_id === apptId);
+            
+            if (appointment) {
+                // Get staff name from appointment
+                const staffName = appointment.staff ? appointment.staff.name : 'Not assigned';
+                document.getElementById('apptStaffName').value = staffName;
+                document.getElementById('apptDate').value = appointment.appointment_date;
+                document.getElementById('apptAmount').value = '₹' + (appointment.final_amount || 0).toFixed(2);
+            } else {
+                document.getElementById('apptStaffName').value = '';
+                document.getElementById('apptDate').value = '';
+                document.getElementById('apptAmount').value = '';
+            }
+        }
+
+        async function createIncentiveByAppointment() {
+            const apptId = parseInt(document.getElementById('appointmentSelect').value);
+            const incentiveType = document.getElementById('apptIncentiveType').value;
+            const incentiveAmount = parseFloat(document.getElementById('apptIncentiveAmount').value);
+            const remarks = document.getElementById('apptIncentiveRemarks').value.trim();
+
+            if (!apptId) {
+                alert('Please select an appointment');
+                return;
+            }
+            if (!incentiveType) {
+                alert('Please select an incentive type');
+                return;
+            }
+            if (!incentiveAmount || incentiveAmount <= 0) {
+                alert('Please enter a valid incentive amount');
+                return;
+            }
+
+            const appointment = appointmentsList.find(a => a.appointment_id === apptId);
+            if (!appointment) {
+                alert('Appointment not found');
+                return;
+            }
+
+            const incentiveData = {
+                staff_id: appointment.staff_id,
+                appointment_id: apptId,
+                incentive_type: incentiveType,
+                calculation_type: 'FIXED',
+                incentive_amount: incentiveAmount,
+                remarks: remarks || `Incentive for appointment #${apptId}`,
+                status: 'PENDING'
+            };
+
+            try {
+                const result = await StaffAPI.createIncentive(incentiveData);
+                if (result.success) {
+                    alert('✅ Incentive created successfully!');
+                    closeModal('createByAppointmentModal');
+                    console.log('Reloading data after creating incentive by appointment...');
+                    setTimeout(() => loadData(), 500);
+                } else {
+                    alert('❌ Failed: ' + (result.message || 'Unknown error'));
+                }
+            } catch (error) {
+                alert('❌ Error: ' + error.message);
+            }
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal-overlay')) {
+                event.target.classList.remove('open');
+            }
+        };
+
+        async function handleLogout() {
+            if (confirm('Are you sure you want to logout?')) {
+                await AuthAPI.logout();
+                TokenManager.removeToken();
+                TokenManager.removeUser();
+                localStorage.removeItem('refresh_token');
+                // Use relative path to avoid hardcoded URL issues
+                window.location.href = '../index.html';
+            }
+        }
+    </script>
+</body>
+</html>

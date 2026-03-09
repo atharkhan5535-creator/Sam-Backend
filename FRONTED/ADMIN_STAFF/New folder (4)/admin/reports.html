@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports - Elite Salon</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="../css/main.css">
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">Elite Salon</div>
+            <div class="sidebar-user">
+                <div class="sidebar-user-info">
+                    <div class="user-avatar" id="userAvatar">A</div>
+                    <div class="user-details">
+                        <div class="user-name" id="userName">Admin</div>
+                        <div class="user-role" id="userRole">Administrator</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="nav-section"><div class="nav-section-title">Main Menu</div>
+                <a href="dashboard.html" class="nav-item"><i class="fas fa-chart-line"></i><span>Dashboard</span></a>
+                <a href="appointments.html" class="nav-item"><i class="fas fa-calendar-check"></i><span>Appointments</span></a>
+                <a href="customers.html" class="nav-item"><i class="fas fa-users"></i><span>Customers</span></a>
+                <a href="staff.html" class="nav-item"><i class="fas fa-user-tie"></i><span>Staff</span></a>
+            </div>
+            <div class="nav-section"><div class="nav-section-title">Services</div>
+                <a href="services.html" class="nav-item"><i class="fas fa-cut"></i><span>Services</span></a>
+                <a href="package.html" class="nav-item"><i class="fas fa-gift"></i><span>Packages</span></a>
+                <a href="inventory.html" class="nav-item"><i class="fas fa-boxes"></i><span>Inventory</span></a>
+            </div>
+            <div class="nav-section"><div class="nav-section-title">Financial</div>
+                <a href="payments.html" class="nav-item"><i class="fas fa-credit-card"></i><span>Payments</span></a>
+                <a href="schedules.html" class="nav-item"><i class="fas fa-calendar-alt"></i><span>Schedules</span></a>
+            </div>
+            <div class="nav-section"><div class="nav-section-title">System</div>
+                <a href="settings.html" class="nav-item"><i class="fas fa-cog"></i><span>Settings</span></a>
+            </div>
+        </nav>
+        <div class="sidebar-footer"><button class="logout-btn" onclick="handleLogout()"><i class="fas fa-sign-out-alt"></i><span>Logout</span></button></div>
+    </aside>
+
+    <main class="main-content">
+        <header class="top-header">
+            <div class="page-title">
+                <div class="page-icon"><i class="fas fa-file-alt"></i></div>
+                <div><h1>Reports</h1><p class="page-subtitle">Business analytics and insights</p></div>
+            </div>
+        </header>
+
+        <div class="content-wrapper">
+            <!-- Report Type Selector -->
+            <div class="content-card">
+                <div class="card-header">
+                    <div class="card-title"><i class="fas fa-chart-pie"></i><span>Select Report</span></div>
+                </div>
+                <div class="card-body">
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:1rem;">
+                        <button class="btn btn-primary" onclick="loadReport('sales')"><i class="fas fa-rupee-sign"></i> Sales</button>
+                        <button class="btn btn-secondary" onclick="loadReport('appointments')"><i class="fas fa-calendar-check"></i> Appointments</button>
+                        <button class="btn btn-secondary" onclick="loadReport('staff-performance')"><i class="fas fa-user-tie"></i> Staff Performance</button>
+                        <button class="btn btn-secondary" onclick="loadReport('services')"><i class="fas fa-cut"></i> Services</button>
+                        <button class="btn btn-secondary" onclick="loadReport('packages')"><i class="fas fa-gift"></i> Packages</button>
+                        <button class="btn btn-secondary" onclick="loadReport('customers')"><i class="fas fa-users"></i> Customers</button>
+                        <button class="btn btn-secondary" onclick="loadReport('inventory')"><i class="fas fa-boxes"></i> Inventory</button>
+                        <button class="btn btn-secondary" onclick="loadReport('incentives')"><i class="fas fa-trophy"></i> Incentives</button>
+                        <button class="btn btn-secondary" onclick="loadReport('tax')"><i class="fas fa-percent"></i> Tax (GST)</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Date Range Filter -->
+            <div class="content-card" id="dateFilterCard" style="display:none;">
+                <div class="card-header">
+                    <div class="card-title"><i class="fas fa-calendar"></i><span>Date Range</span></div>
+                    <button class="btn btn-primary btn-sm" onclick="applyDateFilter()"><i class="fas fa-filter"></i> Apply Filter</button>
+                </div>
+                <div class="card-body">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Start Date</label>
+                            <input type="date" id="startDate" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">End Date</label>
+                            <input type="date" id="endDate" class="form-input">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Report Results -->
+            <div class="content-card" id="reportContent" style="display:none;">
+                <div class="card-header">
+                    <div class="card-title"><i class="fas fa-chart-bar"></i><span id="reportTitle">Report</span></div>
+                    <button class="btn btn-secondary btn-sm" onclick="exportReport()"><i class="fas fa-download"></i> Export</button>
+                </div>
+                <div class="card-body" id="reportBody">
+                    <!-- Report data will be displayed here -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="../js/core-api.js"></script>
+    <script src="../js/auth-api.js"></script>
+    <script src="../js/reports-api.js"></script>
+    <script>
+        let currentReportType = '';
+        let reportData = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const user = TokenManager.getUser();
+            if (user) {
+                document.getElementById('userName').textContent = user.username || user.name || 'User';
+                document.getElementById('userRole').textContent = user.role || 'User';
+                document.getElementById('userAvatar').textContent = (user.username || user.name || 'U')[0].toUpperCase();
+            }
+            
+            // Set default date range (current month)
+            const now = new Date();
+            const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+            document.getElementById('startDate').value = firstDay.toISOString().split('T')[0];
+            document.getElementById('endDate').value = now.toISOString().split('T')[0];
+        });
+
+        async function loadReport(type) {
+            currentReportType = type;
+            document.getElementById('dateFilterCard').style.display = 'block';
+            document.getElementById('reportContent').style.display = 'block';
+            
+            const titles = {
+                'sales': 'Sales Report',
+                'appointments': 'Appointments Report',
+                'staff-performance': 'Staff Performance Report',
+                'services': 'Service-wise Revenue',
+                'packages': 'Package-wise Revenue',
+                'customers': 'Customer Visit Report',
+                'inventory': 'Inventory Usage Report',
+                'incentives': 'Incentive Payout Report',
+                'tax': 'Tax Report (GST)'
+            };
+            
+            document.getElementById('reportTitle').textContent = titles[type] || 'Report';
+            
+            await applyDateFilter();
+        }
+
+        async function applyDateFilter() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            
+            if (!startDate || !endDate) {
+                alert('Please select both start and end dates');
+                return;
+            }
+
+            const params = { start_date: startDate, end_date: endDate };
+            
+            try {
+                let result;
+                switch(currentReportType) {
+                    case 'sales': result = await ReportsAPI.getSalesReport(params); break;
+                    case 'appointments': result = await ReportsAPI.getAppointmentsReport(params); break;
+                    case 'staff-performance': result = await ReportsAPI.getStaffPerformanceReport(params); break;
+                    case 'services': result = await ReportsAPI.getServicesReport(params); break;
+                    case 'packages': result = await ReportsAPI.getPackagesReport(params); break;
+                    case 'customers': result = await ReportsAPI.getCustomersReport(params); break;
+                    case 'inventory': result = await ReportsAPI.getInventoryReport(params); break;
+                    case 'incentives': result = await ReportsAPI.getIncentivesReport(params); break;
+                    case 'tax': result = await ReportsAPI.getTaxReport(params); break;
+                }
+
+                if (result && result.success) {
+                    reportData = result.data;
+                    renderReport(result.data);
+                } else {
+                    document.getElementById('reportBody').innerHTML = '<div class="empty-state"><p>No data available</p></div>';
+                }
+            } catch (error) {
+                document.getElementById('reportBody').innerHTML = `<div class="empty-state"><p>Error: ${error.message}</p></div>`;
+            }
+        }
+
+        function renderReport(data) {
+            const body = document.getElementById('reportBody');
+            
+            if (!data) {
+                body.innerHTML = '<div class="empty-state"><p>No data</p></div>';
+                return;
+            }
+
+            // Handle different report structures
+            if (data.summary) {
+                // Reports with summary data
+                let html = '<div class="dashboard-grid" style="margin-bottom:2rem;">';
+                for (const [key, value] of Object.entries(data.summary)) {
+                    html += `<div class="stat-card">
+                        <div class="stat-card-label">${key.replace(/_/g, ' ').toUpperCase()}</div>
+                        <div class="stat-card-value">${typeof value === 'number' ? '₹' + value.toFixed(2) : value}</div>
+                    </div>`;
+                }
+                html += '</div>';
+                body.innerHTML = html;
+            } else if (Array.isArray(data)) {
+                // Array data - display as table
+                if (data.length === 0) {
+                    body.innerHTML = '<div class="empty-state"><p>No records found</p></div>';
+                    return;
+                }
+                
+                let html = '<div class="table-container"><table class="modern-table"><thead><tr>';
+                const headers = Object.keys(data[0]);
+                headers.forEach(h => {
+                    html += `<th>${h.replace(/_/g, ' ').toUpperCase()}</th>`;
+                });
+                html += '</tr></thead><tbody>';
+                
+                data.forEach(row => {
+                    html += '<tr>';
+                    headers.forEach(h => {
+                        const val = row[h];
+                        html += `<td>${typeof val === 'number' ? (h.includes('amount') ? '₹' + val.toFixed(2) : val) : val || '-'}</td>`;
+                    });
+                    html += '</tr>';
+                });
+                
+                html += '</tbody></table></div>';
+                body.innerHTML = html;
+            } else {
+                // Object data
+                body.innerHTML = '<pre style="background:var(--card-bg);padding:1.5rem;border-radius:var(--radius-lg);overflow:auto;">' + 
+                    JSON.stringify(data, null, 2) + '</pre>';
+            }
+        }
+
+        function exportReport() {
+            if (!reportData) {
+                alert('No data to export');
+                return;
+            }
+            
+            const csv = convertToCSV(reportData);
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${currentReportType}_report_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+            alert('Report exported successfully!');
+        }
+
+        function convertToCSV(data) {
+            if (Array.isArray(data)) {
+                const headers = Object.keys(data[0]).join(',');
+                const rows = data.map(row => Object.values(row).join(',')).join('\n');
+                return headers + '\n' + rows;
+            }
+            return JSON.stringify(data);
+        }
+
+        async function handleLogout() {
+            if (confirm('Are you sure you want to logout?')) {
+                await AuthAPI.logout();
+                TokenManager.removeToken();
+                TokenManager.removeUser();
+                localStorage.removeItem('refresh_token');
+                // Use relative path to avoid hardcoded URL issues
+                window.location.href = '../index.html';
+            }
+        }
+    </script>
+</body>
+</html>

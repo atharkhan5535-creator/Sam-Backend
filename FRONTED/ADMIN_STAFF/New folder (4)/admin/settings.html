@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Elite Salon</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+    <link rel="stylesheet" href="../css/main.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: var(--primary-dark); color: var(--text-primary); }
+        .dashboard-wrapper { display: flex; min-height: 100vh; }
+
+        /* Sidebar */
+        .sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 220px; background: linear-gradient(180deg, var(--primary-darker) 0%, var(--secondary-dark) 100%); border-right: 1px solid var(--card-border); display: flex; flex-direction: column; z-index: 1000; }
+        .sidebar-header { padding: 1rem; border-bottom: 1px solid var(--card-border); }
+        .sidebar-logo { font-size: 1.1rem; font-weight: 700; color: var(--text-primary); text-transform: uppercase; }
+        .sidebar-logo::before { content: '✂️'; font-size: 1.25rem; margin-right: 0.4rem; }
+        .sidebar-user { margin-top: 0.75rem; padding: 0.6rem; background: var(--card-bg); border-radius: 6px; border: 1px solid var(--card-border); }
+        .sidebar-user-info { display: flex; align-items: center; gap: 0.5rem; }
+        .user-avatar { width: 32px; height: 32px; border-radius: 6px; background: linear-gradient(135deg, var(--accent-gold), var(--accent-bronze)); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; color: var(--primary-dark); flex-shrink: 0; }
+        .user-details { flex: 1; min-width: 0; }
+        .user-name { font-weight: 600; font-size: 0.75rem; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .user-role { font-size: 0.6rem; color: var(--text-secondary); text-transform: uppercase; }
+        .sidebar-nav { padding: 0.75rem 0.5rem; flex: 1; overflow-y: auto; }
+        .nav-section-title { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.5rem; padding-left: 0.5rem; }
+        .nav-item { display: flex; align-items: center; gap: 0.6rem; padding: 0.6rem 0.65rem; margin-bottom: 0.2rem; border-radius: 6px; color: var(--text-secondary); text-decoration: none; transition: all 0.2s; font-weight: 500; font-size: 0.8rem; }
+        .nav-item:hover { background: rgba(212, 175, 55, 0.05); color: var(--text-primary); transform: translateX(3px); }
+        .nav-item.active { background: rgba(212, 175, 55, 0.1); border: 1px solid rgba(212, 175, 55, 0.3); color: var(--accent-gold); }
+        .nav-item i { width: 16px; text-align: center; font-size: 0.9rem; }
+        .sidebar-footer { padding: 0.75rem; border-top: 1px solid var(--card-border); }
+        .logout-btn { display: flex; align-items: center; justify-content: center; gap: 0.5rem; width: 100%; padding: 0.65rem; background: linear-gradient(135deg, var(--danger), #dc2626); color: white; border: none; border-radius: 6px; font-weight: 600; font-size: 0.8rem; cursor: pointer; transition: all 0.2s; text-decoration: none; }
+        .logout-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(239, 68, 68, 0.4); }
+
+        /* Main Content */
+        .main-content { margin-left: 220px; flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+        .dashboard-header { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 1rem; background: rgba(10, 14, 26, 0.95); border-bottom: 1px solid var(--card-border); height: 45px; flex-shrink: 0; }
+        .page-title-mini { display: flex; align-items: center; gap: 0.5rem; }
+        .page-icon-mini { width: 28px; height: 28px; background: linear-gradient(135deg, var(--accent-gold), var(--accent-bronze)); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; color: var(--primary-dark); }
+        .page-title-mini h1 { font-size: 0.9rem; font-weight: 700; }
+        .page-title-mini p { font-size: 0.6rem; color: var(--text-secondary); }
+
+        /* Settings Content */
+        .settings-main { flex: 1; padding: 0.5rem; overflow-y: auto; display: flex; flex-direction: column; gap: 0.5rem; }
+        .settings-card { background: linear-gradient(135deg, var(--card-bg), var(--secondary-dark)); border: 1px solid var(--card-border); border-radius: 6px; padding: 0.75rem; }
+        .settings-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--accent-gold), var(--accent-bronze)); }
+        .card-header-mini { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--card-border); }
+        .card-icon-mini { width: 24px; height: 24px; background: rgba(212, 175, 55, 0.1); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; color: var(--accent-gold); }
+        .card-title-mini { font-size: 0.7rem; font-weight: 700; color: var(--text-primary); text-transform: uppercase; }
+        .card-body-mini { display: flex; flex-direction: column; gap: 0.75rem; }
+        
+        .form-grid-mini { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
+        .form-group-mini { display: flex; flex-direction: column; gap: 0.35rem; }
+        .form-group-mini.full { grid-column: 1 / -1; }
+        .form-label-mini { font-size: 0.6rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
+        .form-input-mini { padding: 0.5rem 0.65rem; background: var(--primary-dark); border: 1px solid var(--card-border); border-radius: 4px; color: var(--text-primary); font-size: 0.75rem; font-family: inherit; transition: all 0.2s; }
+        .form-input-mini:focus { outline: none; border-color: var(--accent-gold); box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.1); }
+        .form-input-mini:read-only { background: var(--card-bg); color: var(--text-muted); cursor: not-allowed; }
+
+        .btn-group-mini { display: flex; gap: 0.5rem; margin-top: 0.5rem; }
+        .btn-mini { display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; padding: 0.5rem 1rem; border-radius: 4px; font-weight: 600; font-size: 0.7rem; cursor: pointer; transition: all 0.2s; text-transform: uppercase; letter-spacing: 0.5px; border: none; }
+        .btn-primary-mini { background: linear-gradient(135deg, var(--accent-gold), var(--accent-bronze)); color: var(--primary-dark); }
+        .btn-primary-mini:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3); }
+        .btn-warning-mini { background: linear-gradient(135deg, var(--warning), #d97706); color: var(--primary-dark); }
+        .btn-warning-mini:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3); }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: var(--primary-dark); }
+        ::-webkit-scrollbar-thumb { background: var(--card-border); border-radius: 2px; }
+
+        /* Responsive */
+        @media (max-width: 768px) { .sidebar { transform: translateX(-100%); transition: transform 0.3s; } .sidebar.open { transform: translateX(0); } .main-content { margin-left: 0; } .form-grid-mini { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+<div class="dashboard-wrapper">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">Elite Salon</div>
+            <div class="sidebar-user">
+                <div class="sidebar-user-info">
+                    <div class="user-avatar" id="userAvatar">A</div>
+                    <div class="user-details">
+                        <div class="user-name" id="userName">Admin</div>
+                        <div class="user-role" id="userRole">Administrator</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="nav-section"><div class="nav-section-title">Main Menu</div>
+                <a href="dashboard.html" class="nav-item"><i class="fas fa-chart-line"></i><span>Dashboard</span></a>
+                <a href="appointments.html" class="nav-item"><i class="fas fa-calendar-check"></i><span>Appointments</span></a>
+                <a href="customers.html" class="nav-item"><i class="fas fa-users"></i><span>Customers</span></a>
+                <a href="staff.html" class="nav-item"><i class="fas fa-user-tie"></i><span>Staff</span></a>
+            </div>
+            <div class="nav-section"><div class="nav-section-title">Services</div>
+                <a href="services.html" class="nav-item"><i class="fas fa-cut"></i><span>Services</span></a>
+                <a href="package.html" class="nav-item"><i class="fas fa-gift"></i><span>Packages</span></a>
+                <a href="inventory.html" class="nav-item"><i class="fas fa-boxes"></i><span>Inventory</span></a>
+            </div>
+            <div class="nav-section"><div class="nav-section-title">Financial</div>
+                <a href="payments.html" class="nav-item"><i class="fas fa-credit-card"></i><span>Payments</span></a>
+                <a href="schedules.html" class="nav-item"><i class="fas fa-calendar-alt"></i><span>Schedules</span></a>
+            </div>
+            <div class="nav-section"><div class="nav-section-title">System</div>
+                <a href="settings.html" class="nav-item active"><i class="fas fa-cog"></i><span>Settings</span></a>
+            </div>
+        </nav>
+        <div class="sidebar-footer">
+            <button class="logout-btn" onclick="handleLogout()"><i class="fas fa-sign-out-alt"></i><span>Logout</span></button>
+        </div>
+    </aside>
+
+    <div class="main-content">
+        <header class="dashboard-header">
+            <div class="page-title-mini">
+                <div class="page-icon-mini"><i class="fas fa-cog"></i></div>
+                <div><h1>Settings</h1><p>Manage your profile and preferences</p></div>
+            </div>
+        </header>
+
+        <div class="settings-main">
+            <div class="settings-card" style="position:relative;">
+                <div class="card-header-mini">
+                    <div class="card-icon-mini"><i class="fas fa-user"></i></div>
+                    <div class="card-title-mini">Profile Settings</div>
+                </div>
+                <div class="card-body-mini">
+                    <div class="form-grid-mini">
+                        <div class="form-group-mini">
+                            <label class="form-label-mini">Username</label>
+                            <input type="text" id="settingsUsername" class="form-input-mini" readonly>
+                        </div>
+                        <div class="form-group-mini">
+                            <label class="form-label-mini">Email *</label>
+                            <input type="email" id="settingsEmail" class="form-input-mini" placeholder="your@email.com">
+                        </div>
+                        <div class="form-group-mini">
+                            <label class="form-label-mini">Phone</label>
+                            <input type="tel" id="settingsPhone" class="form-input-mini" placeholder="+91 9876543210">
+                        </div>
+                        <div class="form-group-mini">
+                            <label class="form-label-mini">Role</label>
+                            <input type="text" id="settingsRole" class="form-input-mini" readonly>
+                        </div>
+                    </div>
+                    <div class="btn-group-mini">
+                        <button class="btn-mini btn-primary-mini" onclick="updateProfile()"><i class="fas fa-save"></i> Save Changes</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-card" style="position:relative;">
+                <div class="card-header-mini">
+                    <div class="card-icon-mini"><i class="fas fa-lock"></i></div>
+                    <div class="card-title-mini">Change Password</div>
+                </div>
+                <div class="card-body-mini">
+                    <div class="form-grid-mini" style="max-width:500px;">
+                        <div class="form-group-mini full">
+                            <label class="form-label-mini">Current Password *</label>
+                            <input type="password" id="currentPassword" class="form-input-mini" placeholder="Enter current password">
+                        </div>
+                        <div class="form-group-mini full">
+                            <label class="form-label-mini">New Password *</label>
+                            <input type="password" id="newPassword" class="form-input-mini" placeholder="Enter new password">
+                        </div>
+                        <div class="form-group-mini full">
+                            <label class="form-label-mini">Confirm New Password *</label>
+                            <input type="password" id="confirmPassword" class="form-input-mini" placeholder="Confirm new password">
+                        </div>
+                    </div>
+                    <div class="btn-group-mini">
+                        <button class="btn-mini btn-warning-mini" onclick="changePassword()"><i class="fas fa-key"></i> Update Password</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <script src="../js/core-api.js"></script>
+    <script src="../js/auth-api.js"></script>
+    <script>
+        function handleLogout() {
+            if (confirm('Are you sure you want to logout?')) {
+                AuthAPI.logout();
+                TokenManager.removeToken();
+                TokenManager.removeUser();
+                localStorage.removeItem('refresh_token');
+                // Use relative path to avoid hardcoded URL issues
+                window.location.href = '../index.html';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const user = TokenManager.getUser();
+            if (user) {
+                document.getElementById('userName').textContent = user.username || user.name || 'User';
+                document.getElementById('userRole').textContent = user.role || 'User';
+                document.getElementById('userAvatar').textContent = (user.username || user.name || 'U')[0].toUpperCase();
+                
+                // Fill settings form
+                document.getElementById('settingsUsername').value = user.username || '';
+                document.getElementById('settingsEmail').value = user.email || '';
+                document.getElementById('settingsRole').value = user.role || '';
+            }
+        });
+
+        async function updateProfile() {
+            const email = document.getElementById('settingsEmail').value.trim();
+            const phone = document.getElementById('settingsPhone').value.trim();
+
+            if (!email) {
+                alert('Email is required');
+                return;
+            }
+
+            const userData = {
+                email: email,
+                phone: phone || null
+            };
+
+            try {
+                const result = await AuthAPI.updateMe(userData);
+                if (result.success) {
+                    alert('✅ Profile updated successfully!');
+                    location.reload();
+                } else {
+                    alert('❌ Failed: ' + (result.message || 'Unknown error'));
+                }
+            } catch (error) {
+                alert('❌ Error: ' + error.message);
+            }
+        }
+
+        async function changePassword() {
+            const current = document.getElementById('currentPassword').value;
+            const newp = document.getElementById('newPassword').value;
+            const confirm = document.getElementById('confirmPassword').value;
+
+            if (!current || !newp || !confirm) {
+                alert('All fields are required');
+                return;
+            }
+            if (newp !== confirm) {
+                alert('New passwords do not match');
+                return;
+            }
+            if (newp.length < 6) {
+                alert('Password must be at least 6 characters');
+                return;
+            }
+
+            // Note: Backend needs PUT /auth/password endpoint
+            alert('Password change feature coming soon! Backend endpoint needs to be implemented.');
+        }
+    </script>
+</body>
+</html>

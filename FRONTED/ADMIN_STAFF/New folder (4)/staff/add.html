@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Staff - Elite Salon</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="../css/main.css">
+</head>
+<body>
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">Elite Salon</div>
+            <div class="sidebar-user">
+                <div class="sidebar-user-info">
+                    <div class="user-avatar" id="userAvatar">S</div>
+                    <div class="user-details">
+                        <div class="user-name" id="userName">Staff</div>
+                        <div class="user-role" id="userRole">Staff</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <div class="nav-section-title">Main Menu</div>
+                <a href="dashboard.html" class="nav-item">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="appointments.html" class="nav-item">
+                    <i class="fas fa-calendar-check"></i>
+                    <span>Appointments</span>
+                </a>
+                <a href="customers.html" class="nav-item">
+                    <i class="fas fa-users"></i>
+                    <span>Customers</span>
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Services</div>
+                <a href="services.html" class="nav-item">
+                    <i class="fas fa-cut"></i>
+                    <span>Services</span>
+                </a>
+                <a href="package.html" class="nav-item">
+                    <i class="fas fa-gift"></i>
+                    <span>Packages</span>
+                </a>
+                <a href="inventory.html" class="nav-item">
+                    <i class="fas fa-boxes"></i>
+                    <span>Inventory</span>
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">My</div>
+                <a href="schedules.html" class="nav-item">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>My Schedule</span>
+                </a>
+                <a href="profile.html" class="nav-item">
+                    <i class="fas fa-user"></i>
+                    <span>Profile</span>
+                </a>
+            </div>
+        </nav>
+
+        <div class="sidebar-footer">
+            <button class="logout-btn" onclick="handleLogout()">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Top Header -->
+        <header class="top-header">
+            <div class="page-title">
+                <div class="page-icon">
+                    <i class="fas fa-user-plus"></i>
+                </div>
+                <div>
+                    <h1>Add Staff Member</h1>
+                    <p class="page-subtitle">Register a new staff profile</p>
+                </div>
+            </div>
+            <div class="header-actions">
+                <a href="dashboard.html" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back
+                </a>
+            </div>
+        </header>
+
+        <!-- Content Wrapper -->
+        <div class="content-wrapper">
+            <!-- Add Staff Form -->
+            <div class="content-card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-user-tie"></i>
+                        <span>Staff Information</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <form id="addStaffForm" onsubmit="submitForm(event)">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label">Salon ID *</label>
+                                <input type="number" id="sSalonId" class="form-input" placeholder="e.g. 1" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Staff Name *</label>
+                                <input type="text" id="sName" class="form-input" placeholder="Full name" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Role *</label>
+                                <input type="text" id="sRole" class="form-input" placeholder="e.g. Hair Stylist" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Phone *</label>
+                                <input type="tel" id="sPhone" class="form-input" placeholder="+91 9876543210" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Email *</label>
+                                <input type="email" id="sEmail" class="form-input" placeholder="staff@example.com" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Gender</label>
+                                <select id="sGender" class="form-select">
+                                    <option value="">Select</option>
+                                    <option>Male</option>
+                                    <option>Female</option>
+                                    <option>Other</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Date of Birth</label>
+                                <input type="date" id="sDob" class="form-input">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Experience (Years)</label>
+                                <input type="number" id="sExp" class="form-input" min="0" placeholder="5">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Salary (₹)</label>
+                                <input type="number" id="sSalary" class="form-input" step="0.01" placeholder="25000">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Employment Type</label>
+                                <select id="sEmpType" class="form-select">
+                                    <option value="">Select</option>
+                                    <option>Full-time</option>
+                                    <option>Part-time</option>
+                                    <option>Contract</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Joining Date</label>
+                                <input type="date" id="sJoining" class="form-input">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Availability Status</label>
+                                <select id="sAvail" class="form-select">
+                                    <option>Available</option>
+                                    <option>Busy</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Status</label>
+                                <select id="sStatus" class="form-select">
+                                    <option>Active</option>
+                                    <option>Inactive</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Emergency Contact</label>
+                                <input type="text" id="sEmergency" class="form-input" placeholder="Name – Phone">
+                            </div>
+                            <div class="form-group full">
+                                <label class="form-label">Address</label>
+                                <textarea id="sAddress" class="form-textarea" rows="3" placeholder="Full address…"></textarea>
+                            </div>
+                        </div>
+                        <div class="btn-group" style="margin-top:2rem;">
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-save"></i> Save Staff
+                            </button>
+                            <button type="reset" class="btn btn-secondary">
+                                <i class="fas fa-rotate-left"></i> Reset
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="../js/core-api.js"></script>
+    <script src="../js/auth-api.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const user = TokenManager.getUser();
+            if (user) {
+                document.getElementById('userName').textContent = user.username || user.name || 'User';
+                document.getElementById('userRole').textContent = user.role || 'User';
+                document.getElementById('userAvatar').textContent = (user.username || user.name || 'U')[0].toUpperCase();
+            }
+        });
+
+        function submitForm(e) {
+            e.preventDefault();
+            
+            const staffData = {
+                salon_id: document.getElementById('sSalonId').value,
+                name: document.getElementById('sName').value,
+                role: document.getElementById('sRole').value,
+                phone: document.getElementById('sPhone').value,
+                email: document.getElementById('sEmail').value,
+                gender: document.getElementById('sGender').value,
+                date_of_birth: document.getElementById('sDob').value,
+                experience_years: document.getElementById('sExp').value,
+                salary: document.getElementById('sSalary').value,
+                employment_type: document.getElementById('sEmpType').value,
+                joining_date: document.getElementById('sJoining').value,
+                availability_status: document.getElementById('sAvail').value,
+                status: document.getElementById('sStatus').value.toLowerCase(),
+                emergency_contact: document.getElementById('sEmergency').value,
+                address: document.getElementById('sAddress').value
+            };
+
+            console.log('Staff data:', staffData);
+            
+            // Here you would call the API to save staff
+            showToast('Staff member added successfully!');
+            setTimeout(() => { window.location.href = 'dashboard.html'; }, 1500);
+        }
+
+        function showToast(msg) {
+            const toast = document.createElement('div');
+            toast.className = 'toast-notification toast-success';
+            toast.innerHTML = `<i class="fas fa-check-circle"></i><span>${msg}</span>`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        async function handleLogout() {
+            if (confirm('Are you sure you want to logout?')) {
+                await AuthAPI.logout();
+                TokenManager.removeToken();
+                TokenManager.removeUser();
+                localStorage.removeItem('refresh_token');
+                window.location.href = '../index.html';
+            }
+        }
+    </script>
+</body>
+</html>

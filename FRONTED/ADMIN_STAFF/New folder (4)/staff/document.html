@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Documents - Elite Salon Staff</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="../css/main.css">
+</head>
+<body>
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">Elite Salon</div>
+            <div class="sidebar-user">
+                <div class="sidebar-user-info">
+                    <div class="user-avatar" id="userAvatar">S</div>
+                    <div class="user-details">
+                        <div class="user-name" id="userName">Staff</div>
+                        <div class="user-role" id="userRole">Staff</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <div class="nav-section-title">Main Menu</div>
+                <a href="dashboard.html" class="nav-item">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="appointments.html" class="nav-item">
+                    <i class="fas fa-calendar-check"></i>
+                    <span>Appointments</span>
+                </a>
+                <a href="customers.html" class="nav-item">
+                    <i class="fas fa-users"></i>
+                    <span>Customers</span>
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Services</div>
+                <a href="services.html" class="nav-item">
+                    <i class="fas fa-cut"></i>
+                    <span>Services</span>
+                </a>
+                <a href="package.html" class="nav-item">
+                    <i class="fas fa-gift"></i>
+                    <span>Packages</span>
+                </a>
+                <a href="inventory.html" class="nav-item">
+                    <i class="fas fa-boxes"></i>
+                    <span>Inventory</span>
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">My</div>
+                <a href="schedules.html" class="nav-item">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>My Schedule</span>
+                </a>
+                <a href="profile.html" class="nav-item">
+                    <i class="fas fa-user"></i>
+                    <span>Profile</span>
+                </a>
+            </div>
+        </nav>
+
+        <div class="sidebar-footer">
+            <button class="logout-btn" onclick="handleLogout()">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Top Header -->
+        <header class="top-header">
+            <div class="page-title">
+                <div class="page-icon">
+                    <i class="fas fa-file-alt"></i>
+                </div>
+                <div>
+                    <h1>My Documents</h1>
+                    <p class="page-subtitle">Manage your certifications and files</p>
+                </div>
+            </div>
+            <div class="header-actions">
+                <a href="upload_document.html" class="btn btn-primary">
+                    <i class="fas fa-upload"></i> Upload Document
+                </a>
+            </div>
+        </header>
+
+        <!-- Content Wrapper -->
+        <div class="content-wrapper">
+            <!-- Documents Card -->
+            <div class="content-card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-list"></i>
+                        <span>All Documents</span>
+                    </div>
+                    <div class="search-wrapper" style="max-width:260px;">
+                        <input type="text" id="docSearch" class="search-input" placeholder="Search documents…" oninput="renderDocuments()">
+                        <i class="fas fa-search search-icon"></i>
+                    </div>
+                </div>
+                <div class="card-body" style="padding:0;">
+                    <div class="table-container">
+                        <table class="modern-table">
+                            <thead>
+                                <tr>
+                                    <th style="width:100px;">ID</th>
+                                    <th>Document Type</th>
+                                    <th>File Name</th>
+                                    <th style="width:120px;">Status</th>
+                                    <th style="width:120px;">Uploaded</th>
+                                    <th style="width:150px;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="docBody"></tbody>
+                        </table>
+                    </div>
+                    <div id="docInfo" style="padding:1rem;color:var(--text-secondary);font-size:0.875rem;border-top:1px solid var(--card-border);margin-top:1rem;"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- View Document Modal -->
+    <div class="modal-overlay" id="viewModal">
+        <div class="modal modal-lg">
+            <div class="modal-header">
+                <h2 class="modal-title"><i class="fas fa-file-alt"></i> Document Details</h2>
+                <button class="modal-close" onclick="closeModal('viewModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body" id="docDetail"></div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('viewModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/core-api.js"></script>
+    <script src="../js/auth-api.js"></script>
+    <script>
+        let documents = [];
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const user = TokenManager.getUser();
+            if (user) {
+                document.getElementById('userName').textContent = user.username || user.name || 'User';
+                document.getElementById('userRole').textContent = user.role || 'User';
+                document.getElementById('userAvatar').textContent = (user.username || user.name || 'U')[0].toUpperCase();
+            }
+            
+            // Sample documents - in real app, load from API
+            documents = [
+                { id: 1, type: 'Certification', name: 'cosmetology_license.pdf', status: 'Verified', date: '2026-01-15', size: '2.4 MB' },
+                { id: 2, type: 'ID Proof', name: 'passport.jpg', status: 'Verified', date: '2026-01-10', size: '1.8 MB' },
+                { id: 3, type: 'Certification', name: 'color_certification.pdf', status: 'Pending', date: '2026-02-05', size: '3.1 MB' },
+            ];
+            
+            renderDocuments();
+        });
+
+        function renderDocuments() {
+            const q = document.getElementById('docSearch').value.toLowerCase();
+            const filtered = documents.filter(d => 
+                !q || 
+                (d.type && d.type.toLowerCase().includes(q)) || 
+                (d.name && d.name.toLowerCase().includes(q))
+            );
+
+            const tbody = document.getElementById('docBody');
+
+            if (!filtered.length) {
+                tbody.innerHTML = '<tr><td colspan="6" class="empty-state"><div class="empty-icon"><i class="fas fa-file-alt"></i></div><h3 class="empty-title">No Documents</h3><p class="empty-text">No documents found matching your search</p></td></tr>';
+                document.getElementById('docInfo').textContent = '';
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(d => {
+                const icon = d.name.endsWith('.pdf') ? 'fa-file-pdf' : (d.name.endsWith('.jpg') || d.name.endsWith('.png') ? 'fa-file-image' : 'fa-file');
+                const iconColor = d.name.endsWith('.pdf') ? 'var(--danger)' : 'var(--info)';
+                const statusClass = d.status === 'Verified' ? 'status-active' : 'status-pending';
+                
+                return `<tr>
+                    <td><strong style="color:var(--accent-gold);">#DOC-${String(d.id).padStart(3, '0')}</strong></td>
+                    <td><span style="padding:0.25rem 0.75rem;background:var(--card-bg);border-radius:var(--radius-full);font-size:0.75rem;color:var(--text-secondary);">${d.type}</span></td>
+                    <td>
+                        <div style="display:flex;align-items:center;gap:0.75rem;">
+                            <i class="fas ${icon}" style="color:${iconColor};font-size:1.2rem;"></i>
+                            <span style="color:var(--text-primary);font-weight:500;">${d.name}</span>
+                        </div>
+                    </td>
+                    <td><span class="status-badge ${statusClass}">${d.status}</span></td>
+                    <td style="color:var(--text-secondary);">${formatDate(d.date)}</td>
+                    <td>
+                        <button class="btn btn-primary btn-sm" onclick="viewDocument(${d.id})">
+                            <i class="fas fa-eye"></i> View
+                        </button>
+                    </td>
+                </tr>`;
+            }).join('');
+
+            document.getElementById('docInfo').textContent = `Showing ${filtered.length} document(s)`;
+        }
+
+        function viewDocument(id) {
+            const doc = documents.find(d => d.id === id);
+            if (!doc) return;
+
+            const icon = doc.name.endsWith('.pdf') ? 'fa-file-pdf' : (doc.name.endsWith('.jpg') || doc.name.endsWith('.png') ? 'fa-file-image' : 'fa-file');
+            const iconColor = doc.name.endsWith('.pdf') ? 'var(--danger)' : 'var(--info)';
+            const statusClass = doc.status === 'Verified' ? 'status-active' : 'status-pending';
+
+            document.getElementById('docDetail').innerHTML = `
+                <div style="text-align:center;margin-bottom:2rem;">
+                    <i class="fas ${icon}" style="font-size:4rem;color:${iconColor};margin-bottom:1rem;"></i>
+                    <h2 style="color:var(--text-primary);font-size:1.5rem;margin-bottom:0.5rem;">${doc.name}</h2>
+                    <span class="status-badge ${statusClass}">${doc.status}</span>
+                </div>
+                
+                <div style="display:grid;grid-template-columns:repeat(2, 1fr);gap:1.5rem;margin-bottom:2rem;">
+                    <div style="padding:1.5rem;background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius-lg);">
+                        <div style="font-size:0.75rem;font-weight:600;text-transform:uppercase;color:var(--text-secondary);margin-bottom:0.5rem;">Document Type</div>
+                        <div style="font-size:1.1rem;font-weight:600;color:var(--text-primary);">${doc.type}</div>
+                    </div>
+                    <div style="padding:1.5rem;background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius-lg);">
+                        <div style="font-size:0.75rem;font-weight:600;text-transform:uppercase;color:var(--text-secondary);margin-bottom:0.5rem;">File Size</div>
+                        <div style="font-size:1.1rem;font-weight:600;color:var(--text-primary);">${doc.size}</div>
+                    </div>
+                    <div style="padding:1.5rem;background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius-lg);">
+                        <div style="font-size:0.75rem;font-weight:600;text-transform:uppercase;color:var(--text-secondary);margin-bottom:0.5rem;">Uploaded Date</div>
+                        <div style="font-size:1.1rem;font-weight:600;color:var(--text-primary);">${formatDate(doc.date)}</div>
+                    </div>
+                    <div style="padding:1.5rem;background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius-lg);">
+                        <div style="font-size:0.75rem;font-weight:600;text-transform:uppercase;color:var(--text-secondary);margin-bottom:0.5rem;">Status</div>
+                        <div><span class="status-badge ${statusClass}">${doc.status}</span></div>
+                    </div>
+                </div>
+                
+                <div style="text-align:center;">
+                    <button class="btn btn-primary" onclick="downloadDocument(${doc.id})">
+                        <i class="fas fa-download"></i> Download
+                    </button>
+                </div>
+            `;
+            document.getElementById('viewModal').classList.add('open');
+        }
+
+        function downloadDocument(id) {
+            showToast('Download started...');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('open');
+        }
+
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal-overlay')) {
+                closeModal(event.target.id);
+            }
+        };
+
+        function showToast(msg) {
+            const toast = document.createElement('div');
+            toast.className = 'toast-notification toast-success';
+            toast.innerHTML = `<i class="fas fa-check-circle"></i><span>${msg}</span>`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        async function handleLogout() {
+            if (confirm('Are you sure you want to logout?')) {
+                await AuthAPI.logout();
+                TokenManager.removeToken();
+                TokenManager.removeUser();
+                localStorage.removeItem('refresh_token');
+                window.location.href = '../index.html';
+            }
+        }
+    </script>
+</body>
+</html>

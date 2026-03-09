@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Salons - SAM Super Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../../CSS/Base/sidebar-layout.css">
+    <style>
+        /* Salons Page Specific Styles */
+        .page-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .filter-select {
+            padding: 10px 16px;
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            background: var(--bg-surface);
+            cursor: pointer;
+            transition: all var(--transition-base);
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        /* Table Styles */
+        .salon-logo-cell {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .salon-logo-thumb {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-sm);
+            background: var(--bg-hover);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            font-size: 18px;
+            overflow: hidden;
+        }
+
+        .salon-logo-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .salon-name {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        /* Button Icons */
+        .btn-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: var(--bg-hover);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all var(--transition-base);
+            color: var(--text-secondary);
+        }
+
+        .btn-icon:hover {
+            background: var(--primary-bg);
+            color: var(--primary);
+        }
+
+        .btn-icon.btn-view:hover {
+            background: var(--info-bg);
+            color: var(--info);
+        }
+
+        .btn-icon.btn-edit-salon:hover {
+            background: var(--warning-bg);
+            color: var(--warning);
+        }
+
+        .action-sep {
+            color: var(--border-light);
+            margin: 0 8px;
+        }
+
+        .salon-email {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        /* Modal Styles */
+        .modal-large {
+            max-width: 700px;
+        }
+
+        .modal-full {
+            max-width: 900px;
+        }
+
+        .form-section {
+            margin-bottom: 28px;
+        }
+
+        .form-section-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-light);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-section-title i {
+            color: var(--primary);
+        }
+
+        .image-upload-area {
+            border: 2px dashed var(--border-light);
+            border-radius: var(--radius-lg);
+            padding: 32px;
+            text-align: center;
+            cursor: pointer;
+            transition: all var(--transition-base);
+            background: var(--bg-hover);
+        }
+
+        .image-upload-area:hover {
+            border-color: var(--primary);
+            background: var(--primary-bg);
+        }
+
+        .image-upload-icon {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 16px;
+            border-radius: 50%;
+            background: var(--bg-surface);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: var(--text-muted);
+        }
+
+        .image-upload-text {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .image-upload-hint {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .image-preview {
+            margin-top: 16px;
+            display: none;
+        }
+
+        .image-preview.show {
+            display: block;
+        }
+
+        .image-preview img {
+            max-width: 200px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-light);
+        }
+
+        /* View Salon Modal */
+        .salon-profile-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid var(--border-light);
+            margin-bottom: 24px;
+        }
+
+        .salon-profile-logo {
+            width: 80px;
+            height: 80px;
+            border-radius: var(--radius-lg);
+            background: var(--bg-hover);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            color: var(--text-muted);
+            overflow: hidden;
+        }
+
+        .salon-profile-logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .salon-profile-info h3 {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .salon-profile-info p {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .profile-details-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .detail-item {
+            padding: 16px;
+            background: var(--bg-hover);
+            border-radius: var(--radius-md);
+        }
+
+        .detail-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+
+        .detail-value {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        /* Status Toggle in Table */
+        .status-toggle {
+            position: relative;
+            width: 48px;
+            height: 26px;
+            background: var(--border-light);
+            border-radius: 13px;
+            cursor: pointer;
+            transition: background var(--transition-base);
+        }
+
+        .status-toggle.active {
+            background: var(--success);
+        }
+
+        .status-toggle-knob {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: transform var(--transition-base);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .status-toggle.active .status-toggle-knob {
+            transform: translateX(22px);
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .profile-details-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .page-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .filter-group {
+                flex-direction: column;
+            }
+
+            .search-box {
+                width: 100%;
+            }
+
+            .data-table {
+                font-size: 13px;
+            }
+
+            .data-table th,
+            .data-table td {
+                padding: 12px 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <a href="sa-dashboard.html" class="sidebar-logo">
+                <div class="logo-icon">
+                    <i class="fa-solid fa-scissors"></i>
+                </div>
+                <span class="logo-text">sam<span>.com</span></span>
+            </a>
+
+            <div class="sidebar-user">
+                <div class="user-avatar">SA</div>
+                <div class="user-info">
+                    <div class="user-name">Super Admin</div>
+                    <div class="user-role">Administrator</div>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Main Menu</div>
+                    <ul class="nav-list">
+                        <li class="nav-item">
+                            <a href="sa-dashboard.html" class="nav-link">
+                                <span class="nav-icon"><i class="fa-solid fa-gauge"></i></span>
+                                <span>Dashboard</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="sa-salons.html" class="nav-link active">
+                                <span class="nav-icon"><i class="fa-solid fa-shop"></i></span>
+                                <span>Salons</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="sa-subscription.html" class="nav-link">
+                                <span class="nav-icon"><i class="fa-solid fa-crown"></i></span>
+                                <span>Subscriptions</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="sa-invoices.html" class="nav-link">
+                                <span class="nav-icon"><i class="fa-solid fa-file-invoice-dollar"></i></span>
+                                <span>Invoices</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="sa-users.html" class="nav-link">
+                                <span class="nav-icon"><i class="fa-solid fa-users"></i></span>
+                                <span>Users</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">System</div>
+                    <ul class="nav-list">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">
+                                <span class="nav-icon"><i class="fa-solid fa-gear"></i></span>
+                                <span>Settings</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <div class="sidebar-logout">
+                <a href="javascript:void(0);" class="logout-link" id="logoutBtn">
+                    <span class="nav-icon"><i class="fa-solid fa-arrow-right-from-bracket"></i></span>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Wrapper -->
+        <div class="main-wrapper">
+            <!-- Header -->
+            <header class="main-header">
+                <div class="header-left">
+                    <h1 class="page-title">Salon Management</h1>
+                </div>
+                <div class="header-right">
+                    <button class="header-action">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="badge">3</span>
+                    </button>
+                    <button class="header-action">
+                        <i class="fa-regular fa-circle-question"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Main Content -->
+            <main class="main-content">
+                <!-- Page Header -->
+                <div class="card" style="margin-bottom: 24px;">
+                    <div class="card-header">
+                        <h2 class="card-title">All Salons</h2>
+                        <div class="page-actions">
+                            <div class="search-box">
+                                <i class="fa-solid fa-search"></i>
+                                <input type="text" id="salonSearch" placeholder="Search salons...">
+                            </div>
+                            <div class="filter-group">
+                                <select class="filter-select" id="statusFilter">
+                                    <option value="">All Status</option>
+                                    <option value="1">Active</option>
+                                    <option value="0">Inactive</option>
+                                </select>
+                            </div>
+                            <button class="btn btn-primary" id="addSalonBtn">
+                                <i class="fa-solid fa-plus"></i>
+                                Add Salon
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Salons Table -->
+                <div class="card">
+                    <div class="card-body" style="padding: 0;">
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 60px;">ID</th>
+                                        <th style="width: 250px;">SALON NAME</th>
+                                        <th>OWNER NAME</th>
+                                        <th>EMAIL</th>
+                                        <th>PHONE</th>
+                                        <th>CITY</th>
+                                        <th>STATE</th>
+                                        <th style="width: 100px;">STATUS</th>
+                                        <th style="width: 180px;">ACTIONS</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="salonTableBody">
+                                    <!-- Data will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span class="results-text" id="resultsCount" style="font-size: 14px; color: var(--text-secondary);">
+                                Showing 0 salons
+                            </span>
+                            <div class="pagination" id="paginationControls">
+                                <button class="page-btn" id="prevPage" disabled>
+                                    <i class="fa-solid fa-chevron-left"></i>
+                                </button>
+                                <span class="page-btn active" id="currentPage">1</span>
+                                <button class="page-btn" id="nextPage">
+                                    <i class="fa-solid fa-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Add/Edit Salon Modal -->
+    <div class="modal-overlay" id="salonModal">
+        <div class="modal modal-large">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle">Add New Salon</h3>
+                <button class="modal-close" id="closeModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="salonForm">
+                    <!-- Basic Information -->
+                    <div class="form-section">
+                        <div class="form-section-title">
+                            <i class="fa-solid fa-circle-info"></i>
+                            Basic Information
+                        </div>
+                        <div class="form-row form-row-2">
+                            <div class="form-group">
+                                <label class="form-label" for="salonName">Salon Name *</label>
+                                <input type="text" id="salonName" class="form-input" placeholder="e.g. Urban Unisex Salon" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="salonOwnername">Owner Name *</label>
+                                <input type="text" id="salonOwnername" class="form-input" placeholder="e.g. John Smith" required>
+                            </div>
+                        </div>
+                        <div class="form-row form-row-2">
+                            <div class="form-group">
+                                <label class="form-label" for="salonEmail">Email *</label>
+                                <input type="email" id="salonEmail" class="form-input" placeholder="e.g. contact@salon.com" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="salonPhone">Phone *</label>
+                                <input type="tel" id="salonPhone" class="form-input" placeholder="e.g. 9876543210" required pattern="[0-9]{10}">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="gstNum">GST Number</label>
+                            <input type="text" id="gstNum" class="form-input" placeholder="e.g. 29ABCDE1234F1Z5" pattern="[0-9A-Z]{15}">
+                        </div>
+                    </div>
+
+                    <!-- Address Information -->
+                    <div class="form-section">
+                        <div class="form-section-title">
+                            <i class="fa-solid fa-location-dot"></i>
+                            Address Information
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="salonAddress">Street Address *</label>
+                            <input type="text" id="salonAddress" class="form-input" placeholder="e.g. 123 Main Street" required>
+                        </div>
+                        <div class="form-row form-row-3">
+                            <div class="form-group">
+                                <label class="form-label" for="salonCity">City *</label>
+                                <input type="text" id="salonCity" class="form-input" placeholder="e.g. Bangalore" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="salonState">State *</label>
+                                <input type="text" id="salonState" class="form-input" placeholder="e.g. Karnataka" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="salonCountry">Country *</label>
+                                <input type="text" id="salonCountry" class="form-input" placeholder="e.g. India" value="India" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Salon Logo -->
+                    <div class="form-section">
+                        <div class="form-section-title">
+                            <i class="fa-solid fa-image"></i>
+                            Salon Logo
+                        </div>
+                        <div class="image-upload-area" id="logoUploadArea">
+                            <div class="image-upload-icon">
+                                <i class="fa-solid fa-cloud-arrow-up"></i>
+                            </div>
+                            <div class="image-upload-text">Click to upload or drag and drop</div>
+                            <div class="image-upload-hint">SVG, PNG, JPG (max. 2MB)</div>
+                            <input type="file" id="salonLogo" accept="image/*" style="display: none;">
+                        </div>
+                        <div class="image-preview" id="logoPreview">
+                            <img id="logoPreviewImg" src="" alt="Logo preview">
+                        </div>
+                    </div>
+
+                    <!-- Status -->
+                    <div class="form-section">
+                        <div class="form-section-title">
+                            <i class="fa-solid fa-toggle-on"></i>
+                            Status
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="salonStatus">Salon Status</label>
+                            <select id="salonStatus" class="form-select">
+                                <option value="1">Active</option>
+                                <option value="0">Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="cancelBtn">Cancel</button>
+                <button type="submit" form="salonForm" class="btn btn-primary" id="saveSalonBtn">
+                    <i class="fa-solid fa-save"></i>
+                    Save Salon
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Salon Details Modal -->
+    <div class="modal-overlay" id="viewSalonModal">
+        <div class="modal modal-large">
+            <div class="modal-header">
+                <h3 class="modal-title">Salon Details</h3>
+                <button class="modal-close" id="closeViewModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="salonProfileContent">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="closeViewBtn">Close</button>
+                <button type="button" class="btn btn-primary" id="editFromViewBtn">
+                    <i class="fa-solid fa-pen"></i>
+                    Edit Salon
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../Js/Core/config.js"></script>
+    <script src="../../Js/Core/api.js"></script>
+    <script src="../../Js/pages/sa-salons.js"></script>
+    <script>
+        // Image upload preview
+        const logoUploadArea = document.getElementById('logoUploadArea');
+        const logoInput = document.getElementById('salonLogo');
+        const logoPreview = document.getElementById('logoPreview');
+        const logoPreviewImg = document.getElementById('logoPreviewImg');
+
+        logoUploadArea.addEventListener('click', () => logoInput.click());
+
+        logoInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    logoPreviewImg.src = e.target.result;
+                    logoPreview.classList.add('show');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Drag and drop
+        logoUploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            logoUploadArea.style.borderColor = 'var(--primary)';
+            logoUploadArea.style.background = 'var(--primary-bg)';
+        });
+
+        logoUploadArea.addEventListener('dragleave', () => {
+            logoUploadArea.style.borderColor = '';
+            logoUploadArea.style.background = '';
+        });
+
+        logoUploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            logoUploadArea.style.borderColor = '';
+            logoUploadArea.style.background = '';
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('image/')) {
+                logoInput.files = e.dataTransfer.files;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    logoPreviewImg.src = e.target.result;
+                    logoPreview.classList.add('show');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    </script>
+    
+    <!-- SweetAlert2 and Toastify for notifications -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script src="../../Js/notifications.js"></script>
+</body>
+</html>

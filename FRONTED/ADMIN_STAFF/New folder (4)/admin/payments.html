@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payments - Elite Salon</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="../css/main.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: var(--primary-dark); color: var(--text-primary); }
+        .dashboard-wrapper { display: flex; min-height: 100vh; }
+
+        /* Sidebar */
+        .sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 220px; background: linear-gradient(180deg, var(--primary-darker) 0%, var(--secondary-dark) 100%); border-right: 1px solid var(--card-border); display: flex; flex-direction: column; z-index: 1000; }
+        .sidebar-header { padding: 1rem; border-bottom: 1px solid var(--card-border); }
+        .sidebar-logo { font-size: 1.1rem; font-weight: 700; color: var(--text-primary); text-transform: uppercase; }
+        .sidebar-logo::before { content: '✂️'; font-size: 1.25rem; margin-right: 0.4rem; }
+        .sidebar-user { margin-top: 0.75rem; padding: 0.6rem; background: var(--card-bg); border-radius: 6px; border: 1px solid var(--card-border); }
+        .sidebar-user-info { display: flex; align-items: center; gap: 0.5rem; }
+        .user-avatar { width: 32px; height: 32px; border-radius: 6px; background: linear-gradient(135deg, var(--accent-gold), var(--accent-bronze)); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; color: var(--primary-dark); flex-shrink: 0; }
+        .user-details { flex: 1; min-width: 0; }
+        .user-name { font-weight: 600; font-size: 0.75rem; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .user-role { font-size: 0.6rem; color: var(--text-secondary); text-transform: uppercase; }
+        .sidebar-nav { padding: 0.75rem 0.5rem; flex: 1; overflow-y: auto; }
+        .nav-section-title { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.5rem; padding-left: 0.5rem; }
+        .nav-item { display: flex; align-items: center; gap: 0.6rem; padding: 0.6rem 0.65rem; margin-bottom: 0.2rem; border-radius: 6px; color: var(--text-secondary); text-decoration: none; transition: all 0.2s; font-weight: 500; font-size: 0.8rem; }
+        .nav-item:hover { background: rgba(212, 175, 55, 0.05); color: var(--text-primary); transform: translateX(3px); }
+        .nav-item.active { background: rgba(212, 175, 55, 0.1); border: 1px solid rgba(212, 175, 55, 0.3); color: var(--accent-gold); }
+        .nav-item i { width: 16px; text-align: center; font-size: 0.9rem; }
+        .sidebar-footer { padding: 0.75rem; border-top: 1px solid var(--card-border); }
+        .logout-btn { display: flex; align-items: center; justify-content: center; gap: 0.5rem; width: 100%; padding: 0.65rem; background: linear-gradient(135deg, var(--danger), #dc2626); color: white; border: none; border-radius: 6px; font-weight: 600; font-size: 0.8rem; cursor: pointer; transition: all 0.2s; }
+        .logout-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(239, 68, 68, 0.4); }
+
+        /* Main Content */
+        .main-content { margin-left: 220px; flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+        .dashboard-header { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 1rem; background: rgba(10, 14, 26, 0.95); border-bottom: 1px solid var(--card-border); height: 45px; flex-shrink: 0; }
+        .page-title-mini { display: flex; align-items: center; gap: 0.5rem; }
+        .page-icon-mini { width: 28px; height: 28px; background: linear-gradient(135deg, var(--accent-gold), var(--accent-bronze)); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; color: var(--primary-dark); }
+        .page-title-mini h1 { font-size: 0.9rem; font-weight: 700; }
+        .page-title-mini p { font-size: 0.6rem; color: var(--text-secondary); }
+
+        /* Content */
+        .dashboard-main { flex: 1; padding: 0.5rem; overflow-y: auto; display: flex; flex-direction: column; gap: 0.5rem; }
+        .content-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 6px; margin-bottom: 0.5rem; overflow: hidden; }
+        .card-header-mini { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--card-border); }
+        .card-title-mini { display: flex; align-items: center; gap: 0.4rem; font-size: 0.7rem; font-weight: 600; }
+        .card-title-mini i { color: var(--accent-gold); }
+        .card-body-mini { padding: 0.5rem; }
+
+        /* Search */
+        .search-wrapper-mini { position: relative; max-width: 300px; margin-bottom: 0.5rem; }
+        .search-input-mini { width: 100%; padding: 0.4rem 0.6rem 0.4rem 1.8rem; background: var(--primary-dark); border: 1px solid var(--card-border); border-radius: 4px; color: var(--text-primary); font-size: 0.7rem; }
+        .search-input-mini:focus { outline: none; border-color: var(--accent-gold); }
+        .search-icon-mini { position: absolute; left: 0.5rem; top: 50%; transform: translateY(-50%); color: var(--text-secondary); font-size: 0.65rem; }
+
+        /* Table */
+        .table-container { overflow-x: auto; }
+        .compact-table { width: 100%; border-collapse: collapse; }
+        .compact-table th { text-align: left; padding: 0.5rem 0.6rem; font-size: 0.6rem; font-weight: 600; text-transform: uppercase; color: var(--text-secondary); border-bottom: 2px solid var(--card-border); background: rgba(255,255,255,0.02); }
+        .compact-table td { padding: 0.6rem; border-bottom: 1px solid var(--card-border); font-size: 0.75rem; vertical-align: middle; }
+        .compact-table tr:hover { background: rgba(212, 175, 55, 0.03); }
+
+        /* Status Badge */
+        .status-badge { display: inline-block; padding: 0.2rem 0.5rem; border-radius: 9999px; font-size: 0.6rem; font-weight: 600; text-transform: uppercase; }
+        .status-badge.paid { background: rgba(16,185,129,0.1); color: var(--success); }
+        .status-badge.pending { background: rgba(245,158,11,0.1); color: var(--warning); }
+        .status-badge.unpaid { background: rgba(239,68,68,0.1); color: var(--danger); }
+        .status-badge.partial { background: rgba(59,130,246,0.1); color: var(--info); }
+
+        /* Buttons */
+        .btn { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.45rem 0.75rem; border: none; border-radius: 4px; font-size: 0.7rem; font-weight: 600; cursor: pointer; transition: all 0.2s; text-decoration: none; }
+        .btn-sm { padding: 0.35rem 0.55rem; font-size: 0.65rem; }
+        .btn-icon { padding: 0.35rem; width: 24px; height: 24px; justify-content: center; }
+        .btn-primary { background: linear-gradient(135deg, var(--accent-gold), var(--accent-bronze)); color: var(--primary-dark); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(212, 175, 55, 0.4); }
+        .btn-secondary { background: var(--card-bg); color: var(--text-primary); border: 1px solid var(--card-border); }
+        .btn-secondary:hover { background: var(--secondary-dark); border-color: var(--accent-gold); }
+        .btn-success { background: linear-gradient(135deg, var(--success), #059669); color: #fff; }
+        .btn-success:hover { background: #059669; }
+
+        /* Modal */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); display: none; align-items: center; justify-content: center; z-index: 2000; opacity: 0; transition: opacity 0.3s; }
+        .modal-overlay.open { display: flex; opacity: 1; }
+        .modal { background: var(--card-bg); border-radius: 8px; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 50px rgba(0,0,0,0.5); transform: scale(0.9); transition: transform 0.3s; border: 1px solid var(--card-border); }
+        .modal-lg { max-width: 650px; }
+        .modal-overlay.open .modal { transform: scale(1); }
+        .modal-header { padding: 0.6rem 0.85rem; border-bottom: 1px solid var(--card-border); display: flex; align-items: center; justify-content: space-between; }
+        .modal-title { font-size: 0.85rem; font-weight: 600; color: var(--text-primary); display: flex; align-items: center; gap: 0.4rem; }
+        .modal-title i { color: var(--accent-gold); }
+        .modal-close { background: var(--primary-dark); border: 1px solid var(--card-border); font-size: 0.75rem; color: var(--text-secondary); cursor: pointer; padding: 0.25rem; border-radius: 4px; transition: all 0.2s; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; }
+        .modal-close:hover { background: var(--danger); border-color: var(--danger); color: #fff; }
+        .modal-body { padding: 0.85rem; }
+        .modal-footer { padding: 0.6rem 0.85rem; border-top: 1px solid var(--card-border); display: flex; gap: 0.4rem; justify-content: flex-end; background: rgba(255,255,255,0.02); }
+
+        /* Forms */
+        .form-grid { display: grid; gap: 0.65rem; }
+        .form-group { display: flex; flex-direction: column; gap: 0.3rem; }
+        .form-group.full { grid-column: 1 / -1; }
+        .form-label { font-size: 0.6rem; font-weight: 600; text-transform: uppercase; color: var(--text-secondary); }
+        .form-input, .form-select, .form-textarea { padding: 0.5rem 0.65rem; border: 1px solid var(--card-border); border-radius: 4px; font-size: 0.75rem; transition: all 0.2s; font-family: inherit; background: var(--primary-dark); color: var(--text-primary); }
+        .form-input:focus, .form-select:focus, .form-textarea:focus { outline: none; border-color: var(--accent-gold); }
+        .form-textarea { resize: vertical; min-height: 55px; }
+
+        /* Loading & Empty */
+        .loading-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2.5rem 1rem; color: var(--text-secondary); }
+        .loading-spinner { width: 30px; height: 30px; border: 2px solid var(--card-border); border-top-color: var(--accent-gold); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 0.65rem; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-text { font-size: 0.75rem; }
+        .empty-state { text-align: center; padding: 1.75rem 1rem; color: var(--text-secondary); }
+        .empty-icon { font-size: 2rem; color: var(--text-muted); margin-bottom: 0.65rem; }
+        .empty-title { font-size: 0.85rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.3rem; }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: var(--primary-dark); }
+        ::-webkit-scrollbar-thumb { background: var(--card-border); border-radius: 2px; }
+
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); transition: transform 0.3s; }
+            .main-content { margin-left: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-wrapper">
+        <aside class="sidebar">
+            <div class="sidebar-header"><div class="sidebar-logo">Elite Salon</div>
+                <div class="sidebar-user"><div class="sidebar-user-info"><div class="user-avatar" id="userAvatar">A</div><div class="user-details"><div class="user-name" id="userName">Admin</div><div class="user-role" id="userRole">Administrator</div></div></div></div>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section"><div class="nav-section-title">Main Menu</div>
+                    <a href="dashboard.html" class="nav-item"><i class="fas fa-chart-line"></i><span>Dashboard</span></a>
+                    <a href="appointments.html" class="nav-item"><i class="fas fa-calendar-check"></i><span>Appointments</span></a>
+                    <a href="customers.html" class="nav-item"><i class="fas fa-users"></i><span>Customers</span></a>
+                    <a href="staff.html" class="nav-item"><i class="fas fa-user-tie"></i><span>Staff</span></a>
+                </div>
+                <div class="nav-section"><div class="nav-section-title">Services</div>
+                    <a href="services.html" class="nav-item"><i class="fas fa-cut"></i><span>Services</span></a>
+                    <a href="package.html" class="nav-item"><i class="fas fa-gift"></i><span>Packages</span></a>
+                    <a href="inventory.html" class="nav-item"><i class="fas fa-boxes"></i><span>Inventory</span></a>
+                </div>
+                <div class="nav-section"><div class="nav-section-title">Financial</div>
+                    <a href="payments.html" class="nav-item active"><i class="fas fa-credit-card"></i><span>Payments</span></a>
+                    <a href="schedules.html" class="nav-item"><i class="fas fa-calendar-alt"></i><span>Schedules</span></a>
+                </div>
+                <div class="nav-section"><div class="nav-section-title">System</div>
+                    <a href="settings.html" class="nav-item"><i class="fas fa-cog"></i><span>Settings</span></a>
+                </div>
+            </nav>
+            <div class="sidebar-footer"><button class="logout-btn" onclick="handleLogout()"><i class="fas fa-sign-out-alt"></i><span>Logout</span></button></div>
+        </aside>
+
+        <div class="main-content">
+            <header class="dashboard-header">
+                <div class="page-title-mini"><div class="page-icon-mini"><i class="fas fa-credit-card"></i></div><div><h1>Payments</h1><p>Track transactions</p></div></div>
+            </header>
+
+            <div class="dashboard-main">
+                <div id="loadingState" class="loading-state"><div class="loading-spinner"></div><p class="loading-text">Loading payments...</p></div>
+
+                <div class="content-card" id="paymentsContent" style="display:none;">
+                    <div class="card-header-mini"><div class="card-title-mini"><i class="fas fa-list"></i><span>All Invoices</span></div></div>
+                    <div class="card-body-mini">
+                        <div class="search-wrapper-mini" style="margin-bottom:1.25rem;">
+                            <input type="text" id="pSearch" class="search-input-mini" placeholder="Search invoice, customer…" onkeyup="render()">
+                            <i class="fas fa-search search-icon-mini"></i>
+                        </div>
+
+                        <div class="table-container">
+                            <table class="compact-table">
+                                <thead><tr><th>Invoice #</th><th style="width:100px;">Date</th><th>Customer</th><th style="width:100px;">Amount</th><th style="width:85px;">Status</th><th style="width:130px;">Actions</th></tr></thead>
+                                <tbody id="payBody"></tbody>
+                            </table>
+                        </div>
+                        <div id="payInfo" style="padding:0.85rem;color:var(--text-secondary);font-size:0.7rem;border-top:1px solid var(--card-border);margin-top:0.85rem;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Invoice Detail Modal -->
+    <div class="modal-overlay" id="invModal">
+        <div class="modal modal-lg">
+            <div class="modal-header"><h2 class="modal-title"><i class="fas fa-file-invoice"></i> Invoice Details</h2><button class="modal-close" onclick="closeModal('invModal')"><i class="fas fa-times"></i></button></div>
+            <div class="modal-body" id="invContent"></div>
+            <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('invModal')">Close</button></div>
+        </div>
+    </div>
+
+    <!-- Record Payment Modal -->
+    <div class="modal-overlay" id="paymentModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title"><i class="fas fa-money-bill"></i> Record Payment</h2>
+                <button class="modal-close" onclick="closeModal('paymentModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <!-- Invoice Summary -->
+                <div style="margin-bottom:1rem;padding:0.75rem;background:rgba(212, 175, 55, 0.05);border-radius:var(--radius-md);border:1px solid var(--card-border);">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+                        <div>
+                            <div style="font-size:0.65rem;font-weight:600;text-transform:uppercase;color:var(--text-secondary);">Invoice Amount</div>
+                            <div id="paymentInvoiceAmount" style="font-size:1.1rem;font-weight:700;color:var(--accent-gold);">₹0.00</div>
+                        </div>
+                        <div>
+                            <div style="font-size:0.65rem;font-weight:600;text-transform:uppercase;color:var(--text-secondary);">Outstanding Amount</div>
+                            <div id="paymentOutstanding" style="font-size:1.1rem;font-weight:700;color:var(--danger);">₹0.00</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-group full">
+                        <label class="form-label">Payment Amount (₹) *</label>
+                        <input type="number" id="payAmount" class="form-input" placeholder="0" min="0.01" step="0.01" required onchange="validatePaymentAmount()">
+                        <small id="paymentAmountError" style="color:var(--danger);font-size:0.65rem;display:none;">Payment amount cannot exceed outstanding balance</small>
+                    </div>
+                    <div class="form-group full">
+                        <label class="form-label">Payment Mode *</label>
+                        <select id="payMode" class="form-select" required>
+                            <option value="">Select Mode</option>
+                            <option value="CASH">Cash</option>
+                            <option value="UPI">UPI</option>
+                            <option value="CARD">Card</option>
+                            <option value="BANK">Bank Transfer</option>
+                            <option value="NET_BANKING">Net Banking</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Payment Date *</label>
+                        <input type="date" id="payDate" class="form-input" required>
+                        <small style="color:var(--text-muted);font-size:0.65rem;">Format: YYYY-MM-DD</small>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Transaction No.</label>
+                        <input type="text" id="payTransactionNo" class="form-input" placeholder="TXN123456" maxlength="100">
+                        <small style="color:var(--text-muted);font-size:0.65rem;">Optional for cash payments</small>
+                    </div>
+                    <div class="form-group full">
+                        <label class="form-label">Remarks</label>
+                        <textarea id="payRemarks" class="form-textarea" rows="2" placeholder="Optional notes (max 500 characters)…" maxlength="500"></textarea>
+                        <small id="remarksCount" style="color:var(--text-muted);font-size:0.65rem;">0/500 characters</small>
+                    </div>
+                </div>
+                
+                <div style="margin-top:1rem;padding:0.75rem;background:rgba(16, 185, 129, 0.05);border-radius:var(--radius-md);border:1px solid rgba(16, 185, 129, 0.3);">
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <span style="font-size:0.85rem;font-weight:600;color:var(--text-secondary);">Remaining After Payment:</span>
+                        <span id="remainingAmount" style="font-size:1.25rem;font-weight:700;color:var(--success);">₹0.00</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-success" onclick="recordPayment()" id="recordPaymentBtn"><i class="fas fa-check"></i> Record Payment</button>
+                <button class="btn btn-secondary" onclick="closeModal('paymentModal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script src="../js/core-api.js"></script>
+    <script src="../js/auth-api.js"></script>
+    <script src="../js/utils.js"></script>
+    <script src="../js/notifications.js"></script>
+    <script src="../js/invoices-payments-api.js"></script>
+    <script>
+        let invoices = [];
+        let currentInvoiceId = null;
+        let currentOutstandingAmount = 0;
+        let currentInvoiceTotal = 0;
+
+        function handleLogout() {
+            if (confirm('Are you sure you want to logout?')) {
+                TokenManager.removeToken();
+                TokenManager.removeUser();
+                localStorage.removeItem('refresh_token');
+                window.location.href = '../index.html';
+            }
+        }
+
+        // Validate payment amount doesn't exceed outstanding
+        function validatePaymentAmount() {
+            const amount = parseFloat(document.getElementById('payAmount').value) || 0;
+            const errorEl = document.getElementById('paymentAmountError');
+            const payAmountInput = document.getElementById('payAmount');
+            
+            if (amount > currentOutstandingAmount) {
+                errorEl.style.display = 'block';
+                payAmountInput.style.borderColor = 'var(--danger)';
+                return false;
+            } else {
+                errorEl.style.display = 'none';
+                payAmountInput.style.borderColor = 'var(--card-border)';
+                updateRemainingAmount();
+                return true;
+            }
+        }
+        
+        // Update remaining amount after payment
+        function updateRemainingAmount() {
+            const amount = parseFloat(document.getElementById('payAmount').value) || 0;
+            const remaining = currentOutstandingAmount - amount;
+            document.getElementById('remainingAmount').textContent = '₹' + Math.max(0, remaining).toFixed(2);
+        }
+        
+        // Update remarks character count
+        function updateRemarksCount() {
+            const remarks = document.getElementById('payRemarks').value;
+            document.getElementById('remarksCount').textContent = remarks.length + '/500 characters';
+        }
+        
+        // Validate transaction number in real-time
+        async function validateTransactionNo() {
+            const transactionNo = document.getElementById('payTransactionNo').value.trim();
+            const txnInput = document.getElementById('payTransactionNo');
+            
+            if (!transactionNo) {
+                txnInput.style.borderColor = 'var(--card-border)';
+                return true;
+            }
+            
+            // Check length
+            if (transactionNo.length > 100) {
+                txnInput.style.borderColor = 'var(--danger)';
+                return false;
+            }
+            
+            // Check for duplicates (only if invoice is loaded)
+            if (currentInvoiceId) {
+                try {
+                    const existingPayments = await CustomerInvoicePaymentsAPI.list(currentInvoiceId);
+                    if (existingPayments.success && existingPayments.data && existingPayments.data.items) {
+                        const duplicate = existingPayments.data.items.find(
+                            p => p.transaction_no && p.transaction_no.toLowerCase() === transactionNo.toLowerCase()
+                        );
+                        if (duplicate) {
+                            txnInput.style.borderColor = 'var(--danger)';
+                            return false;
+                        }
+                    }
+                } catch (error) {
+                    console.error('Failed to validate transaction number:', error);
+                }
+            }
+            
+            txnInput.style.borderColor = 'var(--card-border)';
+            return true;
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const user = TokenManager.getUser();
+            if (user) { 
+                document.getElementById('userName').textContent = user.username || user.name || 'User'; 
+                document.getElementById('userRole').textContent = user.role || 'User'; 
+                document.getElementById('userAvatar').textContent = (user.username || user.name || 'U')[0].toUpperCase(); 
+            }
+            
+            // Set minimum date for payment date to today
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('payDate').setAttribute('min', today);
+            
+            // Add event listeners
+            document.getElementById('payAmount').addEventListener('input', validatePaymentAmount);
+            document.getElementById('payRemarks').addEventListener('input', updateRemarksCount);
+            document.getElementById('payTransactionNo').addEventListener('blur', validateTransactionNo);
+            
+            loadInvoices();
+        });
+
+        // Calculate outstanding amount for an invoice
+        async function calculateOutstanding(invoice) {
+            const totalAmount = parseFloat(invoice.total_amount || 0);
+            
+            try {
+                // Get all payments for this invoice
+                const paymentsResult = await CustomerInvoicePaymentsAPI.list(invoice.invoice_customer_id);
+                
+                if (paymentsResult.success && paymentsResult.data && paymentsResult.data.items) {
+                    // Sum only SUCCESS payments
+                    const paidAmount = paymentsResult.data.items
+                        .filter(p => p.status === 'SUCCESS')
+                        .reduce((sum, p) => sum + parseFloat(p.amount || 0), 0);
+                    
+                    const outstanding = totalAmount - paidAmount;
+                    return {
+                        total: totalAmount,
+                        paid: paidAmount,
+                        outstanding: Math.max(0, outstanding)
+                    };
+                }
+            } catch (error) {
+                console.error('Failed to calculate outstanding:', error);
+            }
+            
+            // Fallback: use payment_status from invoice
+            if (invoice.payment_status === 'PAID') {
+                return { total: totalAmount, paid: totalAmount, outstanding: 0 };
+            }
+            return { total: totalAmount, paid: 0, outstanding: totalAmount };
+        }
+
+        async function openPaymentModal(invoiceId, invoiceTotal, paidAmount = 0) {
+            currentInvoiceId = invoiceId;
+            currentInvoiceTotal = parseFloat(invoiceTotal);
+            
+            // Calculate outstanding amount (invoice total - sum of successful payments)
+            currentOutstandingAmount = currentInvoiceTotal - parseFloat(paidAmount);
+            if (currentOutstandingAmount < 0) currentOutstandingAmount = 0;
+            
+            // Display invoice amount and outstanding
+            document.getElementById('paymentInvoiceAmount').textContent = '₹' + currentInvoiceTotal.toFixed(2);
+            document.getElementById('paymentOutstanding').textContent = '₹' + currentOutstandingAmount.toFixed(2);
+            
+            // Pre-fill payment amount with outstanding
+            document.getElementById('payAmount').value = currentOutstandingAmount.toFixed(2);
+            document.getElementById('payMode').value = '';
+            document.getElementById('payDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('payTransactionNo').value = '';
+            document.getElementById('payRemarks').value = '';
+            
+            // Reset validation states
+            document.getElementById('paymentAmountError').style.display = 'none';
+            document.getElementById('payAmount').style.borderColor = 'var(--card-border)';
+            updateRemarksCount();
+            updateRemainingAmount();
+            
+            document.getElementById('paymentModal').classList.add('open');
+        }
+
+        async function recordPayment() {
+            // Validate payment amount
+            if (!validatePaymentAmount()) {
+                showErrorToast('Payment amount cannot exceed outstanding balance');
+                return;
+            }
+
+            const amount = parseFloat(document.getElementById('payAmount').value);
+            const paymentMode = document.getElementById('payMode').value;
+            const paymentDate = document.getElementById('payDate').value;
+            let transactionNo = document.getElementById('payTransactionNo').value.trim();
+            const remarks = document.getElementById('payRemarks').value.trim();
+
+            // Validate amount (0.01 - 10,000,000 per backend)
+            if (!amount || amount < 0.01 || amount > 10000000) {
+                showErrorToast('Payment amount must be between ₹0.01 and ₹10,000,000');
+                return;
+            }
+
+            // Validate payment mode (must match backend enum)
+            const validModes = ['CASH', 'CARD', 'UPI', 'NET_BANKING', 'WALLET'];
+            if (!paymentMode || !validModes.includes(paymentMode)) {
+                showErrorToast('Invalid payment mode. Must be: CASH, CARD, UPI, NET_BANKING, or WALLET');
+                return;
+            }
+
+            // Validate payment date format (YYYY-MM-DD per backend)
+            const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+            if (!paymentDate || !dateRegex.test(paymentDate)) {
+                showErrorToast('Invalid payment date format. Please use YYYY-MM-DD format.');
+                return;
+            }
+
+            // Validate transaction number (max 100 chars per backend, must be unique)
+            if (transactionNo) {
+                if (transactionNo.length > 100) {
+                    showErrorToast('Transaction number cannot exceed 100 characters');
+                    return;
+                }
+
+                // Check for duplicate transaction number
+                try {
+                    const existingPayments = await CustomerInvoicePaymentsAPI.list(currentInvoiceId);
+                    if (existingPayments.success && existingPayments.data && existingPayments.data.items) {
+                        const duplicate = existingPayments.data.items.find(
+                            p => p.transaction_no && p.transaction_no.toLowerCase() === transactionNo.toLowerCase()
+                        );
+                        if (duplicate) {
+                            showError('Duplicate Transaction Number', 'This transaction number already exists for this invoice.');
+                            return;
+                        }
+                    }
+                } catch (error) {
+                    console.error('Failed to check for duplicate transaction number:', error);
+                }
+            }
+
+            // Validate remarks length (max 500 chars per backend)
+            if (remarks.length > 500) {
+                showErrorToast('Remarks cannot exceed 500 characters');
+                return;
+            }
+
+            if (!currentInvoiceId) {
+                showErrorToast('Invoice ID is missing');
+                return;
+            }
+
+            const paymentData = {
+                payment_mode: paymentMode,
+                amount: amount,
+                payment_date: paymentDate + ' 00:00:00', // Backend expects YYYY-MM-DD HH:MM:SS format
+                transaction_no: transactionNo || null,
+                remarks: remarks || null
+            };
+
+            console.log('Recording payment:', paymentData);
+
+            const recordBtn = document.getElementById('recordPaymentBtn');
+            recordBtn.disabled = true;
+            recordBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Recording...';
+
+            try {
+                const result = await CustomerInvoicePaymentsAPI.create(currentInvoiceId, paymentData);
+                console.log('Payment API Response:', result);
+
+                if (result.success) {
+                    showSuccess('Payment recorded successfully!');
+                    closeModal('paymentModal');
+                    loadInvoices();
+                } else {
+                    console.error('API returned error:', result.message);
+                    showError('Payment Failed', result.message || 'Unknown error');
+                }
+            } catch (error) {
+                console.error('API call failed:', error);
+                showError('Payment Error', error.message);
+            } finally {
+                recordBtn.disabled = false;
+                recordBtn.innerHTML = '<i class="fas fa-check"></i> Record Payment';
+            }
+        }
+
+        async function loadInvoices() {
+            document.getElementById('loadingState').style.display = 'flex';
+            document.getElementById('paymentsContent').style.display = 'none';
+            try {
+                const result = await InvoicesAPI.list();
+                if (result.success && result.data && result.data.items) {
+                    // Calculate outstanding for each invoice
+                    invoices = await Promise.all(result.data.items.map(async (invoice) => {
+                        const amounts = await calculateOutstanding(invoice);
+                        return {
+                            ...invoice,
+                            _total_amount: amounts.total,
+                            _paid_amount: amounts.paid,
+                            _outstanding_amount: amounts.outstanding
+                        };
+                    }));
+                    render();
+                    document.getElementById('loadingState').style.display = 'none';
+                    document.getElementById('paymentsContent').style.display = 'block';
+                }
+            } catch (error) {
+                document.getElementById('loadingState').style.display = 'none';
+                showErrorToast('Failed to load invoices: ' + error.message);
+            }
+        }
+
+        function render() {
+            const q = document.getElementById('pSearch').value.toLowerCase();
+            const filtered = invoices.filter(i => !q || (i.invoice_number && i.invoice_number.toLowerCase().includes(q)));
+            const tbody = document.getElementById('payBody');
+
+            if (!filtered.length) {
+                tbody.innerHTML = '<tr><td colspan="6" class="empty-state"><div class="empty-icon"><i class="fas fa-file-invoice"></i></div><h3 class="empty-title">No Invoices</h3></td></tr>';
+            } else {
+                tbody.innerHTML = filtered.map(p => {
+                    const totalAmount = p._total_amount || parseFloat(p.total_amount || 0);
+                    const paidAmount = p._paid_amount || 0;
+                    const outstandingAmount = p._outstanding_amount || totalAmount;
+                    const isPaid = outstandingAmount <= 0.01; // Consider paid if outstanding is near zero
+                    
+                    return `<tr>
+                        <td><strong style="color:var(--accent-gold);">${p.invoice_number}</strong></td>
+                        <td style="color:var(--text-secondary);font-size:0.7rem;">${formatDate(p.invoice_date)}</td>
+                        <td style="color:var(--text-secondary);">N/A</td>
+                        <td><div style="text-align:right;"><strong style="color:var(--text-primary);">₹${totalAmount.toFixed(2)}</strong><br><small style="color:var(--text-muted);">Paid: ₹${paidAmount.toFixed(2)}</small></div></td>
+                        <td><span class="status-badge ${getStatusBadgeClass(p.payment_status)}">${p.payment_status}</span></td>
+                        <td>
+                            <button class="btn btn-primary btn-sm btn-icon" onclick="viewInvoice(${p.invoice_customer_id})" title="View"><i class="fas fa-eye"></i></button>
+                            ${!isPaid ? `<button class="btn btn-success btn-sm btn-icon" onclick="openPaymentModal(${p.invoice_customer_id}, ${totalAmount}, ${paidAmount})" title="Record Payment"><i class="fas fa-money-bill"></i></button>` : ''}
+                        </td>
+                    </tr>`;
+                }).join('');
+            }
+            document.getElementById('payInfo').textContent = `${filtered.length} invoice(s)`;
+        }
+
+        async function viewInvoice(id) {
+            try {
+                const result = await InvoicesAPI.view(id);
+                if (result.success && result.data) {
+                    const inv = result.data;
+                    document.getElementById('invContent').innerHTML = `
+                        <div style="text-align:center;margin-bottom:1.5rem;padding:1.5rem;background:rgba(212, 175, 55, 0.05);border-radius:var(--radius-xl);">
+                            <div style="font-size:1.75rem;font-weight:700;color:var(--accent-gold);">✂️ Elite Salon</div>
+                            <div style="color:var(--text-secondary);margin-top:0.4rem;font-size:0.8rem;">Salon Management System</div>
+                        </div>
+                        <div style="display:grid;grid-template-columns:repeat(2, 1fr);gap:1.25rem;margin-bottom:1.5rem;">
+                            <div style="padding:1.25rem;background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius-lg);">
+                                <div style="font-size:0.65rem;font-weight:600;text-transform:uppercase;color:var(--text-secondary);margin-bottom:0.4rem;">Invoice Info</div>
+                                <div style="font-size:1.1rem;font-weight:700;color:var(--accent-gold);">${inv.invoice_number}</div>
+                                <div style="color:var(--text-secondary);margin-top:0.4rem;font-size:0.75rem;">Date: ${formatDate(inv.invoice_date)}</div>
+                                <div style="color:var(--text-secondary);font-size:0.75rem;">Due: ${formatDate(inv.due_date)}</div>
+                            </div>
+                            <div style="padding:1.25rem;background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius-lg);">
+                                <div style="font-size:0.65rem;font-weight:600;text-transform:uppercase;color:var(--text-secondary);margin-bottom:0.4rem;">Payment Status</div>
+                                <div><span class="status-badge ${getStatusBadgeClass(inv.payment_status)}">${inv.payment_status}</span></div>
+                                <div style="font-size:1.25rem;font-weight:700;color:var(--accent-gold);margin-top:0.4rem;">₹${parseFloat(inv.total_amount).toFixed(2)}</div>
+                            </div>
+                        </div>
+                        <div style="display:grid;grid-template-columns:repeat(2, 1fr);gap:0.85rem;margin-bottom:1.5rem;">
+                            <div style="padding:0.85rem;background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius-lg);"><div style="font-size:0.65rem;font-weight:600;text-transform:uppercase;color:var(--text-secondary);">Subtotal</div><div style="font-size:1rem;font-weight:600;color:var(--text-primary);">₹${parseFloat(inv.subtotal_amount || 0).toFixed(2)}</div></div>
+                            <div style="padding:0.85rem;background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius-lg);"><div style="font-size:0.65rem;font-weight:600;text-transform:uppercase;color:var(--text-secondary);">Tax</div><div style="font-size:1rem;font-weight:600;color:var(--text-primary);">₹${parseFloat(inv.tax_amount || 0).toFixed(2)}</div></div>
+                            <div style="padding:0.85rem;background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius-lg);"><div style="font-size:0.65rem;font-weight:600;text-transform:uppercase;color:var(--text-secondary);">Discount</div><div style="font-size:1rem;font-weight:600;color:var(--text-primary);">₹${parseFloat(inv.discount_amount || 0).toFixed(2)}</div></div>
+                            <div style="padding:0.85rem;background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius-lg);"><div style="font-size:0.65rem;font-weight:600;text-transform:uppercase;color:var(--text-secondary);">Total</div><div style="font-size:1.1rem;font-weight:700;color:var(--accent-gold);">₹${parseFloat(inv.total_amount).toFixed(2)}</div></div>
+                        </div>
+                        ${inv.notes ? `<div style="padding:0.85rem;background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius-lg);"><div style="font-size:0.65rem;font-weight:600;text-transform:uppercase;color:var(--text-secondary);margin-bottom:0.4rem;">Notes</div><div style="color:var(--text-secondary);font-size:0.75rem;">${inv.notes}</div></div>` : ''}
+                    `;
+                    document.getElementById('invModal').classList.add('open');
+                }
+            } catch (error) { showError('Error', 'Failed to load invoice: ' + error.message); }
+        }
+
+        function closeModal(modalId) {
+            if (modalId) {
+                document.getElementById(modalId).classList.remove('open');
+            } else {
+                document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('open'));
+            }
+        }
+
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal-overlay')) {
+                event.target.classList.remove('open');
+            }
+        };
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
+        }
+
+        function getStatusBadgeClass(status) {
+            return status.toLowerCase();
+        }
+    </script>
+</body>
+</html>

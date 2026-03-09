@@ -12,3 +12,8 @@ $router->register('GET', '/api/auth/me', function() use ($authController) {
     authenticate();
     $authController->me();
 });
+$router->register('PUT', '/api/auth/me', function() use ($authController) {
+    require_once __DIR__ . '/../../middlewares/authenticate.php';
+    authenticate();
+    $authController->updateMe();
+});

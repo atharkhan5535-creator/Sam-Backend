@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customers - Elite Salon</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <!-- Toastify CSS - LOCAL FILE -->
+    <link rel="stylesheet" href="../css/toastify.min.css">
+    <link rel="stylesheet" href="../css/main.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: var(--primary-dark); color: var(--text-primary); }
+        .dashboard-wrapper { display: flex; min-height: 100vh; }
+
+        /* Sidebar */
+        .sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 220px; background: linear-gradient(180deg, var(--primary-darker) 0%, var(--secondary-dark) 100%); border-right: 1px solid var(--card-border); display: flex; flex-direction: column; z-index: 1000; }
+        .sidebar-header { padding: 1rem; border-bottom: 1px solid var(--card-border); }
+        .sidebar-logo { font-size: 1.1rem; font-weight: 700; color: var(--text-primary); text-transform: uppercase; }
+        .sidebar-logo::before { content: '✂️'; font-size: 1.25rem; margin-right: 0.4rem; }
+        .sidebar-user { margin-top: 0.75rem; padding: 0.6rem; background: var(--card-bg); border-radius: 6px; border: 1px solid var(--card-border); }
+        .sidebar-user-info { display: flex; align-items: center; gap: 0.5rem; }
+        .user-avatar { width: 32px; height: 32px; border-radius: 6px; background: linear-gradient(135deg, var(--accent-gold), var(--accent-bronze)); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; color: var(--primary-dark); flex-shrink: 0; }
+        .user-details { flex: 1; min-width: 0; }
+        .user-name { font-weight: 600; font-size: 0.75rem; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .user-role { font-size: 0.6rem; color: var(--text-secondary); text-transform: uppercase; }
+        .sidebar-nav { padding: 0.75rem 0.5rem; flex: 1; overflow-y: auto; }
+        .nav-section-title { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.5rem; padding-left: 0.5rem; }
+        .nav-item { display: flex; align-items: center; gap: 0.6rem; padding: 0.6rem 0.65rem; margin-bottom: 0.2rem; border-radius: 6px; color: var(--text-secondary); text-decoration: none; transition: all 0.2s; font-weight: 500; font-size: 0.8rem; }
+        .nav-item:hover { background: rgba(212, 175, 55, 0.05); color: var(--text-primary); transform: translateX(3px); }
+        .nav-item.active { background: rgba(212, 175, 55, 0.1); border: 1px solid rgba(212, 175, 55, 0.3); color: var(--accent-gold); }
+        .nav-item i { width: 16px; text-align: center; font-size: 0.9rem; }
+        .sidebar-footer { padding: 0.75rem; border-top: 1px solid var(--card-border); }
+        .logout-btn { display: flex; align-items: center; justify-content: center; gap: 0.5rem; width: 100%; padding: 0.65rem; background: linear-gradient(135deg, var(--danger), #dc2626); color: white; border: none; border-radius: 6px; font-weight: 600; font-size: 0.8rem; cursor: pointer; transition: all 0.2s; }
+        .logout-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(239, 68, 68, 0.4); }
+
+        /* Main Content */
+        .main-content { margin-left: 220px; flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+        .dashboard-header { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 1rem; background: rgba(10, 14, 26, 0.95); border-bottom: 1px solid var(--card-border); height: 45px; flex-shrink: 0; }
+        .page-title-mini { display: flex; align-items: center; gap: 0.5rem; }
+        .page-icon-mini { width: 28px; height: 28px; background: linear-gradient(135deg, var(--accent-gold), var(--accent-bronze)); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; color: var(--primary-dark); }
+        .page-title-mini h1 { font-size: 0.9rem; font-weight: 700; }
+        .page-title-mini p { font-size: 0.6rem; color: var(--text-secondary); }
+
+        /* Content */
+        .dashboard-main { flex: 1; padding: 0.5rem; overflow-y: auto; display: flex; flex-direction: column; gap: 0.5rem; }
+        .content-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 6px; padding: 0.5rem; display: flex; flex-direction: column; }
+        .card-header-mini { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--card-border); }
+        .card-title-mini { display: flex; align-items: center; gap: 0.4rem; font-size: 0.7rem; font-weight: 600; color: var(--text-primary); }
+        .card-title-mini i { color: var(--accent-gold); font-size: 0.75rem; }
+        .card-body-mini { padding: 0.5rem; flex: 1; }
+
+        /* Toolbar */
+        .toolbar-mini { display: flex; gap: 0.35rem; margin-bottom: 0.5rem; flex-wrap: wrap; }
+        .search-wrapper-mini { position: relative; flex: 1; min-width: 180px; max-width: 250px; }
+        .search-input-mini { width: 100%; padding: 0.35rem 0.6rem 0.35rem 1.8rem; background: var(--primary-dark); border: 1px solid var(--card-border); border-radius: 4px; color: var(--text-primary); font-size: 0.7rem; }
+        .search-input-mini:focus { outline: none; border-color: var(--accent-gold); }
+        .search-icon-mini { position: absolute; left: 0.5rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.65rem; }
+
+        /* Table */
+        .table-container { overflow-x: auto; }
+        .compact-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+        .compact-table thead th { padding: 0.4rem 0.5rem; text-align: left; font-size: 0.6rem; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); background: rgba(255, 255, 255, 0.02); border-bottom: 2px solid var(--card-border); }
+        .compact-table tbody tr { transition: all 0.2s; }
+        .compact-table tbody tr:hover { background: rgba(212, 175, 55, 0.03); }
+        .compact-table tbody td { padding: 0.5rem; border-bottom: 1px solid var(--card-border); color: var(--text-secondary); font-size: 0.7rem; vertical-align: middle; }
+        .compact-table tbody tr:last-child td { border-bottom: none; }
+
+        /* Table Avatar */
+        .table-avatar-mini { display: flex; align-items: center; gap: 0.4rem; }
+        .avatar-circle-mini { width: 26px; height: 26px; border-radius: 50%; background: linear-gradient(135deg, var(--accent-gold), var(--accent-bronze)); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.7rem; color: var(--primary-dark); flex-shrink: 0; }
+        .avatar-info-mini { display: flex; flex-direction: column; }
+        .avatar-name-mini { font-size: 0.7rem; color: var(--text-primary); font-weight: 500; }
+
+        /* Buttons */
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.35rem; padding: 0.4rem 0.65rem; font-family: inherit; font-size: 0.65rem; font-weight: 600; text-transform: uppercase; border: none; border-radius: 4px; cursor: pointer; transition: all 0.2s; text-decoration: none; }
+        .btn-primary { background: linear-gradient(135deg, var(--accent-gold), var(--accent-bronze)); color: var(--primary-dark); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(212, 175, 55, 0.4); }
+        .btn-secondary { background: var(--card-bg); color: var(--text-primary); border: 1px solid var(--card-border); }
+        .btn-secondary:hover { background: var(--secondary-dark); border-color: var(--accent-gold); }
+        .btn-warning { background: linear-gradient(135deg, var(--warning), #d97706); color: white; }
+        .btn-sm { padding: 0.3rem 0.5rem; font-size: 0.6rem; }
+        .btn-icon { width: 26px; height: 26px; padding: 0; border-radius: 4px; }
+        .btn-icon-sm { width: 24px; height: 24px; padding: 0; border-radius: 4px; }
+
+        /* Status Badge */
+        .status-badge { display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.2rem 0.45rem; font-size: 0.55rem; font-weight: 700; text-transform: uppercase; border-radius: 999px; }
+        .status-badge::before { content: ''; width: 4px; height: 4px; border-radius: 50%; background: currentColor; }
+        .status-active { background: rgba(16, 185, 129, 0.1); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.3); }
+        .status-inactive { background: rgba(100, 116, 139, 0.1); color: var(--text-muted); border: 1px solid rgba(100, 116, 139, 0.3); }
+
+        /* Modal */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; z-index: 2000; opacity: 0; visibility: hidden; transition: all 0.3s; }
+        .modal-overlay.open { opacity: 1; visibility: visible; }
+        .modal { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 8px; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto; transform: scale(0.9) translateY(20px); transition: transform 0.3s; }
+        .modal-overlay.open .modal { transform: scale(1) translateY(0); }
+        .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 0.6rem 0.85rem; border-bottom: 1px solid var(--card-border); }
+        .modal-title { display: flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; font-weight: 700; }
+        .modal-title i { color: var(--accent-gold); }
+        .modal-close { width: 24px; height: 24px; background: var(--primary-dark); border: 1px solid var(--card-border); border-radius: 4px; color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .modal-close:hover { background: var(--danger); border-color: var(--danger); color: white; }
+        .modal-body { padding: 0.75rem; }
+        .modal-footer { display: flex; gap: 0.4rem; justify-content: flex-end; padding: 0.6rem 0.85rem; border-top: 1px solid var(--card-border); }
+
+        /* Forms */
+        .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.6rem; }
+        .form-group { display: flex; flex-direction: column; gap: 0.25rem; }
+        .form-group.full { grid-column: 1 / -1; }
+        .form-label { font-size: 0.6rem; font-weight: 600; text-transform: uppercase; color: var(--text-secondary); }
+        .form-input, .form-select, .form-textarea { padding: 0.5rem 0.6rem; background: var(--primary-dark); border: 1px solid var(--card-border); border-radius: 4px; color: var(--text-primary); font-size: 0.75rem; font-family: inherit; }
+        .form-input:focus, .form-select:focus, .form-textarea:focus { outline: none; border-color: var(--accent-gold); }
+        .form-textarea { resize: vertical; min-height: 50px; }
+
+        /* Empty State */
+        .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1.5rem 1rem; text-align: center; }
+        .empty-icon { width: 40px; height: 40px; background: rgba(212, 175, 55, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; color: var(--accent-gold); margin-bottom: 0.5rem; }
+        .empty-title { font-size: 0.8rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.25rem; }
+        .empty-text { color: var(--text-secondary); font-size: 0.7rem; }
+
+        /* Loading */
+        .loading-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem 1rem; }
+        .loading-spinner { width: 28px; height: 28px; border: 2px solid var(--card-border); border-top-color: var(--accent-gold); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 0.5rem; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-text { color: var(--text-secondary); font-size: 0.7rem; }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: var(--primary-dark); }
+        ::-webkit-scrollbar-thumb { background: var(--card-border); border-radius: 2px; }
+
+        @media (max-width: 768px) { .sidebar { transform: translateX(-100%); transition: transform 0.3s; } .sidebar.open { transform: translateX(0); } .main-content { margin-left: 0; } }
+    </style>
+</head>
+<body>
+    <div class="dashboard-wrapper">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">Elite Salon</div>
+                <div class="sidebar-user">
+                    <div class="sidebar-user-info">
+                        <div class="user-avatar" id="userAvatar">A</div>
+                        <div class="user-details">
+                            <div class="user-name" id="userName">Admin</div>
+                            <div class="user-role" id="userRole">Administrator</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section"><div class="nav-section-title">Main Menu</div>
+                    <a href="dashboard.html" class="nav-item"><i class="fas fa-chart-line"></i><span>Dashboard</span></a>
+                    <a href="appointments.html" class="nav-item"><i class="fas fa-calendar-check"></i><span>Appointments</span></a>
+                    <a href="customers.html" class="nav-item active"><i class="fas fa-users"></i><span>Customers</span></a>
+                    <a href="staff.html" class="nav-item"><i class="fas fa-user-tie"></i><span>Staff</span></a>
+                </div>
+                <div class="nav-section"><div class="nav-section-title">Services</div>
+                    <a href="services.html" class="nav-item"><i class="fas fa-cut"></i><span>Services</span></a>
+                    <a href="package.html" class="nav-item"><i class="fas fa-gift"></i><span>Packages</span></a>
+                    <a href="inventory.html" class="nav-item"><i class="fas fa-boxes"></i><span>Inventory</span></a>
+                </div>
+                <div class="nav-section"><div class="nav-section-title">Financial</div>
+                    <a href="payments.html" class="nav-item"><i class="fas fa-credit-card"></i><span>Payments</span></a>
+                    <a href="schedules.html" class="nav-item"><i class="fas fa-calendar-alt"></i><span>Schedules</span></a>
+                </div>
+                <div class="nav-section"><div class="nav-section-title">System</div>
+                    <a href="settings.html" class="nav-item"><i class="fas fa-cog"></i><span>Settings</span></a>
+                </div>
+            </nav>
+            <div class="sidebar-footer">
+                <button class="logout-btn" onclick="handleLogout()"><i class="fas fa-sign-out-alt"></i><span>Logout</span></button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="dashboard-header">
+                <div class="page-title-mini">
+                    <div class="page-icon-mini"><i class="fas fa-users"></i></div>
+                    <div><h1>Customers</h1><p>Manage your customer database</p></div>
+                </div>
+                <button class="btn btn-primary btn-sm" onclick="openCreateModal()"><i class="fas fa-user-plus"></i> Add Customer</button>
+            </header>
+
+            <div class="dashboard-main">
+                <div id="loadingState" class="loading-state">
+                    <div class="loading-spinner"></div>
+                    <p class="loading-text">Loading customers...</p>
+                </div>
+
+                <div class="content-card" id="customersContent" style="display:none;">
+                    <div class="card-header-mini">
+                        <div class="card-title-mini"><i class="fas fa-list"></i><span>All Customers</span></div>
+                        <div style="display:flex;gap:0.5rem;">
+                            <button class="btn btn-secondary btn-sm" onclick="toggleFilters()"><i class="fas fa-filter"></i> Filters</button>
+                            <button class="btn btn-secondary btn-sm" onclick="clearFilters()"><i class="fas fa-rotate-left"></i> Clear</button>
+                        </div>
+                    </div>
+
+                    <div class="card-body-mini">
+                        <div class="toolbar-mini" id="filterBar" style="display:none;flex-direction:column;align-items:stretch;">
+                            <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(150px, 1fr));gap:0.75rem;">
+                                <div>
+                                    <label style="display:block;font-size:0.6rem;font-weight:600;text-transform:uppercase;color:var(--text-secondary);margin-bottom:0.35rem;">Gender</label>
+                                    <select id="fGender" class="form-select" onchange="renderTable()">
+                                        <option value="">All</option>
+                                        <option>MALE</option>
+                                        <option>FEMALE</option>
+                                        <option>OTHER</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style="display:block;font-size:0.6rem;font-weight:600;text-transform:uppercase;color:var(--text-secondary);margin-bottom:0.35rem;">Status</label>
+                                    <select id="fStatus" class="form-select" onchange="renderTable()">
+                                        <option value="">All</option>
+                                        <option value="ACTIVE">Active</option>
+                                        <option value="INACTIVE">Inactive</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="search-wrapper-mini" style="margin-bottom:0.75rem;">
+                            <input type="text" id="searchInput" class="search-input-mini" placeholder="Search by name, email, phone…" onkeyup="handleSearch(event)">
+                            <i class="fas fa-search search-icon-mini"></i>
+                        </div>
+
+                        <div class="table-container">
+                            <table class="compact-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width:50px;">ID</th>
+                                        <th>Customer</th>
+                                        <th style="width:100px;">Phone</th>
+                                        <th>Email</th>
+                                        <th style="width:70px;">Gender</th>
+                                        <th style="width:80px;">Status</th>
+                                        <th style="width:140px;">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="custTableBody"></tbody>
+                            </table>
+                        </div>
+                        <div id="resultsInfo" style="padding:0.75rem;color:var(--text-secondary);font-size:0.65rem;border-top:1px solid var(--card-border);margin-top:0.5rem;"></div>
+                    </div>
+                </div>
+
+                <!-- Customer Details View -->
+                <div class="content-card" id="customerDetailContent" style="display:none;">
+                    <div class="card-header-mini">
+                        <div class="card-title-mini"><i class="fas fa-user"></i><span id="detailCustomerName">Customer Details</span></div>
+                        <button class="btn btn-secondary btn-sm" onclick="closeCustomerDetail()"><i class="fas fa-arrow-left"></i> Back to List</button>
+                    </div>
+                    <div class="card-body-mini">
+                        <div id="customerDetailBody"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Create/Edit Modal -->
+    <div class="modal-overlay" id="customerModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle"><i class="fas fa-user-plus"></i> Add Customer</h2>
+                <button class="modal-close" onclick="closeModal('customerModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Name *</label>
+                        <input type="text" id="cName" class="form-input" placeholder="Full name" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Phone</label>
+                        <input type="tel" id="cPhone" class="form-input" placeholder="Phone number">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" id="cEmail" class="form-input" placeholder="Email address">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Gender</label>
+                        <select id="cGender" class="form-select">
+                            <option value="">Select</option>
+                            <option>MALE</option>
+                            <option>FEMALE</option>
+                            <option>OTHER</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Date of Birth</label>
+                        <input type="date" id="cDob" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Anniversary Date</label>
+                        <input type="date" id="cAnniversary" class="form-input">
+                    </div>
+                    <div class="form-group full">
+                        <label class="form-label">Address</label>
+                        <textarea id="cAddress" class="form-textarea" rows="2" placeholder="Full address"></textarea>
+                    </div>
+                    <div class="form-group full">
+                        <label class="form-label">Preferences</label>
+                        <textarea id="cPreferences" class="form-textarea" rows="2" placeholder="e.g. Prefers morning appointments"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="saveCustomer()"><i class="fas fa-save"></i> Save</button>
+                <button class="btn btn-secondary" onclick="closeModal('customerModal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Detail Modal -->
+    <div class="modal-overlay" id="detailModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title"><i class="fas fa-user"></i> Customer Details</h2>
+                <button class="modal-close" onclick="closeModal('detailModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body" id="detailContent"></div>
+            <div class="modal-footer">
+                <button class="btn btn-warning" onclick="openEditModal()"><i class="fas fa-edit"></i> Edit</button>
+                <button class="btn btn-secondary" onclick="closeModal('detailModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load libraries in correct order - LOCAL FILES -->
+    <!-- 1. SweetAlert2 (for modal alerts) -->
+    <script src="../js/sweetalert2.min.js"></script>
+    <!-- 2. Toastify JS (for toast notifications) -->
+    <script src="../js/toastify.min.js"></script>
+    <!-- 3. Core API and other modules -->
+    <script src="../js/core-api.js"></script>
+    <script src="../js/auth-api.js"></script>
+    <script src="../js/utils.js"></script>
+    <!-- 4. Our notifications wrapper (uses SweetAlert2 and Toastify) -->
+    <script src="../js/notifications.js"></script>
+    <script src="../js/customers-api.js"></script>
+    <script>
+        let customers = [];
+        let selectedCustomerId = null;
+        let isEditing = false;
+
+        function handleLogout() {
+            if (confirm('Are you sure you want to logout?')) {
+                TokenManager.removeToken();
+                TokenManager.removeUser();
+                localStorage.removeItem('refresh_token');
+                // Use relative path to avoid hardcoded URL issues
+                window.location.href = '../index.html';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const user = TokenManager.getUser();
+            if (user) {
+                document.getElementById('userName').textContent = user.username || user.name || 'User';
+                document.getElementById('userRole').textContent = user.role || 'User';
+                document.getElementById('userAvatar').textContent = (user.username || user.name || 'U')[0].toUpperCase();
+            }
+            loadCustomers();
+        });
+
+        async function loadCustomers() {
+            document.getElementById('loadingState').style.display = 'flex';
+            document.getElementById('customersContent').style.display = 'none';
+            try {
+                const result = await CustomersAPI.list();
+                if (result.success && result.data && result.data.items) {
+                    customers = result.data.items;
+                    renderTable();
+                    document.getElementById('loadingState').style.display = 'none';
+                    document.getElementById('customersContent').style.display = 'block';
+                } else {
+                    customers = [];
+                    renderTable();
+                    document.getElementById('loadingState').style.display = 'none';
+                    document.getElementById('customersContent').style.display = 'block';
+                }
+            } catch (error) {
+                document.getElementById('loadingState').style.display = 'none';
+                alert('Failed to load customers: ' + error.message);
+            }
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('custTableBody');
+            const q = document.getElementById('searchInput').value.toLowerCase();
+            const gender = document.getElementById('fGender').value;
+            const status = document.getElementById('fStatus').value;
+
+            let filtered = customers.filter(c => {
+                const matchSearch = !q || (c.name && c.name.toLowerCase().includes(q)) || (c.email && c.email.toLowerCase().includes(q)) || (c.phone && c.phone.includes(q));
+                const matchGender = !gender || c.gender === gender;
+                const matchStatus = !status || c.status === status;
+                return matchSearch && matchGender && matchStatus;
+            });
+
+            if (!filtered || filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="empty-state"><div class="empty-icon"><i class="fas fa-users"></i></div><h3 class="empty-title">No Customers</h3><p class="empty-text">No customers found matching your criteria</p></td></tr>';
+                document.getElementById('resultsInfo').textContent = '';
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(c => {
+                const initials = getInitials(c.name);
+                return `<tr>
+                    <td><strong style="color:var(--accent-gold);font-size:0.65rem;">#${c.customer_id}</strong></td>
+                    <td>
+                        <div class="table-avatar-mini">
+                            <div class="avatar-circle-mini">${initials}</div>
+                            <div class="avatar-info-mini">
+                                <span class="avatar-name-mini">${c.name || 'N/A'}</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td style="color:var(--text-secondary);font-size:0.65rem;">${c.phone || 'N/A'}</td>
+                    <td style="color:var(--text-secondary);font-size:0.65rem;">${c.email || 'N/A'}</td>
+                    <td><span style="padding:0.15rem 0.4rem;background:var(--card-bg);border-radius:999px;font-size:0.55rem;color:var(--text-secondary);">${c.gender || '-'}</span></td>
+                    <td><span class="status-badge ${getStatusBadgeClass(c.status)}">${c.status || 'ACTIVE'}</span></td>
+                    <td>
+                        <button class="btn btn-primary btn-icon-sm" onclick="viewCustomerDetail(${c.customer_id})" title="View">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn btn-secondary btn-icon-sm" onclick="viewCustomerAppointments(${c.customer_id})" title="Appts">
+                            <i class="fas fa-calendar"></i>
+                        </button>
+                        <button class="btn btn-secondary btn-icon-sm" onclick="viewCustomerFeedback(${c.customer_id})" title="Feedback">
+                            <i class="fas fa-star"></i>
+                        </button>
+                    </td>
+                </tr>`;
+            }).join('');
+            document.getElementById('resultsInfo').textContent = `Showing ${filtered.length} customer(s)`;
+        }
+
+        function openCreateModal() {
+            isEditing = false;
+            selectedCustomerId = null;
+            document.getElementById('modalTitle').innerHTML = '<i class="fas fa-user-plus"></i> Add Customer';
+            clearForm();
+            document.getElementById('customerModal').classList.add('open');
+        }
+
+        function clearForm() {
+            ['cName','cPhone','cEmail','cGender','cDob','cAnniversary','cAddress','cPreferences'].forEach(id => document.getElementById(id).value = '');
+        }
+
+        async function saveCustomer() {
+            const name = document.getElementById('cName').value.trim();
+            const phone = document.getElementById('cPhone').value.trim();
+            const email = document.getElementById('cEmail').value.trim();
+            const gender = document.getElementById('cGender').value;
+            const dob = document.getElementById('cDob').value;
+            const anniversary = document.getElementById('cAnniversary').value;
+            const address = document.getElementById('cAddress').value.trim();
+            const preferences = document.getElementById('cPreferences').value.trim();
+
+            // Build customer data object
+            const customerData = {
+                name: name || null,
+                phone: phone || null,
+                email: email || null,
+                gender: gender || null,
+                date_of_birth: dob || null,
+                anniversary_date: anniversary || null,
+                address: address || null,
+                preferences: preferences || null
+            };
+
+            // Validate using ValidationUtils (matches backend rules)
+            const validation = ValidationUtils.validateCustomerData(customerData, isEditing);
+            if (!validation.valid) {
+                showValidationErrors(validation.errors);
+                return;
+            }
+
+            try {
+                let result;
+                if (isEditing && selectedCustomerId) {
+                    result = await CustomersAPI.update(selectedCustomerId, customerData);
+                } else {
+                    result = await CustomersAPI.create(customerData);
+                }
+                if (result.success) {
+                    showSuccess(isEditing ? 'Customer updated successfully!' : 'Customer added successfully!');
+                    closeModal('customerModal');
+                    await loadCustomers();
+                } else {
+                    showError('Failed to save', result.message || 'Unknown error');
+                }
+            } catch (error) {
+                showError('Error', error.message);
+            }
+        }
+
+        async function viewDetail(id) {
+            selectedCustomerId = id;
+            try {
+                const result = await CustomersAPI.view(id);
+                if (result.success && result.data) {
+                    const c = result.data;
+                    const initials = getInitials(c.name);
+                    document.getElementById('detailContent').innerHTML = `
+                        <div style="text-align:center;margin-bottom:1.5rem;">
+                            <div class="avatar-circle" style="width:60px;height:60px;font-size:1.5rem;margin:0 auto 0.75rem;">${initials}</div>
+                            <h2 style="color:var(--text-primary);margin-bottom:0.35rem;font-size:1.1rem;">${c.name || 'N/A'}</h2>
+                            <span class="status-badge ${getStatusBadgeClass(c.status)}">${c.status || 'ACTIVE'}</span>
+                        </div>
+                        <div style="display:grid;grid-template-columns:repeat(2, 1fr);gap:1rem;">
+                            <div><label class="form-label">Phone</label><div style="color:var(--text-secondary);font-size:0.8rem;">${c.phone || 'N/A'}</div></div>
+                            <div><label class="form-label">Email</label><div style="color:var(--text-secondary);font-size:0.8rem;">${c.email || 'N/A'}</div></div>
+                            <div><label class="form-label">Gender</label><div style="color:var(--text-secondary);font-size:0.8rem;">${c.gender || '-'}</div></div>
+                            <div><label class="form-label">Date of Birth</label><div style="color:var(--text-secondary);font-size:0.8rem;">${c.date_of_birth ? formatDate(c.date_of_birth) : '-'}</div></div>
+                            ${c.anniversary_date ? `<div><label class="form-label">Anniversary</label><div style="color:var(--text-secondary);font-size:0.8rem;">${formatDate(c.anniversary_date)}</div></div>` : ''}
+                            ${c.address ? `<div class="full" style="grid-column:1/-1;"><label class="form-label">Address</label><div style="color:var(--text-secondary);font-size:0.8rem;">${c.address}</div></div>` : ''}
+                            ${c.preferences ? `<div class="full" style="grid-column:1/-1;"><label class="form-label">Preferences</label><div style="color:var(--text-secondary);font-size:0.8rem;">${c.preferences}</div></div>` : ''}
+                            <div><label class="form-label">Customer Since</label><div style="color:var(--text-secondary);font-size:0.8rem;">${formatDate(c.customer_since)}</div></div>
+                            <div><label class="form-label">Total Visits</label><div style="color:var(--text-secondary);font-size:0.8rem;">${c.total_visits || 0}</div></div>
+                        </div>
+                    `;
+                    document.getElementById('detailModal').classList.add('open');
+                }
+            } catch (error) {
+                alert('Failed to load details');
+            }
+        }
+
+        function openEditModal() {
+            if (!selectedCustomerId) return;
+            isEditing = true;
+            closeModal('detailModal');
+            CustomersAPI.view(selectedCustomerId).then(result => {
+                if (result.success && result.data) {
+                    const c = result.data;
+                    document.getElementById('modalTitle').innerHTML = '<i class="fas fa-edit"></i> Edit Customer';
+                    document.getElementById('cName').value = c.name || '';
+                    document.getElementById('cPhone').value = c.phone || '';
+                    document.getElementById('cEmail').value = c.email || '';
+                    document.getElementById('cGender').value = c.gender || '';
+                    document.getElementById('cDob').value = c.date_of_birth || '';
+                    document.getElementById('cAnniversary').value = c.anniversary_date || '';
+                    document.getElementById('cAddress').value = c.address || '';
+                    document.getElementById('cPreferences').value = c.preferences || '';
+                    document.getElementById('customerModal').classList.add('open');
+                }
+            });
+        }
+
+        function handleSearch(event) { if (event.key === 'Enter') renderTable(); }
+        function toggleFilters() { document.getElementById('filterBar').style.display = document.getElementById('filterBar').style.display === 'none' ? 'flex' : 'none'; }
+        function clearFilters() { document.getElementById('searchInput').value = ''; document.getElementById('fGender').value = ''; document.getElementById('fStatus').value = ''; renderTable(); }
+        function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+        function getInitials(name) { if (!name) return '??'; return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2); }
+        function formatDate(dateStr) { if (!dateStr) return '-'; const d = new Date(dateStr); return d.toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' }); }
+        function getStatusBadgeClass(status) { return status === 'ACTIVE' ? 'status-active' : 'status-inactive'; }
+        window.onclick = function(event) { if (event.target.classList.contains('modal-overlay')) event.target.classList.remove('open'); };
+
+        async function viewCustomerDetail(customerId) {
+            document.getElementById('customersContent').style.display = 'none';
+            document.getElementById('customerDetailContent').style.display = 'block';
+            try {
+                const result = await CustomersAPI.view(customerId);
+                if (result.success && result.data) {
+                    const c = result.data;
+                    const initials = getInitials(c.name);
+                    document.getElementById('detailCustomerName').textContent = c.name;
+                    document.getElementById('customerDetailBody').innerHTML = `<div style="text-align:center;margin-bottom:1.5rem;"><div class="avatar-circle" style="width:80px;height:80px;font-size:2rem;margin:0 auto 0.75rem;">${initials}</div><h2 style="color:var(--text-primary);margin-bottom:0.35rem;font-size:1.25rem;">${c.name}</h2><span class="status-badge ${getStatusBadgeClass(c.status)}">${c.status}</span></div><div style="display:grid;grid-template-columns:repeat(2, 1fr);gap:1rem;"><div><label class="form-label">Phone</label><div style="color:var(--text-secondary);font-size:0.8rem;">${c.phone || 'N/A'}</div></div><div><label class="form-label">Email</label><div style="color:var(--text-secondary);font-size:0.8rem;">${c.email || 'N/A'}</div></div><div><label class="form-label">Gender</label><div style="color:var(--text-secondary);font-size:0.8rem;">${c.gender || '-'}</div></div><div><label class="form-label">Date of Birth</label><div style="color:var(--text-secondary);font-size:0.8rem;">${c.date_of_birth ? formatDate(c.date_of_birth) : '-'}</div></div>${c.anniversary_date ? `<div><label class="form-label">Anniversary</label><div style="color:var(--text-secondary);font-size:0.8rem;">${formatDate(c.anniversary_date)}</div></div>` : ''}${c.address ? `<div class="full" style="grid-column:1/-1;"><label class="form-label">Address</label><div style="color:var(--text-secondary);font-size:0.8rem;">${c.address}</div></div>` : ''}${c.preferences ? `<div class="full" style="grid-column:1/-1;"><label class="form-label">Preferences</label><div style="color:var(--text-secondary);font-size:0.8rem;">${c.preferences}</div></div>` : ''}<div><label class="form-label">Customer Since</label><div style="color:var(--text-secondary);font-size:0.8rem;">${formatDate(c.customer_since)}</div></div><div><label class="form-label">Total Visits</label><div style="color:var(--text-secondary);font-size:0.8rem;">${c.total_visits || 0}</div></div></div>`;
+                }
+            } catch (error) { alert('Failed to load details'); }
+        }
+
+        function closeCustomerDetail() { document.getElementById('customerDetailContent').style.display = 'none'; document.getElementById('customersContent').style.display = 'block'; }
+
+        async function viewCustomerAppointments(customerId) {
+            try {
+                const result = await CustomersAPI.getAppointments(customerId);
+                if (result.success && result.data && result.data.items) {
+                    const appts = result.data.items;
+                    let html = '<div class="table-container"><table class="modern-table"><thead><tr><th>ID</th><th>Date</th><th>Time</th><th>Services</th><th>Status</th><th>Amount</th></tr></thead><tbody>';
+                    if (appts.length === 0) html += '<tr><td colspan="6" class="empty-state">No appointments found</td></tr>';
+                    else appts.forEach(a => { const services = a.services && a.services.length > 0 ? a.services.map(s => s.service_name).join(', ') : 'No services'; html += `<tr><td>#${a.appointment_id}</td><td>${formatDate(a.appointment_date)}</td><td>${a.start_time || 'N/A'}</td><td style="max-width:250px;font-size:0.75rem;">${services}</td><td><span class="status-badge ${getStatusBadgeClass(a.status)}">${a.status}</span></td><td>₹${parseFloat(a.final_amount || 0).toFixed(2)}</td></tr>`; });
+                    html += '</tbody></table></div>';
+                    document.getElementById('customersContent').style.display = 'none';
+                    document.getElementById('customerDetailContent').style.display = 'block';
+                    document.getElementById('detailCustomerName').textContent = 'Customer Appointments';
+                    document.getElementById('customerDetailBody').innerHTML = html;
+                }
+            } catch (error) { alert('Failed to load appointments: ' + error.message); }
+        }
+
+        async function viewCustomerFeedback(customerId) {
+            try {
+                const result = await CustomersAPI.getFeedback(customerId);
+                if (result.success && result.data && result.data.items) {
+                    const feedbacks = result.data.items;
+                    let html = '<div class="table-container"><table class="modern-table"><thead><tr><th>Appointment</th><th>Rating</th><th>Comment</th><th>Date</th></tr></thead><tbody>';
+                    if (feedbacks.length === 0) html += '<tr><td colspan="4" class="empty-state">No feedback found</td></tr>';
+                    else feedbacks.forEach(f => { const stars = '★'.repeat(f.rating) + '☆'.repeat(5 - f.rating); html += `<tr><td>#${f.appointment_id}</td><td><span style="color:var(--warning);font-size:1rem;">${stars}</span></td><td style="font-size:0.75rem;">${f.comment || '-'}</td><td style="font-size:0.75rem;">${formatDate(f.created_at)}</td></tr>`; });
+                    html += '</tbody></table></div>';
+                    document.getElementById('customersContent').style.display = 'none';
+                    document.getElementById('customerDetailContent').style.display = 'block';
+                    document.getElementById('detailCustomerName').textContent = 'Customer Feedback';
+                    document.getElementById('customerDetailBody').innerHTML = html;
+                }
+            } catch (error) { alert('Failed to load feedback: ' + error.message); }
+        }
+    </script>
+</body>
+</html>

@@ -23,11 +23,22 @@ class AuthController
     $phone = $data['phone'] ?? null;
     $password = $data['password'] ?? null;
     $salon_id = $data['salon_id'] ?? null;
-    $login_type = $data['login_type'] ?? null; 
-    // Expected: SUPER_ADMIN | ADMIN | STAFF | CUSTOMER
-
-    if (!$login_type || !$password) {
-        Response::json(["status" => "error", "message" => "Missing credentials"], 400);
+    $login_type = $data['login_type'] ?? null;
+    
+    // 1️⃣ Validate Login Type Enum
+    $validLoginTypes = ['SUPER_ADMIN', 'ADMIN/STAFF', 'CUSTOMER'];
+    if (!$login_type || !in_array($login_type, $validLoginTypes)) {
+        Response::json(["status" => "error", "message" => "Invalid login type. Must be SUPER_ADMIN, ADMIN/STAFF, or CUSTOMER"], 400);
+    }
+    
+    // 2️⃣ Password Required
+    if (!$password) {
+        Response::json(["status" => "error", "message" => "Password is required"], 400);
+    }
+    
+    // 3️⃣ Password Strength Validation (minimum 6 characters)
+    if (strlen($password) < 6) {
+        Response::json(["status" => "error", "message" => "Password must be at least 6 characters"], 400);
     }
 
     switch ($login_type) {
@@ -41,6 +52,11 @@ class AuthController
 
             if (!$email) {
                 Response::json(["status" => "error", "message" => "Email required"], 400);
+            }
+            
+            // Email Format Validation
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                Response::json(["status" => "error", "message" => "Invalid email format"], 400);
             }
 
             $stmt = $this->db->prepare("
@@ -69,6 +85,11 @@ class AuthController
 
             if (!$salon_id || !$email) {
                 Response::json(["status" => "error", "message" => "Salon ID and email required"], 400);
+            }
+            
+            // Email Format Validation
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                Response::json(["status" => "error", "message" => "Invalid email format"], 400);
             }
 
             $stmt = $this->db->prepare("
@@ -99,12 +120,22 @@ class AuthController
             if (!$salon_id || (!$email && !$phone)) {
                 Response::json(["status" => "error", "message" => "Salon ID and email or phone required"], 400);
             }
+            
+            // Email Format Validation (if provided)
+            if ($email && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                Response::json(["status" => "error", "message" => "Invalid email format"], 400);
+            }
+            
+            // Phone Format Validation (if provided) - 10-digit Indian format
+            if ($phone && !preg_match("/^[6-9][0-9]{9}$/", $phone)) {
+                Response::json(["status" => "error", "message" => "Invalid phone number (10-digit Indian format required)"], 400);
+            }
 
             if ($email) {
                 $stmt = $this->db->prepare("
                     SELECT c.customer_id AS user_id, ca.password_hash
                     FROM customers c
-                    JOIN customer_authentication ca 
+                    JOIN customer_authentication ca
                         ON c.customer_id = ca.customer_id
                     WHERE c.salon_id = ?
                     AND ca.email = ?
@@ -115,7 +146,7 @@ class AuthController
                 $stmt = $this->db->prepare("
                     SELECT c.customer_id AS user_id, ca.password_hash
                     FROM customers c
-                    JOIN customer_authentication ca 
+                    JOIN customer_authentication ca
                         ON c.customer_id = ca.customer_id
                     WHERE c.salon_id = ?
                     AND c.phone = ?
@@ -303,5 +334,98 @@ public function refresh()
         ]);
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | UPDATE ME
+    |--------------------------------------------------------------------------
+    */
+
+    public function updateMe()
+    {
+        $auth = $GLOBALS['auth_user'] ?? null;
+
+        if (!$auth) {
+            Response::json([
+                "status" => "error",
+                "message" => "Unauthenticated"
+            ], 401);
+        }
+
+        $data = json_decode(file_get_contents("php://input"), true);
+        $userId = $auth['user_id'];
+        $role = $auth['role'];
+
+        // Update based on role
+        if ($role === 'SUPER_ADMIN') {
+            $allowedFields = ['name', 'email', 'phone'];
+            $updates = [];
+            $values = [];
+
+            foreach ($allowedFields as $field) {
+                if (isset($data[$field])) {
+                    $updates[] = "$field = ?";
+                    $values[] = $data[$field];
+                }
+            }
+
+            if (empty($updates)) {
+                Response::json(["status" => "error", "message" => "No valid fields to update"], 400);
+            }
+
+            $values[] = $userId;
+
+            $sql = "UPDATE super_admin_login SET " . implode(', ', $updates) . " WHERE super_admin_id = ?";
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute($values);
+
+        } elseif ($role === 'ADMIN' || $role === 'STAFF') {
+            $allowedFields = ['username', 'email', 'phone'];
+            $updates = [];
+            $values = [];
+
+            foreach ($allowedFields as $field) {
+                if (isset($data[$field])) {
+                    $updates[] = "$field = ?";
+                    $values[] = $data[$field];
+                }
+            }
+
+            if (empty($updates)) {
+                Response::json(["status" => "error", "message" => "No valid fields to update"], 400);
+            }
+
+            $values[] = $userId;
+
+            $sql = "UPDATE users SET " . implode(', ', $updates) . " WHERE user_id = ?";
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute($values);
+
+        } elseif ($role === 'CUSTOMER') {
+            $allowedFields = ['name', 'email', 'phone'];
+            $updates = [];
+            $values = [];
+
+            foreach ($allowedFields as $field) {
+                if (isset($data[$field])) {
+                    $updates[] = "$field = ?";
+                    $values[] = $data[$field];
+                }
+            }
+
+            if (empty($updates)) {
+                Response::json(["status" => "error", "message" => "No valid fields to update"], 400);
+            }
+
+            $values[] = $userId;
+
+            $sql = "UPDATE customers SET " . implode(', ', $updates) . " WHERE customer_id = ?";
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute($values);
+        }
+
+        Response::json([
+            "status" => "success"
+        ]);
+    }
 
 }

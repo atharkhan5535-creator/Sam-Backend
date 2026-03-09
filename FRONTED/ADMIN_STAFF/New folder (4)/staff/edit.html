@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Staff - Elite Salon</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="../css/main.css">
+</head>
+<body>
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">Elite Salon</div>
+            <div class="sidebar-user">
+                <div class="sidebar-user-info">
+                    <div class="user-avatar" id="userAvatar">S</div>
+                    <div class="user-details">
+                        <div class="user-name" id="userName">Staff</div>
+                        <div class="user-role" id="userRole">Staff</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <div class="nav-section-title">Main Menu</div>
+                <a href="dashboard.html" class="nav-item">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="appointments.html" class="nav-item">
+                    <i class="fas fa-calendar-check"></i>
+                    <span>Appointments</span>
+                </a>
+                <a href="customers.html" class="nav-item">
+                    <i class="fas fa-users"></i>
+                    <span>Customers</span>
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Services</div>
+                <a href="services.html" class="nav-item">
+                    <i class="fas fa-cut"></i>
+                    <span>Services</span>
+                </a>
+                <a href="package.html" class="nav-item">
+                    <i class="fas fa-gift"></i>
+                    <span>Packages</span>
+                </a>
+                <a href="inventory.html" class="nav-item">
+                    <i class="fas fa-boxes"></i>
+                    <span>Inventory</span>
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">My</div>
+                <a href="schedules.html" class="nav-item">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>My Schedule</span>
+                </a>
+                <a href="profile.html" class="nav-item">
+                    <i class="fas fa-user"></i>
+                    <span>Profile</span>
+                </a>
+            </div>
+        </nav>
+
+        <div class="sidebar-footer">
+            <button class="logout-btn" onclick="handleLogout()">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Top Header -->
+        <header class="top-header">
+            <div class="page-title">
+                <div class="page-icon">
+                    <i class="fas fa-user-edit"></i>
+                </div>
+                <div>
+                    <h1>Edit Staff Member</h1>
+                    <p class="page-subtitle">Update staff profile information</p>
+                </div>
+            </div>
+            <div class="header-actions">
+                <a href="dashboard.html" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back
+                </a>
+            </div>
+        </header>
+
+        <!-- Content Wrapper -->
+        <div class="content-wrapper">
+            <!-- Edit Staff Form -->
+            <div class="content-card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-user-tie"></i>
+                        <span>Staff Information</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <form id="editStaffForm" onsubmit="updateStaff(event)">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label">Staff ID</label>
+                                <input type="number" id="eStaffId" class="form-input" value="1" readonly style="background:var(--card-bg);color:var(--text-muted);cursor:not-allowed;">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Staff Name *</label>
+                                <input type="text" id="eName" class="form-input" value="Sarah Johnson" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Role *</label>
+                                <input type="text" id="eRole" class="form-input" value="Master Stylist" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Phone *</label>
+                                <input type="tel" id="ePhone" class="form-input" value="+91 9876543210" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Email *</label>
+                                <input type="email" id="eEmail" class="form-input" value="sarah.j@elitesalon.com" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Gender</label>
+                                <select id="eGender" class="form-select">
+                                    <option>Male</option>
+                                    <option selected>Female</option>
+                                    <option>Other</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Date of Birth</label>
+                                <input type="date" id="eDob" class="form-input" value="1988-03-15">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Experience (Years)</label>
+                                <input type="number" id="eExp" class="form-input" min="0" value="15">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Salary (₹)</label>
+                                <input type="number" id="eSalary" class="form-input" step="0.01" value="55000">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Employment Type</label>
+                                <select id="eEmpType" class="form-select">
+                                    <option selected>Full-time</option>
+                                    <option>Part-time</option>
+                                    <option>Contract</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Joining Date</label>
+                                <input type="date" id="eJoining" class="form-input" value="2018-06-01">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Availability Status</label>
+                                <select id="eAvail" class="form-select">
+                                    <option selected>Available</option>
+                                    <option>Busy</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Status</label>
+                                <select id="eStatus" class="form-select">
+                                    <option selected>Active</option>
+                                    <option>Inactive</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Emergency Contact</label>
+                                <input type="text" id="eEmergency" class="form-input" value="555-999-0001">
+                            </div>
+                            <div class="form-group full">
+                                <label class="form-label">Address</label>
+                                <textarea id="eAddress" class="form-textarea" rows="3">45 Bloom St, NY</textarea>
+                            </div>
+                        </div>
+                        <div class="btn-group" style="margin-top:2rem;">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Update Staff
+                            </button>
+                            <button type="button" class="btn btn-secondary" onclick="history.back()">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="../js/core-api.js"></script>
+    <script src="../js/auth-api.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const user = TokenManager.getUser();
+            if (user) {
+                document.getElementById('userName').textContent = user.username || user.name || 'User';
+                document.getElementById('userRole').textContent = user.role || 'User';
+                document.getElementById('userAvatar').textContent = (user.username || user.name || 'U')[0].toUpperCase();
+            }
+        });
+
+        function updateStaff(e) {
+            e.preventDefault();
+            
+            const staffData = {
+                id: document.getElementById('eStaffId').value,
+                name: document.getElementById('eName').value,
+                role: document.getElementById('eRole').value,
+                phone: document.getElementById('ePhone').value,
+                email: document.getElementById('eEmail').value,
+                gender: document.getElementById('eGender').value,
+                date_of_birth: document.getElementById('eDob').value,
+                experience_years: document.getElementById('eExp').value,
+                salary: document.getElementById('eSalary').value,
+                employment_type: document.getElementById('eEmpType').value,
+                joining_date: document.getElementById('eJoining').value,
+                availability_status: document.getElementById('eAvail').value,
+                status: document.getElementById('eStatus').value.toLowerCase(),
+                emergency_contact: document.getElementById('eEmergency').value,
+                address: document.getElementById('eAddress').value
+            };
+
+            console.log('Update staff data:', staffData);
+            
+            // Here you would call the API to update staff
+            showToast('Staff member updated successfully!');
+            setTimeout(() => { window.location.href = 'dashboard.html'; }, 1500);
+        }
+
+        function showToast(msg) {
+            const toast = document.createElement('div');
+            toast.className = 'toast-notification toast-success';
+            toast.innerHTML = `<i class="fas fa-check-circle"></i><span>${msg}</span>`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        async function handleLogout() {
+            if (confirm('Are you sure you want to logout?')) {
+                await AuthAPI.logout();
+                TokenManager.removeToken();
+                TokenManager.removeUser();
+                localStorage.removeItem('refresh_token');
+                window.location.href = '../index.html';
+            }
+        }
+    </script>
+</body>
+</html>
