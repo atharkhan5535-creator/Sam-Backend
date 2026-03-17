@@ -18,7 +18,16 @@ function authorize(array $allowedRoles)
 
     $user = $GLOBALS['auth_user'] ?? null;
 
-    if (!$user || !in_array($user['role'], $allowedRoles)) {
+    if (!$user) {
+        Response::json([
+            "status" => "error",
+            "message" => "Unauthorized"
+        ], 401);
+    }
+    
+    $userRole = $user['role'] ?? null;
+    
+    if (!$userRole || !in_array($userRole, $allowedRoles)) {
         Response::json([
             "status" => "error",
             "message" => "Forbidden"

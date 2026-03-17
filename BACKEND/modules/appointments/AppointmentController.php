@@ -417,6 +417,7 @@ class AppointmentController
 
         if (!$salonId) {
             Response::json(["status" => "error", "message" => "Invalid salon context"], 400);
+            return;
         }
 
         $status = $_GET['status'] ?? null;
@@ -434,7 +435,7 @@ class AppointmentController
         // CUSTOMER can only see their own appointments
         if ($userRole === 'CUSTOMER') {
             $sql .= " AND a.customer_id = ?";
-            $params[] = $auth['customer_id'];
+            $params[] = $auth['customer_id'] ?? null;
         }
 
         if ($status) {
@@ -468,7 +469,7 @@ class AppointmentController
 
             // Get packages
             $stmt = $this->db->prepare("
-                SELECT ap.package_id, p.package_name, ap.staff_id, ap.package_price, 
+                SELECT ap.package_id, p.package_name, ap.package_price,
                        ap.discount_amount, ap.final_price, ap.status
                 FROM appointment_packages ap
                 INNER JOIN packages p ON ap.package_id = p.package_id
@@ -540,7 +541,7 @@ class AppointmentController
 
         // Get packages
         $stmt = $this->db->prepare("
-            SELECT ap.package_id, p.package_name, ap.staff_id, ap.package_price,
+            SELECT ap.package_id, p.package_name, ap.package_price,
                    ap.discount_amount, ap.final_price, ap.status
             FROM appointment_packages ap
             INNER JOIN packages p ON ap.package_id = p.package_id

@@ -593,21 +593,26 @@
                 if (status) params.status = status;
                 if (date) params.date = date;
 
+                console.log('📊 Loading appointments with params:', params);
                 const result = await AppointmentsAPI.list(params);
+                console.log('📊 Appointments API response:', result);
 
                 if (result.success && result.data && result.data.items) {
+                    console.log('✅ Appointments loaded:', result.data.items.length, 'items');
+                    console.log('First appointment:', result.data.items[0]);
                     appointments = result.data.items;
                     renderTable();
                     document.getElementById('loadingState').style.display = 'none';
                     document.getElementById('appointmentsContent').style.display = 'block';
                 } else {
+                    console.warn('⚠️ No appointments data in response');
                     appointments = [];
                     renderTable();
                     document.getElementById('loadingState').style.display = 'none';
                     document.getElementById('appointmentsContent').style.display = 'block';
                 }
             } catch (error) {
-                console.error('Error loading appointments:', error);
+                console.error('❌ Error loading appointments:', error);
                 tbody.innerHTML = '<tr><td colspan="8" class="empty-state"><div class="empty-icon"><i class="fas fa-exclamation-triangle"></i></div><h3 class="empty-title">Failed to Load</h3><p class="empty-text">' + error.message + '</p></td></tr>';
             } finally {
                 isLoading = false;
@@ -1986,6 +1991,28 @@
         function getInitials(name) {
             if (!name) return '??';
             return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return '-';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-IN', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+        }
+
+        function getStatusBadgeClass(status) {
+            const statusMap = {
+                'PENDING': 'status-pending',
+                'CONFIRMED': 'status-confirmed',
+                'IN_PROGRESS': 'status-in-progress',
+                'COMPLETED': 'status-completed',
+                'CANCELLED': 'status-cancelled',
+                'NO_SHOW': 'status-cancelled'
+            };
+            return statusMap[status] || 'status-pending';
         }
 
         window.onclick = function(event) {

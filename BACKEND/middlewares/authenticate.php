@@ -28,7 +28,7 @@ function authenticate($required = true)
             $GLOBALS['auth_user'] = null;
             return;
         }
-        
+
         Response::json([
             "status" => "error",
             "message" => "Access token required"
@@ -45,7 +45,10 @@ function authenticate($required = true)
     }
 
     // Validate essential fields
-    if (!isset($payload['user_id']) || !isset($payload['role'])) {
+    $userId = $payload['user_id'] ?? null;
+    $role = $payload['role'] ?? null;
+    
+    if (!$userId || !$role) {
         Response::json([
             "status" => "error",
             "message" => "Malformed token payload"
@@ -54,7 +57,9 @@ function authenticate($required = true)
 
     // SUPER_ADMIN doesn't have salon_id - they manage all salons
     // Other roles must have salon_id
-    if ($payload['role'] !== 'SUPER_ADMIN' && !isset($payload['salon_id'])) {
+    $salonId = $payload['salon_id'] ?? null;
+    
+    if ($role !== 'SUPER_ADMIN' && !$salonId) {
         Response::json([
             "status" => "error",
             "message" => "Malformed token payload - missing salon_id"

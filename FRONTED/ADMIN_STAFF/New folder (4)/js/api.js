@@ -115,17 +115,17 @@ const TokenManager = {
 // API Request Helper
 async function apiRequest(endpoint, options = {}) {
     const url = `${API_BASE_URL}${endpoint}`;
-    
+
     const defaultHeaders = {
         'Content-Type': 'application/json',
         'Accept': 'application/json'
     };
-    
+
     const token = TokenManager.getToken();
     if (token) {
         defaultHeaders['Authorization'] = `Bearer ${token}`;
     }
-    
+
     const config = {
         ...options,
         headers: {
@@ -133,15 +133,24 @@ async function apiRequest(endpoint, options = {}) {
             ...options.headers
         }
     };
-    
+
     try {
         const response = await fetch(url, config);
-        const data = await response.json();
         
+        // Check content type before parsing JSON
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            const text = await response.text();
+            console.error('Non-JSON response received:', text.substring(0, 500));
+            throw new Error('Server returned non-JSON response. Check server logs for details.');
+        }
+        
+        const data = await response.json();
+
         if (!response.ok) {
             throw new Error(data.message || 'API request failed');
         }
-        
+
         return data;
     } catch (error) {
         console.error('API Error:', error);
