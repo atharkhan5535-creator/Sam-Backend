@@ -176,7 +176,7 @@
 
                         <div class="table-container">
                             <table class="compact-table">
-                                <thead><tr><th style="width:70px;">ID</th><th>Package Name</th><th>Description</th><th style="width:100px;">Price</th><th style="width:85px;">Validity</th><th style="width:85px;">Status</th><th style="width:140px;">Actions</th></tr></thead>
+                                <thead><tr><th style="width:70px;">ID</th><th>Package Name</th><th>Services</th><th style="width:100px;">Price</th><th style="width:85px;">Validity</th><th style="width:85px;">Status</th><th style="width:140px;">Actions</th></tr></thead>
                                 <tbody id="pkgBody"></tbody>
                             </table>
                         </div>
@@ -257,21 +257,22 @@
         async function loadServicesForSelector(preselectedIds = null) {
             try {
                 console.log('📊 Loading services... preselectedIds:', preselectedIds);
-                
+
                 const result = await ServicesAPI.list();
                 const container = document.getElementById('serviceSelector');
                 if (result.success && result.data && result.data.items) {
                     services = result.data.items;
                     console.log('✅ Services loaded:', services.length);
-                    
+
                     // Use preselected IDs if provided, otherwise use current selectedServiceIds
                     const idsToUse = preselectedIds !== null ? preselectedIds : selectedServiceIds;
                     console.log('🔧 Using IDs:', idsToUse);
-                    
+
                     container.innerHTML = services.map(s => {
                         const isSelected = idsToUse.includes(s.service_id);
+                        const staffName = s.staff_id ? `(Staff: ${s.staff_name || 'Assigned'})` : '(No staff assigned)';
                         console.log(`Service ${s.service_id} (${s.service_name}): isSelected=${isSelected}`);
-                        return `<label style="display:flex;align-items:center;gap:0.65rem;padding:0.45rem;cursor:pointer;border-radius:var(--radius-md);transition:background 0.2s;${isSelected ? 'background:rgba(212, 175, 55, 0.1);' : ''}"><input type="checkbox" value="${s.service_id}" onchange="toggleService(this)" ${isSelected ? 'checked' : ''} style="cursor:pointer;"><span style="flex:1;color:var(--text-secondary);font-size:0.8rem;">${s.service_name}</span><span style="color:var(--accent-gold);font-weight:600;font-size:0.8rem;">₹${s.price}</span></label>`;
+                        return `<label style="display:flex;align-items:center;gap:0.65rem;padding:0.45rem;cursor:pointer;border-radius:var(--radius-md);transition:background 0.2s;${isSelected ? 'background:rgba(212, 175, 55, 0.1);' : ''}"><input type="checkbox" value="${s.service_id}" onchange="toggleService(this)" ${isSelected ? 'checked' : ''} style="cursor:pointer;"><div style="flex:1;"><div style="color:var(--text-secondary);font-size:0.8rem;">${s.service_name}</div><div style="font-size:0.7rem;color:var(--text-muted);">${staffName}</div></div><span style="color:var(--accent-gold);font-weight:600;font-size:0.8rem;">₹${s.price}</span></label>`;
                     }).join('');
 
                     // ✅ Phase 2: calculateAutoPrice() call removed
@@ -315,15 +316,22 @@
             if (!filtered.length) {
                 tbody.innerHTML = '<tr><td colspan="7" class="empty-state"><div class="empty-icon"><i class="fas fa-gift"></i></div><h3 class="empty-title">No Packages</h3><p class="empty-text">No packages found matching your criteria</p></td></tr>';
             } else {
-                tbody.innerHTML = filtered.map(p => `<tr>
+                tbody.innerHTML = filtered.map(p => {
+                    const servicesCount = p.services && Array.isArray(p.services) ? p.services.length : 0;
+                    const servicesList = servicesCount > 0 ? p.services.map(s => {
+                        const staffInfo = s.staff_id ? ` (${s.staff_name || 'Staff assigned'})` : '';
+                        return `${s.service_name}${staffInfo}`;
+                    }).join(', ') : 'No services';
+                    return `<tr>
                     <td><strong style="color:var(--accent-gold);">#${p.package_id}</strong></td>
                     <td><div style="font-weight:600;color:var(--text-primary);">${p.package_name}</div></td>
-                    <td style="max-width:300px;font-size:0.75rem;color:var(--text-secondary);">${p.description ? p.description.substring(0, 50) + '...' : '-'}</td>
+                    <td style="max-width:300px;font-size:0.7rem;color:var(--text-secondary);">${servicesCount} service(s): ${servicesList}</td>
                     <td><strong style="color:var(--accent-gold);">₹${parseFloat(p.total_price).toFixed(2)}</strong></td>
                     <td><span style="padding:0.2rem 0.6rem;background:var(--card-bg);border-radius:var(--radius-full);font-size:0.65rem;color:var(--text-secondary);">${p.validity_days || 30} days</span></td>
                     <td><span class="status-badge ${getStatusBadgeClass(p.status)}">${p.status}</span></td>
                     <td><button class="btn btn-primary btn-sm" onclick="openEdit(${p.package_id})">Edit</button> <button class="btn btn-${p.status === 'ACTIVE' ? 'warning' : 'success'} btn-sm" onclick="toggleStatus(${p.package_id})">${p.status === 'ACTIVE' ? 'Disable' : 'Enable'}</button></td>
-                </tr>`).join('');
+                </tr>`;
+                }).join('');
             }
             document.getElementById('pkgInfo').textContent = `${filtered.length} package(s)` + (statusFilter ? ` (${statusFilter})` : '');
         }
