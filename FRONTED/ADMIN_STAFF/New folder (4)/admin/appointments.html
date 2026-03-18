@@ -510,14 +510,13 @@
            ============================================= */
         let appointments = [];
         let selectedAppointmentId = null;
-        let defaultStaffId = null;
         let isLoading = false;
 
         // Edit state for appointment update (reset on each modal open)
         window.editSelectedServices = [];           // Array of service_ids (as NUMBERS)
         window.editSelectedPackages = [];           // Array of package_ids (as NUMBERS)
-        window.editServiceData = {};                // { serviceId: { price, discount, staff_id } }
-        window.editPackageData = {};                // { packageId: { price, discount, staff_id } }
+        window.editServiceData = {};                // { serviceId: { price, discount } }
+        window.editPackageData = {};                // { packageId: { price, discount } }
         window.originalAppointmentData = null;      // Original data from DB (for comparison)
 
         // Helper function to reset all edit state
@@ -554,31 +553,10 @@
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('newDate').setAttribute('min', today);
 
-            loadDefaultStaff().then(() => {
-                loadAppointments();
-                loadCustomersForDropdown();
-                loadServicesForSelector();
-            });
+            loadAppointments();
+            loadCustomersForDropdown();
+            loadServicesForSelector();
         });
-
-        async function loadDefaultStaff() {
-            try {
-                console.log('📊 Loading staff for default assignment...');
-                const result = await StaffAPI.list();
-                console.log('📊 Staff API response:', result);
-                
-                if (result.success && result.data && result.data.items && result.data.items.length > 0) {
-                    const activeStaff = result.data.items.find(s => s.status === 'ACTIVE') || result.data.items[0];
-                    defaultStaffId = activeStaff.staff_id;
-                    console.log('✅ Default staff set to ID:', defaultStaffId, '(', activeStaff.name, ')');
-                } else {
-                    console.error('❌ No staff members found in system!');
-                    alert('⚠️ No staff members found. Please create at least one staff member before creating appointments.');
-                }
-            } catch (error) {
-                console.error('❌ Failed to load staff:', error);
-            }
-        }
 
         async function loadAppointments() {
             if (isLoading) return;
