@@ -798,5 +798,105 @@ git checkout HEAD -- FRONTED/ADMIN_STAFF/New folder (4)/admin/appointments.html
 
 ---
 
-**Last Updated:** March 18, 2026  
-**Next Action:** Begin Phase 1, Task 1.1 (Database Migration)
+## 🔧 TODO: Cleanup Remaining defaultStaffId References
+
+**Status:** ⚠️ PENDING - Critical fixes needed
+
+**Issue:** `defaultStaffId` variable was removed but 16 references still exist in appointments.html
+
+### **Files to Fix:**
+- `FRONTED/ADMIN_STAFF/New folder (4)/admin/appointments.html`
+
+### **Changes Required:**
+
+#### **1. Remove createAppointment() checks (Lines 818-821)**
+```javascript
+// REMOVE THESE LINES:
+console.log('defaultStaffId:', defaultStaffId);
+if (!defaultStaffId) {
+    alert('⚠️ Staff not loaded yet...');
+    return;
+}
+```
+
+#### **2. Remove staff_id from viewDetail() init (Lines 1066, 1079)**
+```javascript
+// CHANGE FROM:
+staff_id: parseInt(s.staff_id) || defaultStaffId,
+
+// CHANGE TO:
+staff_id: parseInt(s.staff_id) || null,
+```
+
+#### **3. Remove staff_id from HTML generation (Lines 1104, 1158)**
+```javascript
+// CHANGE FROM:
+const staffId = data ? data.staff_id : defaultStaffId;
+
+// CHANGE TO:
+const staffId = data ? data.staff_id : null;
+```
+
+#### **4. Remove staff_id from toggle init (Lines 1341, 1381)**
+```javascript
+// REMOVE FROM:
+window.editServiceData[serviceIdNum] = {
+    price: defaultPrice,
+    discount: 0,
+    staff_id: defaultStaffId  // REMOVE THIS LINE
+};
+```
+
+#### **5. Remove updateServiceStaff() function (Lines 1441-1447)**
+```javascript
+// REMOVE ENTIRE FUNCTION - staff is not editable
+function updateServiceStaff(serviceId, value) { ... }
+```
+
+#### **6. Remove updatePackageStaff() function (Lines 1485-1491)**
+```javascript
+// REMOVE ENTIRE FUNCTION - staff is not editable
+function updatePackageStaff(packageId, value) { ... }
+```
+
+#### **7. Remove staff dropdowns from edit modal HTML**
+```html
+<!-- REMOVE THESE DIVs (Lines 1130-1136, 1184-1190): -->
+<div>
+    <label style="font-size:0.65rem;color:var(--text-secondary);">Staff</label>
+    <select id="editServiceStaff_${serviceId}" onchange="updateServiceStaff(...)">
+        ${allStaff.map(staff => `<option...`).join('')}
+    </select>
+</div>
+```
+
+#### **8. Remove staff_id from save payloads (Lines 1589, 1607, 1798, 1814, 1832, 1851)**
+```javascript
+// CHANGE FROM:
+servicesToSend.push({
+    service_id: id,
+    staff_id: data.staff_id || defaultStaffId,  // REMOVE THIS LINE
+    price: data.price,
+    discount_amount: data.discount,
+    final_price: finalPrice
+});
+
+// CHANGE TO:
+servicesToSend.push({
+    service_id: id,
+    price: data.price,
+    discount_amount: data.discount,
+    final_price: finalPrice
+});
+```
+
+### **Testing After Changes:**
+- [ ] Create appointment - no JavaScript errors
+- [ ] View appointment - modal opens correctly
+- [ ] Edit appointment - save works without errors
+- [ ] Console - no `defaultStaffId is not defined` errors
+
+---
+
+**Last Updated:** March 18, 2026
+**Next Action:** Cleanup defaultStaffId references in appointments.html
