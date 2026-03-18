@@ -923,14 +923,12 @@
 
             const servicesData = selectedServices.map(s => ({
                 service_id: s.service_id,
-                staff_id: defaultStaffId,
                 price: s.price,
                 discount_amount: 0  // On create, service-level discount is always 0
             }));
 
             const packagesData = selectedPackages.map(p => ({
                 package_id: p.package_id,
-                staff_id: defaultStaffId,
                 price: p.price,
                 discount_amount: 0  // On create, package-level discount is always 0
             }));

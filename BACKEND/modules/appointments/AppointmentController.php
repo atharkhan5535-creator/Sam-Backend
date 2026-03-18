@@ -218,16 +218,15 @@ class AppointmentController
             if (!empty($serviceDetails)) {
                 $stmt = $this->db->prepare("
                     INSERT INTO appointment_services
-                    (appointment_id, service_id, staff_id, service_price, discount_amount, final_price, 
+                    (appointment_id, service_id, service_price, discount_amount, final_price,
                      start_time, end_time, status, created_at, updated_at)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'PENDING', NOW(), NOW())
+                    VALUES (?, ?, ?, ?, ?, ?, ?, 'PENDING', NOW(), NOW())
                 ");
 
                 foreach ($serviceDetails as $service) {
                     $stmt->execute([
                         $appointmentId,
                         $service['service_id'],
-                        $service['staff_id'] ?: null,
                         $service['service_price'],
                         $service['discount_amount'],
                         $service['final_price'],
@@ -241,16 +240,15 @@ class AppointmentController
             if (!empty($packageDetails)) {
                 $stmt = $this->db->prepare("
                     INSERT INTO appointment_packages
-                    (appointment_id, package_id, staff_id, package_price, discount_amount, final_price, 
+                    (appointment_id, package_id, package_price, discount_amount, final_price,
                      status, created_at, updated_at)
-                    VALUES (?, ?, ?, ?, ?, ?, 'PENDING', NOW(), NOW())
+                    VALUES (?, ?, ?, ?, ?, 'PENDING', NOW(), NOW())
                 ");
 
                 foreach ($packageDetails as $package) {
                     $stmt->execute([
                         $appointmentId,
                         $package['package_id'],
-                        $package['staff_id'] ?: null,
                         $package['package_price'],
                         $package['discount_amount'],
                         $package['final_price']
@@ -734,7 +732,6 @@ class AppointmentController
             Response::json(["status" => "error", "message" => "Service not found"], 404);
         }
 
-        $staffId = $data['staff_id'] ?? null;
         $price = $data['price'] ?? $service['price'];
         $discountAmount = $data['discount_amount'] ?? 0;
         $startTime = $data['start_time'] ?? null;
@@ -744,15 +741,14 @@ class AppointmentController
         try {
             $stmt = $this->db->prepare("
                 INSERT INTO appointment_services
-                (appointment_id, service_id, staff_id, service_price, discount_amount, final_price,
+                (appointment_id, service_id, service_price, discount_amount, final_price,
                  start_time, end_time, status, created_at, updated_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'PENDING', NOW(), NOW())
+                VALUES (?, ?, ?, ?, ?, ?, ?, 'PENDING', NOW(), NOW())
             ");
 
             $stmt->execute([
                 $appointmentId,
                 $serviceId,
-                $staffId,
                 $price,
                 $discountAmount,
                 $finalPrice,
@@ -800,7 +796,7 @@ class AppointmentController
             Response::json(["status" => "error", "message" => "Service not found in this appointment"], 404);
         }
 
-        $allowedFields = ['staff_id', 'service_price', 'discount_amount', 'start_time', 'end_time'];
+        $allowedFields = ['service_price', 'discount_amount', 'start_time', 'end_time'];
         $updates = [];
         $values = [];
 
@@ -972,7 +968,6 @@ class AppointmentController
             Response::json(["status" => "error", "message" => "Package already added to this appointment"], 409);
         }
 
-        $staffId = $data['staff_id'] ?? null;
         $price = $data['price'] ?? $package['total_price'];
         $discountAmount = $data['discount_amount'] ?? 0;
         $finalPrice = $price - $discountAmount;
@@ -980,15 +975,14 @@ class AppointmentController
         try {
             $stmt = $this->db->prepare("
                 INSERT INTO appointment_packages
-                (appointment_id, package_id, staff_id, package_price, discount_amount, final_price,
+                (appointment_id, package_id, package_price, discount_amount, final_price,
                  status, created_at, updated_at)
-                VALUES (?, ?, ?, ?, ?, ?, 'PENDING', NOW(), NOW())
+                VALUES (?, ?, ?, ?, ?, 'PENDING', NOW(), NOW())
             ");
 
             $stmt->execute([
                 $appointmentId,
                 $packageId,
-                $staffId,
                 $price,
                 $discountAmount,
                 $finalPrice
@@ -1058,7 +1052,7 @@ class AppointmentController
             Response::json(["status" => "error", "message" => "Package not found in this appointment"], 404);
         }
 
-        $allowedFields = ['staff_id', 'package_price', 'discount_amount'];
+        $allowedFields = ['package_price', 'discount_amount'];
         $updates = [];
         $values = [];
 
