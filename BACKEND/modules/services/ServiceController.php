@@ -35,6 +35,7 @@ class ServiceController
         $duration = $data['duration'] ?? null;
         $imageUrl = trim($data['image_url'] ?? '');
         $status = $data['status'] ?? 'ACTIVE';
+        $staffId = $data['staff_id'] ?? null;
 
         // 1️⃣ Service Name Required
         if (!$serviceName) {
@@ -61,15 +62,28 @@ class ServiceController
             Response::json(["status" => "error", "message" => "Invalid image URL format"], 400);
         }
 
+        // 6️⃣ Staff ID Validation (if provided, must belong to same salon)
+        if ($staffId) {
+            $stmt = $this->db->prepare("
+                SELECT staff_id FROM staff_info
+                WHERE staff_id = ? AND salon_id = ?
+            ");
+            $stmt->execute([$staffId, $salonId]);
+            if (!$stmt->fetch()) {
+                Response::json(["status" => "error", "message" => "Invalid staff_id: Staff must belong to this salon"], 400);
+            }
+        }
+
         try {
             $stmt = $this->db->prepare("
                 INSERT INTO services
-                (salon_id, service_name, description, price, duration, image_url, status, created_at, updated_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
+                (salon_id, staff_id, service_name, description, price, duration, image_url, status, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
             ");
 
             $stmt->execute([
                 $salonId,
+                $staffId,
                 $serviceName,
                 $description ?: null,
                 $price,
@@ -127,6 +141,24 @@ class ServiceController
                 $updates[] = "$field = ?";
                 $values[] = $data[$field];
             }
+        }
+
+        // Handle staff_id separately with validation
+        if (isset($data['staff_id'])) {
+            $staffId = $data['staff_id'];
+            if ($staffId) {
+                // Validate staff exists and belongs to same salon
+                $stmt = $this->db->prepare("
+                    SELECT staff_id FROM staff_info
+                    WHERE staff_id = ? AND salon_id = ?
+                ");
+                $stmt->execute([$staffId, $salonId]);
+                if (!$stmt->fetch()) {
+                    Response::json(["status" => "error", "message" => "Invalid staff_id: Staff must belong to this salon"], 400);
+                }
+            }
+            $updates[] = "staff_id = ?";
+            $values[] = $staffId;
         }
 
         if (empty($updates)) {
@@ -209,7 +241,7 @@ class ServiceController
         if (!$auth) {
             // PUBLIC (No authentication) - ACTIVE services only
             $stmt = $this->db->prepare("
-                SELECT service_id, service_name, description, price, duration, image_url, status, created_at
+                SELECT service_id, salon_id, staff_id, service_name, description, price, duration, image_url, status, created_at
                 FROM services
                 WHERE salon_id = ? AND status = 'ACTIVE'
                 ORDER BY created_at DESC
@@ -218,7 +250,7 @@ class ServiceController
         } elseif ($userRole === 'CUSTOMER') {
             // CUSTOMER - ACTIVE services only
             $stmt = $this->db->prepare("
-                SELECT service_id, service_name, description, price, duration, image_url, status, created_at
+                SELECT service_id, salon_id, staff_id, service_name, description, price, duration, image_url, status, created_at
                 FROM services
                 WHERE salon_id = ? AND status = 'ACTIVE'
                 ORDER BY created_at DESC
@@ -231,7 +263,7 @@ class ServiceController
 
             if ($statusFilter && in_array($statusFilter, ['ACTIVE', 'INACTIVE'])) {
                 $stmt = $this->db->prepare("
-                    SELECT service_id, service_name, description, price, duration, image_url, status, created_at
+                    SELECT service_id, salon_id, staff_id, service_name, description, price, duration, image_url, status, created_at
                     FROM services
                     WHERE salon_id = ? AND status = ?
                     ORDER BY created_at DESC
@@ -239,7 +271,7 @@ class ServiceController
                 $stmt->execute([$salonId, $statusFilter]);
             } else {
                 $stmt = $this->db->prepare("
-                    SELECT service_id, service_name, description, price, duration, image_url, status, created_at
+                    SELECT service_id, salon_id, staff_id, service_name, description, price, duration, image_url, status, created_at
                     FROM services
                     WHERE salon_id = ?
                     ORDER BY created_at DESC
@@ -281,7 +313,7 @@ class ServiceController
         if (!$auth) {
             // PUBLIC (No authentication) - ACTIVE services only
             $stmt = $this->db->prepare("
-                SELECT service_id, salon_id, service_name, description, price, duration, image_url, status, created_at, updated_at
+                SELECT service_id, salon_id, staff_id, service_name, description, price, duration, image_url, status, created_at, updated_at
                 FROM services
                 WHERE service_id = ? AND salon_id = ? AND status = 'ACTIVE'
             ");
@@ -289,7 +321,7 @@ class ServiceController
         } else {
             // AUTHENTICATED USERS - Check based on role
             $stmt = $this->db->prepare("
-                SELECT service_id, salon_id, service_name, description, price, duration, image_url, status, created_at, updated_at
+                SELECT service_id, salon_id, staff_id, service_name, description, price, duration, image_url, status, created_at, updated_at
                 FROM services
                 WHERE service_id = ? AND salon_id = ?
             ");

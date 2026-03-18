@@ -103,7 +103,6 @@ class AppointmentController
 
             foreach ($services as $service) {
                 $serviceId = $service['service_id'];
-                $staffId = $service['staff_id'] ?? null;
                 $servicePrice = $service['price'] ?? 0;
                 $discountAmount = $service['discount_amount'] ?? 0;
                 $serviceStartTime = $service['start_time'] ?? null;
@@ -121,7 +120,6 @@ class AppointmentController
 
                 $serviceDetails[] = [
                     'service_id' => $serviceId,
-                    'staff_id' => $staffId,
                     'service_price' => $servicePrice,
                     'discount_amount' => $discountAmount,
                     'final_price' => $servicePrice - $discountAmount,
