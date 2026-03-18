@@ -215,7 +215,7 @@
                 <div class="form-grid">
                     <div class="form-group full">
                         <label class="form-label">Payment Amount (₹) *</label>
-                        <input type="number" id="payAmount" class="form-input" placeholder="0" min="0.01" step="0.01" required onchange="validatePaymentAmount()">
+                        <input type="number" id="payAmount" class="form-input" placeholder="0" min="0.01" step="0.01" required>
                         <small id="paymentAmountError" style="color:var(--danger);font-size:0.65rem;display:none;">Payment amount cannot exceed outstanding balance</small>
                     </div>
                     <div class="form-group full">
@@ -283,53 +283,32 @@
             }
         }
 
-        // Validate payment amount doesn't exceed outstanding
-        function validatePaymentAmount() {
-            const amount = parseFloat(document.getElementById('payAmount').value) || 0;
-            const errorEl = document.getElementById('paymentAmountError');
-            const payAmountInput = document.getElementById('payAmount');
-            
-            if (amount > currentOutstandingAmount) {
-                errorEl.style.display = 'block';
-                payAmountInput.style.borderColor = 'var(--danger)';
-                return false;
-            } else {
-                errorEl.style.display = 'none';
-                payAmountInput.style.borderColor = 'var(--card-border)';
-                updateRemainingAmount();
-                return true;
-            }
-        }
-        
-        // Update remaining amount after payment
-        function updateRemainingAmount() {
-            const amount = parseFloat(document.getElementById('payAmount').value) || 0;
-            const remaining = currentOutstandingAmount - amount;
-            document.getElementById('remainingAmount').textContent = '₹' + Math.max(0, remaining).toFixed(2);
-        }
-        
+        // ✅ Phase 3: validatePaymentAmount() REMOVED - Backend validates payment amount against outstanding
+
+        // ✅ Phase 3: updateRemainingAmount() REMOVED - Backend calculates and returns outstanding
+
         // Update remarks character count
         function updateRemarksCount() {
             const remarks = document.getElementById('payRemarks').value;
             document.getElementById('remarksCount').textContent = remarks.length + '/500 characters';
         }
-        
+
         // Validate transaction number in real-time
         async function validateTransactionNo() {
             const transactionNo = document.getElementById('payTransactionNo').value.trim();
             const txnInput = document.getElementById('payTransactionNo');
-            
+
             if (!transactionNo) {
                 txnInput.style.borderColor = 'var(--card-border)';
                 return true;
             }
-            
+
             // Check length
             if (transactionNo.length > 100) {
                 txnInput.style.borderColor = 'var(--danger)';
                 return false;
             }
-            
+
             // Check for duplicates (only if invoice is loaded)
             if (currentInvoiceId) {
                 try {
@@ -347,28 +326,27 @@
                     console.error('Failed to validate transaction number:', error);
                 }
             }
-            
+
             txnInput.style.borderColor = 'var(--card-border)';
             return true;
         }
 
         document.addEventListener('DOMContentLoaded', function() {
             const user = TokenManager.getUser();
-            if (user) { 
-                document.getElementById('userName').textContent = user.username || user.name || 'User'; 
-                document.getElementById('userRole').textContent = user.role || 'User'; 
-                document.getElementById('userAvatar').textContent = (user.username || user.name || 'U')[0].toUpperCase(); 
+            if (user) {
+                document.getElementById('userName').textContent = user.username || user.name || 'User';
+                document.getElementById('userRole').textContent = user.role || 'User';
+                document.getElementById('userAvatar').textContent = (user.username || user.name || 'U')[0].toUpperCase();
             }
-            
+
             // Set minimum date for payment date to today
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('payDate').setAttribute('min', today);
-            
-            // Add event listeners
-            document.getElementById('payAmount').addEventListener('input', validatePaymentAmount);
+
+            // Add event listeners - ✅ Phase 3: validatePaymentAmount removed
             document.getElementById('payRemarks').addEventListener('input', updateRemarksCount);
             document.getElementById('payTransactionNo').addEventListener('blur', validateTransactionNo);
-            
+
             loadInvoices();
         });
 

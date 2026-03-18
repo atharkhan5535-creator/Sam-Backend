@@ -918,4 +918,42 @@ class ReportController
             ]
         ]);
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | 10️⃣ DASHBOARD SUMMARY (ADMIN, STAFF) - Pre-calculated stats for dashboard
+    | Returns all dashboard metrics in a single API call
+    |--------------------------------------------------------------------------
+    */
+    public function getDashboardSummary()
+    {
+        $auth = $GLOBALS['auth_user'] ?? null;
+        $salonId = $auth['salon_id'] ?? null;
+
+        if (!$salonId) {
+            Response::json(["status" => "error", "message" => "Invalid salon context"], 400);
+        }
+
+        // Get all dashboard metrics in a single query
+        $stmt = $this->db->prepare("
+            SELECT
+                (SELECT COUNT(*) FROM staff_info WHERE salon_id = ? AND status = 'ACTIVE') as active_staff,
+                (SELECT COUNT(*) FROM customers WHERE salon_id = ? AND status = 'ACTIVE') as active_customers,
+                (SELECT COUNT(*) FROM appointments WHERE salon_id = ? AND status = 'COMPLETED') as completed_appointments,
+                (SELECT COALESCE(SUM(final_amount), 0) FROM appointments WHERE salon_id = ? AND status = 'COMPLETED') as total_revenue,
+                (SELECT COUNT(*) FROM services WHERE salon_id = ? AND status = 'ACTIVE') as active_services,
+                (SELECT COUNT(*) FROM packages WHERE salon_id = ? AND status = 'ACTIVE') as active_packages,
+                (SELECT COUNT(*) FROM stock s WHERE s.salon_id = ? AND s.current_quantity < s.minimum_quantity) as low_stock_count
+        ");
+
+        $stmt->execute([$salonId, $salonId, $salonId, $salonId, $salonId, $salonId, $salonId]);
+        $summary = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        Response::json([
+            "status" => "success",
+            "data" => [
+                "summary" => $summary
+            ]
+        ]);
+    }
 }

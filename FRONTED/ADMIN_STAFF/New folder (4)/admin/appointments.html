@@ -308,7 +308,8 @@
 
                     <div class="form-group">
                         <label class="form-label">Duration (min)</label>
-                        <input type="number" id="newDuration" class="form-input" placeholder="60" min="15" step="15" value="60" onchange="calculateEndTime()">
+                        <input type="number" id="newDuration" class="form-input" placeholder="60" min="15" step="15" value="60">
+                        <small style="color:var(--text-muted);font-size:0.65rem;">Backend calculates end time</small>
                     </div>
 
                     <div class="form-group full">
@@ -772,26 +773,7 @@
             validateForm();
         }
 
-        function calculateEndTime() {
-            const startTime = document.getElementById('newTime').value;
-            const duration = parseInt(document.getElementById('newDuration').value) || 60;
-
-            if (startTime) {
-                // Parse time (handle both HH:MM and HH:MM:SS formats)
-                const timeParts = startTime.split(':').map(Number);
-                const hours = timeParts[0] || 0;
-                const minutes = timeParts[1] || 0;
-                
-                const startDate = new Date();
-                startDate.setHours(hours, minutes, 0);
-                startDate.setMinutes(startDate.getMinutes() + duration);
-
-                const endHours = String(startDate.getHours()).padStart(2, '0');
-                const endMinutes = String(startDate.getMinutes()).padStart(2, '0');
-                const endSeconds = '00';
-                document.getElementById('newEndTime').value = `${endHours}:${endMinutes}:${endSeconds}`;
-            }
-        }
+        // ✅ Phase 4: calculateEndTime() REMOVED - Backend calculates end_time from start_time + duration
 
         function validateForm() {
             let isValid = true;

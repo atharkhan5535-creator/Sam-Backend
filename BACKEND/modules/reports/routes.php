@@ -103,3 +103,13 @@ $router->register(
         $controller->tax();
     }
 );
+
+// 🔟 Dashboard Summary (ADMIN, STAFF) - NEW endpoint for pre-calculated dashboard stats
+$router->register(
+    'GET',
+    '/api/reports/dashboard-summary',
+    function() use ($controller) {
+        authorize(['ADMIN', 'STAFF']);
+        $controller->getDashboardSummary();
+    }
+);

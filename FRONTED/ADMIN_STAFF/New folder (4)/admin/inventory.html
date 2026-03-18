@@ -428,15 +428,16 @@
                 tbody.innerHTML = filtered.map(p => {
                     const stock = stockLevels.find(s => s.product_id === p.product_id);
                     const currentQty = stock ? stock.current_quantity : 0;
-                    const minQty = stock ? stock.minimum_quantity : 0;
-                    const stockStatus = currentQty === 0 ? 'Out of Stock' : (currentQty < minQty ? 'Low Stock' : 'In Stock');
-                    const stockColor = currentQty === 0 ? 'var(--danger)' : (currentQty < minQty ? 'var(--warning)' : 'var(--success)');
+                    // ✅ USE BACKEND-CALCULATED STOCK STATUS (Phase 1, Task 1.2)
+                    const stockStatus = stock?.stock_status || 'OK';
+                    const stockStatusDisplay = stockStatus === 'LOW' ? 'Low Stock' : (stockStatus === 'OVERSTOCKED' ? 'Overstocked' : 'In Stock');
+                    const stockColor = stockStatus === 'LOW' ? 'var(--warning)' : (stockStatus === 'OVERSTOCKED' ? 'var(--danger)' : 'var(--success)');
                     return `<tr>
                         <td><strong style="color:var(--accent-gold);">#${p.product_id}</strong></td>
                         <td><div style="font-weight:600;color:var(--text-primary);">${p.product_name}</div>${p.description ? `<div style="font-size:0.7rem;color:var(--text-muted);">${p.description.substring(0, 40)}${p.description.length > 40 ? '...' : ''}</div>` : ''}</td>
                         <td><span style="padding:0.2rem 0.6rem;background:var(--card-bg);border-radius:var(--radius-full);font-size:0.65rem;color:var(--text-secondary);">${p.category || 'N/A'}</span></td>
                         <td style="color:var(--text-secondary);">${p.brand || 'N/A'}</td>
-                        <td><div style="display:flex;align-items:center;gap:0.65rem;"><div style="flex:1;height:7px;background:var(--card-bg);border-radius:var(--radius-full);overflow:hidden;"><div style="width:${Math.min(100, (currentQty / (stock ? stock.maximum_quantity || 1 : 1)) * 100)}%;height:100%;background:${stockColor};border-radius:var(--radius-full);"></div></div><div style="min-width:75px;text-align:right;"><div style="font-weight:600;color:${stockColor};">${currentQty}</div><div style="font-size:0.65rem;color:var(--text-muted);">${stockStatus}</div></div></div></td>
+                        <td><div style="display:flex;align-items:center;gap:0.65rem;"><div style="flex:1;height:7px;background:var(--card-bg);border-radius:var(--radius-full);overflow:hidden;"><div style="width:${Math.min(100, (currentQty / (stock ? stock.maximum_quantity || 1 : 1)) * 100)}%;height:100%;background:${stockColor};border-radius:var(--radius-full);"></div></div><div style="min-width:75px;text-align:right;"><div style="font-weight:600;color:${stockColor};">${currentQty}</div><div style="font-size:0.65rem;color:var(--text-muted);">${stockStatusDisplay}</div></div></div></td>
                         <td><button class="btn btn-primary btn-sm" onclick="openEdit(${p.product_id})">Edit</button></td>
                     </tr>`;
                 }).join('');

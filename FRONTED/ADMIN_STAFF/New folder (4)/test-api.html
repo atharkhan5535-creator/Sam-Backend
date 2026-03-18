@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Test - SAM Backend</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #1a1a1a; color: #fff; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .test-card { background: #2a2a2a; padding: 15px; margin: 10px 0; border-radius: 8px; border: 1px solid #444; }
+        .test-card h3 { margin-top: 0; color: #d4af37; }
+        .success { color: #22c55e; }
+        .error { color: #ef4444; }
+        .loading { color: #f59e0b; }
+        button { background: #d4af37; color: #000; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; margin: 5px; }
+        button:hover { background: #f5c542; }
+        pre { background: #1a1a1a; padding: 10px; border-radius: 4px; overflow-x: auto; }
+        input, select { background: #333; color: #fff; padding: 8px; border: 1px solid #555; border-radius: 4px; margin: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 SAM Backend API Test</h1>
+        
+        <div class="test-card">
+            <h3>📝 Login Test</h3>
+            <input type="email" id="testEmail" placeholder="Email" value="admin@elite.com">
+            <input type="password" id="testPassword" placeholder="Password" value="Admin@123">
+            <input type="number" id="testSalonId" placeholder="Salon ID" value="1" style="width: 80px;">
+            <br>
+            <button onclick="testLogin()">Test Login</button>
+            <div id="loginResult"></div>
+        </div>
+
+        <div class="test-card">
+            <h3>🔑 Token Info</h3>
+            <div><strong>auth_token:</strong> <span id="tokenStatus">-</span></div>
+            <div><strong>refresh_token:</strong> <span id="refreshTokenStatus">-</span></div>
+            <div><strong>User:</strong> <span id="userInfo">-</span></div>
+            <button onclick="clearTokens()">Clear Tokens</button>
+        </div>
+
+        <div class="test-card">
+            <h3>📊 Dashboard API Test</h3>
+            <button onclick="testDashboard()">Test Dashboard Stats</button>
+            <div id="dashboardResult"></div>
+        </div>
+
+        <div class="test-card">
+            <h3>🏢 Services API Test</h3>
+            <button onclick="testServices()">Test Services List</button>
+            <div id="servicesResult"></div>
+        </div>
+
+        <div class="test-card">
+            <h3>🏆 Incentives API Test</h3>
+            <button onclick="testIncentives()">Test Incentives</button>
+            <div id="incentivesResult"></div>
+        </div>
+    </div>
+
+    <script src="../js/sweetalert2.min.js"></script>
+    <script src="../js/toastify.min.js"></script>
+    <script src="../js/core-api.js"></script>
+    <script src="../js/auth-api.js"></script>
+    <script src="../js/utils.js"></script>
+    <script src="../js/notifications.js"></script>
+    <script src="../js/services-packages-api.js"></script>
+    <script>
+        // Display token info on load
+        function updateTokenInfo() {
+            const token = TokenManager.getToken();
+            const refreshToken = localStorage.getItem('refresh_token');
+            const user = TokenManager.getUser();
+
+            document.getElementById('tokenStatus').textContent = token ? '✅ Present' : '❌ Missing';
+            document.getElementById('tokenStatus').className = token ? 'success' : 'error';
+
+            document.getElementById('refreshTokenStatus').textContent = refreshToken ? '✅ Present' : '❌ Missing';
+            document.getElementById('refreshTokenStatus').className = refreshToken ? 'success' : 'error';
+
+            if (user) {
+                document.getElementById('userInfo').textContent = `${user.username} (${user.role}) - Salon: ${user.salon_id}`;
+            } else {
+                document.getElementById('userInfo').textContent = 'Not logged in';
+                document.getElementById('userInfo').className = 'error';
+            }
+        }
+
+        async function testLogin() {
+            const email = document.getElementById('testEmail').value;
+            const password = document.getElementById('testPassword').value;
+            const salonId = parseInt(document.getElementById('testSalonId').value);
+
+            const resultDiv = document.getElementById('loginResult');
+            resultDiv.innerHTML = '<span class="loading">⏳ Logging in...</span>';
+
+            try {
+                const result = await AuthAPI.login(email, password, 'ADMIN/STAFF', salonId);
+                
+                if (result.success) {
+                    resultDiv.innerHTML = `
+                        <div class="success">✅ Login successful!</div>
+                        <pre>${JSON.stringify(result, null, 2)}</pre>
+                    `;
+                    updateTokenInfo();
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="error">❌ Login failed: ${result.message}</div>
+                        <pre>${JSON.stringify(result, null, 2)}</pre>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">❌ Error: ${error.message}</div>
+                    <pre>${error.stack}</pre>
+                `;
+            }
+        }
+
+        async function testDashboard() {
+            const resultDiv = document.getElementById('dashboardResult');
+            resultDiv.innerHTML = '<span class="loading">⏳ Testing...</span>';
+
+            try {
+                const today = new Date();
+                const startDate = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
+                const endDate = today.toISOString().split('T')[0];
+
+                const result = await apiRequest(`/dashboard/stats?start_date=${startDate}&end_date=${endDate}`, { method: 'GET' });
+                
+                resultDiv.innerHTML = `
+                    <div class="${result.status === 'success' ? 'success' : 'error'}">
+                        ${result.status === 'success' ? '✅ Success' : '❌ Failed'}
+                    </div>
+                    <pre>${JSON.stringify(result, null, 2)}</pre>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">❌ Error: ${error.message}</div>
+                    <pre>${error.stack}</pre>
+                `;
+            }
+        }
+
+        async function testServices() {
+            const resultDiv = document.getElementById('servicesResult');
+            resultDiv.innerHTML = '<span class="loading">⏳ Testing...</span>';
+
+            try {
+                const result = await ServicesAPI.list();
+                
+                resultDiv.innerHTML = `
+                    <div class="${result.success ? 'success' : 'error'}">
+                        ${result.success ? '✅ Success' : '❌ Failed'}
+                    </div>
+                    <div>Found ${result.data?.items?.length || 0} services</div>
+                    <pre>${JSON.stringify(result, null, 2)}</pre>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">❌ Error: ${error.message}</div>
+                    <pre>${error.stack}</pre>
+                `;
+            }
+        }
+
+        async function testIncentives() {
+            const resultDiv = document.getElementById('incentivesResult');
+            resultDiv.innerHTML = '<span class="loading">⏳ Testing...</span>';
+
+            try {
+                const month = new Date().toISOString().slice(0, 7);
+                const result = await apiRequest(`/incentives/monthly?month=${month}`, { method: 'GET' });
+                
+                resultDiv.innerHTML = `
+                    <div class="${result.status === 'success' ? 'success' : 'error'}">
+                        ${result.status === 'success' ? '✅ Success' : '❌ Failed'}
+                    </div>
+                    <pre>${JSON.stringify(result, null, 2)}</pre>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">❌ Error: ${error.message}</div>
+                    <pre>${error.stack}</pre>
+                `;
+            }
+        }
+
+        function clearTokens() {
+            TokenManager.removeToken();
+            TokenManager.removeUser();
+            localStorage.removeItem('refresh_token');
+            localStorage.removeItem('csrf_token');
+            updateTokenInfo();
+            document.getElementById('loginResult').innerHTML = '';
+            document.getElementById('dashboardResult').innerHTML = '';
+            document.getElementById('servicesResult').innerHTML = '';
+            document.getElementById('incentivesResult').innerHTML = '';
+            alert('Tokens cleared!');
+        }
+
+        // Initialize
+        updateTokenInfo();
+    </script>
+</body>
+</html>

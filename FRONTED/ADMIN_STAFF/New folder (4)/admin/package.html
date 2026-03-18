@@ -199,15 +199,6 @@
                     <div class="form-group"><label class="form-label">Validity (days)</label><input type="number" id="fValidity" class="form-input" value="30" min="1"></div>
                     <div class="form-group"><label class="form-label">Status</label><select id="fPStatus" class="form-select"><option value="ACTIVE">Active</option><option value="INACTIVE">Inactive</option></select></div>
                     <div class="form-group full"><label class="form-label">Services *</label><div id="serviceSelector" style="max-height:200px;overflow-y:auto;border:1px solid var(--card-border);padding:0.65rem;border-radius:var(--radius-lg);"></div><small id="servicesError" style="color:var(--danger);display:none;">Please select at least one service</small></div>
-                    <div class="form-group full" style="background:rgba(212, 175, 55, 0.1);padding:0.85rem;border-radius:var(--radius-lg);border:1px solid var(--accent-gold);">
-                        <div style="display:flex;justify-content:space-between;align-items:center;">
-                            <div style="font-size:0.75rem;font-weight:600;color:var(--text-secondary);">
-                                <i class="fas fa-calculator" style="margin-right:0.4rem;"></i>Auto-calculated from services:
-                            </div>
-                            <div style="font-size:1.1rem;font-weight:700;color:var(--accent-gold);" id="autoCalculatedPrice">₹0.00</div>
-                        </div>
-                        <small style="color:var(--text-muted);font-size:0.7rem;display:block;margin-top:0.4rem;">💡 You can manually adjust the Total Price above to offer discounts or increase profit</small>
-                    </div>
                 </div>
             </div>
             <div class="modal-footer"><button class="btn btn-primary" onclick="savePackage()"><i class="fas fa-save"></i> Save</button><button class="btn btn-secondary" onclick="closeModal()">Cancel</button></div>
@@ -243,26 +234,7 @@
             loadServicesForSelector();
         });
 
-        // Calculate total price from selected services
-        function calculateAutoPrice() {
-            let total = 0;
-            selectedServiceIds.forEach(serviceId => {
-                const service = services.find(s => s.service_id === serviceId);
-                if (service) {
-                    total += parseFloat(service.price || 0);
-                }
-            });
-
-            const autoDisplay = document.getElementById('autoCalculatedPrice');
-            if (autoDisplay) {
-                autoDisplay.textContent = '₹' + total.toFixed(2);
-            }
-
-            // Only update the price input if user hasn't manually overridden it
-            if (!manualPriceOverride && total > 0) {
-                document.getElementById('fTotalPrice').value = total.toFixed(2);
-            }
-        }
+        // ✅ Phase 2: calculateAutoPrice() REMOVED - Backend validates price, user can set any value
 
         async function loadPackages() {
             document.getElementById('loadingState').style.display = 'flex';
@@ -301,8 +273,8 @@
                         console.log(`Service ${s.service_id} (${s.service_name}): isSelected=${isSelected}`);
                         return `<label style="display:flex;align-items:center;gap:0.65rem;padding:0.45rem;cursor:pointer;border-radius:var(--radius-md);transition:background 0.2s;${isSelected ? 'background:rgba(212, 175, 55, 0.1);' : ''}"><input type="checkbox" value="${s.service_id}" onchange="toggleService(this)" ${isSelected ? 'checked' : ''} style="cursor:pointer;"><span style="flex:1;color:var(--text-secondary);font-size:0.8rem;">${s.service_name}</span><span style="color:var(--accent-gold);font-weight:600;font-size:0.8rem;">₹${s.price}</span></label>`;
                     }).join('');
-                    
-                    calculateAutoPrice();
+
+                    // ✅ Phase 2: calculateAutoPrice() call removed
                 }
             } catch (error) { console.error('Failed to load services:', error); }
         }
@@ -316,7 +288,7 @@
                 selectedServiceIds = selectedServiceIds.filter(id => id !== serviceId);
                 checkbox.parentElement.style.background = '';
             }
-            calculateAutoPrice();
+            // ✅ Phase 2: calculateAutoPrice() call removed
         }
 
         function render() {
@@ -364,7 +336,6 @@
             ['fPName','fPDesc'].forEach(id => document.getElementById(id).value = '');
             ['fTotalPrice','fValidity'].forEach(id => document.getElementById(id).value = '');
             document.getElementById('fPStatus').value = 'ACTIVE';
-            document.getElementById('autoCalculatedPrice').textContent = '₹0.00';
             loadServicesForSelector();
             document.getElementById('pkgModal').classList.add('open');
         }
