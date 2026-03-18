@@ -182,7 +182,7 @@
 
                         <div class="table-container">
                             <table class="compact-table">
-                                <thead><tr><th style="width:70px;">ID</th><th>Service Name</th><th>Description</th><th style="width:90px;">Duration</th><th style="width:100px;">Price</th><th style="width:90px;">Status</th><th style="width:140px;">Actions</th></tr></thead>
+                                <thead><tr><th style="width:70px;">ID</th><th>Service Name</th><th>Assigned Staff</th><th style="width:90px;">Duration</th><th style="width:100px;">Price</th><th style="width:90px;">Status</th><th style="width:140px;">Actions</th></tr></thead>
                                 <tbody id="svcBody"></tbody>
                             </table>
                         </div>
@@ -203,6 +203,7 @@
                     <div class="form-group full"><label class="form-label">Description</label><textarea id="fDesc" class="form-textarea" rows="3" placeholder="Describe this service…"></textarea></div>
                     <div class="form-group"><label class="form-label">Duration (min) *</label><input type="number" id="fDuration" class="form-input" placeholder="30" min="5" required></div>
                     <div class="form-group"><label class="form-label">Price (₹) *</label><input type="number" id="fPrice" class="form-input" placeholder="500" min="0" step="0.01" required></div>
+                    <div class="form-group full"><label class="form-label">Assigned Staff *</label><select id="fStaff" class="form-select" required><option value="">Select Staff</option></select><small style="color:var(--text-muted);font-size:0.65rem;">Staff member who provides this service</small></div>
                     <div class="form-group full"><label class="form-label">Image URL</label><input type="text" id="fImage" class="form-input" placeholder="uploads/services/image.jpg"></div>
                     <div class="form-group"><label class="form-label">Status</label><select id="modalStatus" class="form-select"><option value="ACTIVE">Active</option><option value="INACTIVE">Inactive</option></select></div>
                 </div>
@@ -223,8 +224,10 @@
     <!-- 4. Our notifications wrapper (uses SweetAlert2 and Toastify) -->
     <script src="../js/notifications.js"></script>
     <script src="../js/services-packages-api.js"></script>
+    <script src="../js/staff-api-module.js"></script>
     <script>
         let services = [];
+        let staff = [];
         let editId = null;
 
         function handleLogout() {
@@ -241,8 +244,27 @@
             const user = TokenManager.getUser();
             if (user) { document.getElementById('userName').textContent = user.username || user.name || 'User'; document.getElementById('userRole').textContent = user.role || 'User'; document.getElementById('userAvatar').textContent = (user.username || user.name || 'U')[0].toUpperCase(); }
             if (user && user.role !== 'ADMIN') document.getElementById('addServiceBtn').style.display = 'none';
+            loadStaffForDropdown();
             loadServices();
         });
+
+        async function loadStaffForDropdown() {
+            try {
+                const result = await StaffAPI.list();
+                if (result.success && result.data && result.data.items) {
+                    staff = result.data.items.filter(s => s.status === 'ACTIVE');
+                    populateStaffDropdown();
+                }
+            } catch (error) {
+                console.error('Failed to load staff:', error);
+            }
+        }
+
+        function populateStaffDropdown() {
+            const select = document.getElementById('fStaff');
+            select.innerHTML = '<option value="">Select Staff</option>' +
+                staff.map(s => `<option value="${s.staff_id}">${s.name}</option>`).join('');
+        }
 
         async function loadServices() {
             document.getElementById('loadingState').style.display = 'flex';
@@ -280,15 +302,19 @@
             if (!filtered.length) {
                 tbody.innerHTML = '<tr><td colspan="7" class="empty-state"><div class="empty-icon"><i class="fas fa-cut"></i></div><h3 class="empty-title">No Services</h3><p class="empty-text">No services found matching your criteria</p></td></tr>';
             } else {
-                tbody.innerHTML = filtered.map(s => `<tr>
+                tbody.innerHTML = filtered.map(s => {
+                    const staffMember = staff.find(st => st.staff_id === s.staff_id);
+                    const staffName = staffMember ? staffMember.name : (s.staff_id ? 'Unknown' : 'Not assigned');
+                    return `<tr>
                     <td><strong style="color:var(--accent-gold);">#${s.service_id}</strong></td>
                     <td><div style="font-weight:600;color:var(--text-primary);">${s.service_name}</div></td>
-                    <td style="max-width:300px;font-size:0.75rem;color:var(--text-secondary);">${s.description || '-'}</td>
+                    <td style="max-width:150px;font-size:0.7rem;color:var(--text-secondary);">${staffName}</td>
                     <td><span style="padding:0.2rem 0.6rem;background:var(--card-bg);border-radius:var(--radius-full);font-size:0.65rem;color:var(--text-secondary);">${s.duration} min</span></td>
                     <td><strong style="color:var(--accent-gold);">₹${parseFloat(s.price).toFixed(2)}</strong></td>
                     <td><span class="status-badge ${getStatusBadgeClass(s.status)}">${s.status}</span></td>
                     <td><button class="btn btn-primary btn-sm" onclick="openEdit(${s.service_id})">Edit</button> <button class="btn btn-${s.status === 'ACTIVE' ? 'warning' : 'success'} btn-sm" onclick="toggleStatus(${s.service_id})">${s.status === 'ACTIVE' ? 'Disable' : 'Enable'}</button></td>
-                </tr>`).join('');
+                </tr>`;
+                }).join('');
             }
             document.getElementById('svcInfo').textContent = `${filtered.length} service(s)` + (statusFilter ? ` (${statusFilter})` : '');
         }
@@ -298,6 +324,7 @@
             document.getElementById('svcModalTitle').innerHTML = '<i class="fas fa-plus"></i> Add Service';
             ['fName','fDesc','fImage'].forEach(id => document.getElementById(id).value = '');
             ['fDuration','fPrice'].forEach(id => document.getElementById(id).value = '');
+            document.getElementById('fStaff').value = '';
             document.getElementById('modalStatus').value = 'ACTIVE';
             document.getElementById('svcModal').classList.add('open');
         }
@@ -312,6 +339,7 @@
             document.getElementById('fDuration').value = s.duration || 30;
             document.getElementById('fPrice').value = s.price || 0;
             document.getElementById('fImage').value = s.image_url || '';
+            document.getElementById('fStaff').value = s.staff_id || '';
             document.getElementById('modalStatus').value = s.status || 'ACTIVE';
             document.getElementById('svcModal').classList.add('open');
         }
@@ -322,6 +350,7 @@
             const duration = parseInt(document.getElementById('fDuration').value) || 30;
             const price = parseFloat(document.getElementById('fPrice').value) || 0;
             const image_url = document.getElementById('fImage').value.trim();
+            const staff_id = document.getElementById('fStaff').value ? parseInt(document.getElementById('fStaff').value) : null;
             const status = document.getElementById('modalStatus').value;
 
             // Build service data object
@@ -331,6 +360,7 @@
                 duration: duration,
                 price: price,
                 image_url: image_url || null,
+                staff_id: staff_id,
                 status: status
             };
 
