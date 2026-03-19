@@ -756,10 +756,43 @@ class AppointmentController
                 $endTime
             ]);
 
+            // ✅ FIX: Recalculate appointment total preserving discount_amount
+            $stmt = $this->db->prepare("
+                SELECT COALESCE(SUM(final_price), 0) AS services_total
+                FROM appointment_services WHERE appointment_id = ?
+            ");
+            $stmt->execute([$appointmentId]);
+            $servicesTotal = $stmt->fetchColumn();
+
+            $stmt = $this->db->prepare("
+                SELECT COALESCE(SUM(final_price), 0) AS packages_total
+                FROM appointment_packages WHERE appointment_id = ?
+            ");
+            $stmt->execute([$appointmentId]);
+            $packagesTotal = $stmt->fetchColumn();
+
+            $newTotal = $servicesTotal + $packagesTotal;
+
+            // Get existing discount_amount
+            $stmt = $this->db->prepare("SELECT discount_amount FROM appointments WHERE appointment_id = ?");
+            $stmt->execute([$appointmentId]);
+            $discountAmountExisting = $stmt->fetchColumn();
+
+            $finalAmount = $newTotal - $discountAmountExisting;
+
+            $stmt = $this->db->prepare("
+                UPDATE appointments
+                SET final_amount = ?, total_amount = ?, updated_at = NOW()
+                WHERE appointment_id = ?
+            ");
+            $stmt->execute([$finalAmount, $newTotal, $appointmentId]);
+
             Response::json([
                 "status" => "success",
                 "data" => [
-                    "appointment_service_id" => $this->db->lastInsertId()
+                    "appointment_service_id" => $this->db->lastInsertId(),
+                    "new_total" => $newTotal,
+                    "new_final" => $finalAmount
                 ]
             ], 201);
 
@@ -828,8 +861,43 @@ class AppointmentController
         $stmt = $this->db->prepare($sql);
         $stmt->execute($values);
 
+        // ✅ FIX: Recalculate appointment total preserving discount_amount
+        $stmt = $this->db->prepare("
+            SELECT COALESCE(SUM(final_price), 0) AS services_total
+            FROM appointment_services WHERE appointment_id = ?
+        ");
+        $stmt->execute([$appointmentId]);
+        $servicesTotal = $stmt->fetchColumn();
+
+        $stmt = $this->db->prepare("
+            SELECT COALESCE(SUM(final_price), 0) AS packages_total
+            FROM appointment_packages WHERE appointment_id = ?
+        ");
+        $stmt->execute([$appointmentId]);
+        $packagesTotal = $stmt->fetchColumn();
+
+        $newTotal = $servicesTotal + $packagesTotal;
+
+        // Get existing discount_amount
+        $stmt = $this->db->prepare("SELECT discount_amount FROM appointments WHERE appointment_id = ?");
+        $stmt->execute([$appointmentId]);
+        $discountAmount = $stmt->fetchColumn();
+
+        $finalAmount = $newTotal - $discountAmount;
+
+        $stmt = $this->db->prepare("
+            UPDATE appointments
+            SET final_amount = ?, total_amount = ?, updated_at = NOW()
+            WHERE appointment_id = ?
+        ");
+        $stmt->execute([$finalAmount, $newTotal, $appointmentId]);
+
         Response::json([
-            "status" => "success"
+            "status" => "success",
+            "data" => [
+                "new_total" => $newTotal,
+                "new_final" => $finalAmount
+            ]
         ]);
     }
 
@@ -900,13 +968,19 @@ class AppointmentController
 
             $newTotal = $servicesTotal + $packagesTotal;
 
-            // Update appointment final_amount
+            // ✅ FIX: Get existing discount_amount and calculate final_amount correctly
+            $stmt = $this->db->prepare("SELECT discount_amount FROM appointments WHERE appointment_id = ?");
+            $stmt->execute([$appointmentId]);
+            $discountAmount = $stmt->fetchColumn();
+
+            $finalAmount = $newTotal - $discountAmount;
+
             $stmt = $this->db->prepare("
                 UPDATE appointments
                 SET final_amount = ?, total_amount = ?, updated_at = NOW()
                 WHERE appointment_id = ?
             ");
-            $stmt->execute([$newTotal, $newTotal, $appointmentId]);
+            $stmt->execute([$finalAmount, $newTotal, $appointmentId]);
 
             $this->db->commit();
 
@@ -990,7 +1064,7 @@ class AppointmentController
 
             $apptPackageId = $this->db->lastInsertId();
 
-            // Recalculate appointment total
+            // ✅ FIX: Recalculate appointment total preserving discount_amount
             $stmt = $this->db->prepare("
                 SELECT COALESCE(SUM(final_price), 0) AS services_total
                 FROM appointment_services
@@ -999,15 +1073,29 @@ class AppointmentController
             $stmt->execute([$appointmentId]);
             $servicesTotal = $stmt->fetchColumn();
 
-            $newTotal = $servicesTotal + $finalPrice;
+            $stmt = $this->db->prepare("
+                SELECT COALESCE(SUM(final_price), 0) AS packages_total
+                FROM appointment_packages
+                WHERE appointment_id = ?
+            ");
+            $stmt->execute([$appointmentId]);
+            $packagesTotal = $stmt->fetchColumn();
 
-            // Update appointment final_amount
+            $newTotal = $servicesTotal + $packagesTotal;
+
+            // Get existing discount_amount
+            $stmt = $this->db->prepare("SELECT discount_amount FROM appointments WHERE appointment_id = ?");
+            $stmt->execute([$appointmentId]);
+            $discountAmountExisting = $stmt->fetchColumn();
+
+            $finalAmount = $newTotal - $discountAmountExisting;
+
             $stmt = $this->db->prepare("
                 UPDATE appointments
                 SET final_amount = ?, total_amount = ?, updated_at = NOW()
                 WHERE appointment_id = ?
             ");
-            $stmt->execute([$newTotal, $newTotal, $appointmentId]);
+            $stmt->execute([$finalAmount, $newTotal, $appointmentId]);
 
             Response::json([
                 "status" => "success",
@@ -1103,17 +1191,25 @@ class AppointmentController
 
         $newTotal = $servicesTotal + $packagesTotal;
 
+        // ✅ FIX: Get existing discount_amount and calculate final_amount correctly
+        $stmt = $this->db->prepare("SELECT discount_amount FROM appointments WHERE appointment_id = ?");
+        $stmt->execute([$appointmentId]);
+        $discountAmount = $stmt->fetchColumn();
+
+        $finalAmount = $newTotal - $discountAmount;
+
         $stmt = $this->db->prepare("
             UPDATE appointments
             SET final_amount = ?, total_amount = ?, updated_at = NOW()
             WHERE appointment_id = ?
         ");
-        $stmt->execute([$newTotal, $newTotal, $appointmentId]);
+        $stmt->execute([$finalAmount, $newTotal, $appointmentId]);
 
         Response::json([
             "status" => "success",
             "data" => [
-                "new_total" => $newTotal
+                "new_total" => $newTotal,
+                "new_final" => $finalAmount
             ]
         ]);
     }
@@ -1184,13 +1280,19 @@ class AppointmentController
 
             $newTotal = $servicesTotal + $packagesTotal;
 
-            // Update appointment final_amount
+            // ✅ FIX: Get existing discount_amount and calculate final_amount correctly
+            $stmt = $this->db->prepare("SELECT discount_amount FROM appointments WHERE appointment_id = ?");
+            $stmt->execute([$appointmentId]);
+            $discountAmount = $stmt->fetchColumn();
+
+            $finalAmount = $newTotal - $discountAmount;
+
             $stmt = $this->db->prepare("
                 UPDATE appointments
                 SET final_amount = ?, total_amount = ?, updated_at = NOW()
                 WHERE appointment_id = ?
             ");
-            $stmt->execute([$newTotal, $newTotal, $appointmentId]);
+            $stmt->execute([$finalAmount, $newTotal, $appointmentId]);
 
             $this->db->commit();
 

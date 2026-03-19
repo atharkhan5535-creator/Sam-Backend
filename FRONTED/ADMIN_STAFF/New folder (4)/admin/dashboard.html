@@ -210,7 +210,7 @@
 
             try {
                 // ✅ SINGLE API CALL - replaces 8 separate calls
-                const dashboardResult = await apiRequest('/api/reports/dashboard-summary', { method: 'GET' });
+                const dashboardResult = await apiRequest('/reports/dashboard-summary', { method: 'GET' });
 
                 if (dashboardResult.status === 'success') {
                     const summary = dashboardResult.data.summary;

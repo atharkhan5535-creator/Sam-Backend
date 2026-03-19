@@ -1086,92 +1086,70 @@
                 const allPackages = packagesResult.success ? (packagesResult.data.items || []) : [];
                 const allStaff = staffResult.success ? (staffResult.data.items || []) : [];
 
-                // ===== STEP 4: Build services HTML with price/discount inputs =====
+                // Store on window for toggle functions to access
+                window.allServicesForEdit = allServices;
+                window.allPackagesForEdit = allPackages;
+
+                // ===== STEP 4: Build services HTML (display-only, no price/discount editing) =====
                 const servicesHtml = allServices.map(s => {
                     const serviceId = parseInt(s.service_id) || 0;
                     const isSelected = window.editSelectedServices.includes(serviceId);
                     const data = window.editServiceData[serviceId];
 
-                    const price = data ? data.price : s.price;
-                    const discount = data ? data.discount : 0;
+                    // Parse prices as floats (API returns strings from database)
+                    const defaultPrice = parseFloat(s.price || 0);
+                    const price = data ? data.price : defaultPrice;
+                    const discount = data ? parseFloat(data.discount || 0) : 0;
+                    const finalPrice = price - discount;
 
-                    console.log(`Service ${serviceId} (${s.service_name}): isSelected=${isSelected}`);
+                    console.log(`Service ${serviceId} (${s.service_name}): isSelected=${isSelected}, defaultPrice=${defaultPrice}, price=${price}`);
 
                     return `
                         <div style="border:1px solid ${isSelected ? 'var(--accent-gold)' : 'var(--card-border)'};border-radius:var(--radius-md);padding:0.75rem;margin-bottom:0.5rem;background:${isSelected ? 'rgba(212, 175, 55, 0.05)' : 'transparent'};">
-                            <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;">
-                                <input type="checkbox" id="editService_${serviceId}" value="${serviceId}"
-                                    onchange="toggleEditService(this, ${serviceId})"
-                                    ${isSelected ? 'checked' : ''}
-                                    style="cursor:pointer;width:18px;height:18px;">
-                                <div style="flex:1;">
-                                    <div style="font-weight:600;color:var(--text-primary);">${s.service_name}</div>
-                                    <div style="font-size:0.8rem;color:var(--text-secondary);">Default: ₹${s.price}</div>
+                            <div style="display:flex;align-items:center;justify-content:space-between;gap:0.75rem;">
+                                <div style="display:flex;align-items:center;gap:0.5rem;flex:1;">
+                                    <input type="checkbox" id="editService_${serviceId}" value="${serviceId}"
+                                        onchange="toggleEditService(this, ${serviceId})"
+                                        ${isSelected ? 'checked' : ''}
+                                        style="cursor:pointer;width:18px;height:18px;">
+                                    <div style="flex:1;">
+                                        <div style="font-weight:600;color:var(--text-primary);">${s.service_name}</div>
+                                        <div style="font-size:0.75rem;color:var(--text-secondary);">Price: ₹${finalPrice.toFixed(2)}</div>
+                                    </div>
                                 </div>
                             </div>
-                            ${isSelected ? `
-                                <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-left:24px;padding:0.5rem;background:var(--primary-dark);border-radius:var(--radius-md);">
-                                    <div>
-                                        <label style="font-size:0.65rem;color:var(--text-secondary);">Price (₹)</label>
-                                        <input type="number" id="editServicePrice_${serviceId}"
-                                            value="${price}" min="0" step="0.01"
-                                            onchange="updateServicePrice(${serviceId}, this.value)"
-                                            style="width:100%;padding:0.4rem;background:var(--card-bg);border:1px solid var(--card-border);border-radius:4px;color:var(--text-primary);font-size:0.85rem;">
-                                    </div>
-                                    <div>
-                                        <label style="font-size:0.65rem;color:var(--text-secondary);">Discount (₹)</label>
-                                        <input type="number" id="editServiceDiscount_${serviceId}"
-                                            value="${discount}" min="0" step="0.01"
-                                            onchange="updateServiceDiscount(${serviceId}, this.value)"
-                                            style="width:100%;padding:0.4rem;background:var(--card-bg);border:1px solid var(--card-border);border-radius:4px;color:var(--text-primary);font-size:0.85rem;">
-                                    </div>
-                                </div>
-                            ` : ''}
                         </div>
                     `;
                 }).join('');
 
-                // ===== STEP 5: Build packages HTML with price/discount inputs =====
+                // ===== STEP 5: Build packages HTML (display-only, no price/discount editing) =====
                 const packagesHtml = allPackages.map(p => {
                     const packageId = parseInt(p.package_id) || 0;
                     const isSelected = window.editSelectedPackages.includes(packageId);
                     const data = window.editPackageData[packageId];
 
-                    const price = data ? data.price : p.total_price;
-                    const discount = data ? data.discount : 0;
+                    // Parse prices as floats (API returns strings from database)
+                    const defaultPrice = parseFloat(p.total_price || 0);
+                    const price = data ? data.price : defaultPrice;
+                    const discount = data ? parseFloat(data.discount || 0) : 0;
+                    const finalPrice = price - discount;
 
-                    console.log(`Package ${packageId} (${p.package_name}): isSelected=${isSelected}`);
+                    console.log(`Package ${packageId} (${p.package_name}): isSelected=${isSelected}, defaultPrice=${defaultPrice}, price=${price}`);
 
                     return `
                         <div style="border:1px solid ${isSelected ? 'var(--accent-gold)' : 'var(--card-border)'};border-radius:var(--radius-md);padding:0.75rem;margin-bottom:0.5rem;background:${isSelected ? 'rgba(212, 175, 55, 0.05)' : 'transparent'};">
-                            <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;">
-                                <input type="checkbox" id="editPackage_${packageId}" value="${packageId}"
-                                    onchange="toggleEditPackage(this, ${packageId})"
-                                    ${isSelected ? 'checked' : ''}
-                                    style="cursor:pointer;width:18px;height:18px;">
-                                <div style="flex:1;">
-                                    <div style="font-weight:600;color:var(--text-primary);">${p.package_name}</div>
-                                    <div style="font-size:0.8rem;color:var(--text-secondary);">Default: ₹${p.total_price}</div>
+                            <div style="display:flex;align-items:center;justify-content:space-between;gap:0.75rem;">
+                                <div style="display:flex;align-items:center;gap:0.5rem;flex:1;">
+                                    <input type="checkbox" id="editPackage_${packageId}" value="${packageId}"
+                                        onchange="toggleEditPackage(this, ${packageId})"
+                                        ${isSelected ? 'checked' : ''}
+                                        style="cursor:pointer;width:18px;height:18px;">
+                                    <div style="flex:1;">
+                                        <div style="font-weight:600;color:var(--text-primary);">${p.package_name}</div>
+                                        <div style="font-size:0.75rem;color:var(--text-secondary);">Price: ₹${finalPrice.toFixed(2)}</div>
+                                    </div>
                                 </div>
                             </div>
-                            ${isSelected ? `
-                                <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-left:24px;padding:0.5rem;background:var(--primary-dark);border-radius:var(--radius-md);">
-                                    <div>
-                                        <label style="font-size:0.65rem;color:var(--text-secondary);">Price (₹)</label>
-                                        <input type="number" id="editPackagePrice_${packageId}"
-                                            value="${price}" min="0" step="0.01"
-                                            onchange="updatePackagePrice(${packageId}, this.value)"
-                                            style="width:100%;padding:0.4rem;background:var(--card-bg);border:1px solid var(--card-border);border-radius:4px;color:var(--text-primary);font-size:0.85rem;">
-                                    </div>
-                                    <div>
-                                        <label style="font-size:0.65rem;color:var(--text-secondary);">Discount (₹)</label>
-                                        <input type="number" id="editPackageDiscount_${packageId}"
-                                            value="${discount}" min="0" step="0.01"
-                                            onchange="updatePackageDiscount(${packageId}, this.value)"
-                                            style="width:100%;padding:0.4rem;background:var(--card-bg);border:1px solid var(--card-border);border-radius:4px;color:var(--text-primary);font-size:0.85rem;">
-                                    </div>
-                                </div>
-                            ` : ''}
                         </div>
                     `;
                 }).join('');
@@ -1305,13 +1283,12 @@
                 // Add to selection
                 window.editSelectedServices.push(serviceIdNum);
 
-                // Initialize with default price if not already set
+                // Initialize with DB price/discount if not already set
                 if (!window.editServiceData[serviceIdNum]) {
-                    const priceInput = document.getElementById(`editServicePrice_${serviceIdNum}`);
-                    const defaultPrice = priceInput ? parseFloat(priceInput.value) || 0 : 0;
-
+                    // Find service from allServices to get DB values
+                    const service = window.allServicesForEdit.find(s => parseInt(s.service_id) === serviceIdNum);
                     window.editServiceData[serviceIdNum] = {
-                        price: defaultPrice,
+                        price: service ? parseFloat(service.price || 0) : 0,
                         discount: 0
                     };
                 }
@@ -1344,13 +1321,12 @@
                 // Add to selection
                 window.editSelectedPackages.push(packageIdNum);
 
-                // Initialize with default price if not already set
+                // Initialize with DB price/discount if not already set
                 if (!window.editPackageData[packageIdNum]) {
-                    const priceInput = document.getElementById(`editPackagePrice_${packageIdNum}`);
-                    const defaultPrice = priceInput ? parseFloat(priceInput.value) || 0 : 0;
-
+                    // Find package from allPackages to get DB values
+                    const pkg = window.allPackagesForEdit.find(p => parseInt(p.package_id) === packageIdNum);
                     window.editPackageData[packageIdNum] = {
-                        price: defaultPrice,
+                        price: pkg ? parseFloat(pkg.total_price || 0) : 0,
                         discount: 0
                     };
                 }
@@ -1367,78 +1343,12 @@
                 // Update visual styling
                 checkbox.closest('div[style*="border"]').style.borderColor = 'var(--card-border)';
                 checkbox.closest('div[style*="border"]').style.background = 'transparent';
-                
+
                 console.log(`Package ${packageIdNum} UNCHECKED`);
             }
-            
+
             // Recalculate total
             calculateNewTotal();
-        }
-
-        // Update service price when user edits input
-        function updateServicePrice(serviceId, value) {
-            const serviceIdNum = parseInt(serviceId) || 0;
-            const price = parseFloat(value) || 0;
-            
-            if (window.editServiceData[serviceIdNum]) {
-                window.editServiceData[serviceIdNum].price = price;
-                console.log(`Service ${serviceIdNum} price updated to ₹${price}`);
-                calculateNewTotal();
-            }
-        }
-
-        // Update service discount when user edits input
-        function updateServiceDiscount(serviceId, value) {
-            const serviceIdNum = parseInt(serviceId) || 0;
-            const discount = parseFloat(value) || 0;
-            
-            if (window.editServiceData[serviceIdNum]) {
-                // Validate: discount cannot exceed price
-                const currentPrice = window.editServiceData[serviceIdNum].price || 0;
-                if (discount > currentPrice) {
-                    alert(`Service discount (₹${discount}) cannot exceed service price (₹${currentPrice})`);
-                    // Revert to previous value
-                    document.getElementById(`editServiceDiscount_${serviceIdNum}`).value = window.editServiceData[serviceIdNum].discount;
-                    return;
-                }
-                
-                window.editServiceData[serviceIdNum].discount = discount;
-                console.log(`Service ${serviceIdNum} discount updated to ₹${discount}`);
-                calculateNewTotal();
-            }
-        }
-
-        // Update package price when user edits input
-        function updatePackagePrice(packageId, value) {
-            const packageIdNum = parseInt(packageId) || 0;
-            const price = parseFloat(value) || 0;
-
-            if (window.editPackageData[packageIdNum]) {
-                window.editPackageData[packageIdNum].price = price;
-                console.log(`Package ${packageIdNum} price updated to ₹${price}`);
-                calculateNewTotal();
-            }
-        }
-
-        // Update package discount when user edits input
-        function updatePackageDiscount(packageId, value) {
-            const packageIdNum = parseInt(packageId) || 0;
-            const discount = parseFloat(value) || 0;
-
-            if (window.editPackageData[packageIdNum]) {
-                // Validate: discount cannot exceed price
-                const currentPrice = window.editPackageData[packageIdNum].price || 0;
-                if (discount > currentPrice) {
-                    alert(`Package discount (₹${discount}) cannot exceed package price (₹${currentPrice})`);
-                    // Revert to previous value
-                    document.getElementById(`editPackageDiscount_${packageIdNum}`).value = window.editPackageData[packageIdNum].discount;
-                    return;
-                }
-
-                window.editPackageData[packageIdNum].discount = discount;
-                console.log(`Package ${packageIdNum} discount updated to ₹${discount}`);
-                calculateNewTotal();
-            }
         }
 
         /* =============================================
@@ -1759,7 +1669,7 @@
                 // ===== STEP 8: API Call 5 - UPDATE changed services =====
                 for (const item of changes.servicesUpdated) {
                     const serviceData = {
-                        price: item.data.price || 0,
+                        service_price: item.data.price || 0,      // ✅ Fixed: was 'price'
                         discount_amount: item.data.discount || 0
                     };
                     console.log(`Step 5 - Updating service ${item.serviceId}:`, serviceData);
@@ -1794,7 +1704,7 @@
                 // ===== STEP 10: API Call 7 - UPDATE changed packages =====
                 for (const item of changes.packagesUpdated) {
                     const packageData = {
-                        price: item.data.price || 0,
+                        package_price: item.data.price || 0,    // ✅ Fixed: was 'price'
                         discount_amount: item.data.discount || 0
                     };
                     console.log(`Step 7 - Updating package ${item.packageId}:`, packageData);
