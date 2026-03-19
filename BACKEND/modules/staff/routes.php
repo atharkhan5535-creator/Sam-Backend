@@ -90,6 +90,26 @@ $router->register(
     }
 );
 
+// 8️⃣ Get Unpaid Incentives by Staff (ADMIN only)
+$router->register(
+    'GET',
+    '/api/staff/incentives/unpaid/{staff_id}',
+    function($staffId) use ($staffController) {
+        authorize(['ADMIN']);
+        $staffController->getUnpaidIncentives($staffId);
+    }
+);
+
+// 9️⃣ Get Incentive History by Staff (ADMIN only)
+$router->register(
+    'GET',
+    '/api/staff/incentives/history/{staff_id}',
+    function($staffId) use ($staffController) {
+        authorize(['ADMIN']);
+        $staffController->getIncentiveHistory($staffId);
+    }
+);
+
 /*
 |--------------------------------------------------------------------------
 | STAFF DOCUMENT ROUTES

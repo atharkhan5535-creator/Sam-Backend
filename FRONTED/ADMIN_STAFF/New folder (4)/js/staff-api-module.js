@@ -238,6 +238,32 @@ const StaffAPI = {
         } catch (error) {
             return { success: false, message: error.message };
         }
+    },
+
+    /**
+     * Get unpaid incentives by staff ID (ADMIN only)
+     * @param {number} staffId - Staff ID
+     */
+    getUnpaidIncentives: async (staffId) => {
+        try {
+            const response = await apiRequest(`/staff/incentives/unpaid/${staffId}`, { method: 'GET' });
+            return { success: true, data: response.data };
+        } catch (error) {
+            return { success: false, message: error.message };
+        }
+    },
+
+    /**
+     * Get incentive history by staff ID (ADMIN only)
+     * @param {number} staffId - Staff ID
+     */
+    getIncentiveHistory: async (staffId) => {
+        try {
+            const response = await apiRequest(`/staff/incentives/history/${staffId}`, { method: 'GET' });
+            return { success: true, data: response.data };
+        } catch (error) {
+            return { success: false, message: error.message };
+        }
     }
 };
 

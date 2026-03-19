@@ -89,21 +89,19 @@ class StockController
 
             $productId = $this->db->lastInsertId();
 
-            // Initialize stock record with default values
+            // Initialize stock record with provided or default values
             $minQty = $data['minimum_quantity'] ?? 10;
             $maxQty = $data['maximum_quantity'] ?? 100;
-            $currentQty = $data['initial_quantity'] ?? 0;
 
             $stmt = $this->db->prepare("
                 INSERT INTO stock
                 (product_id, salon_id, current_quantity, minimum_quantity, maximum_quantity, last_restocked, created_at, updated_at)
-                VALUES (?, ?, ?, ?, ?, NOW(), NOW(), NOW())
+                VALUES (?, ?, 0, ?, ?, NOW(), NOW(), NOW())
             ");
 
             $stmt->execute([
                 $productId,
                 $salonId,
-                $currentQty,
                 $minQty,
                 $maxQty
             ]);
@@ -149,6 +147,7 @@ class StockController
 
         $data = json_decode(file_get_contents("php://input"), true);
 
+        // Product fields
         $allowedFields = ['product_name', 'brand', 'category', 'description'];
         $updates = [];
         $values = [];
@@ -160,18 +159,61 @@ class StockController
             }
         }
 
-        if (empty($updates)) {
-            Response::json(["status" => "error", "message" => "No valid fields to update"], 400);
+        if (!empty($updates)) {
+            $values[] = $productId;
+            $values[] = $salonId;
+
+            $sql = "UPDATE products SET " . implode(', ', $updates) . ", updated_at = NOW()
+                    WHERE product_id = ? AND salon_id = ?";
+
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute($values);
         }
 
-        $values[] = $productId;
-        $values[] = $salonId;
+        // Update stock threshold fields if provided
+        $stockFields = ['minimum_quantity', 'maximum_quantity'];
+        $hasStockUpdate = false;
+        
+        foreach ($stockFields as $field) {
+            if (isset($data[$field])) {
+                $hasStockUpdate = true;
+                break;
+            }
+        }
 
-        $sql = "UPDATE products SET " . implode(', ', $updates) . ", updated_at = NOW()
-                WHERE product_id = ? AND salon_id = ?";
+        if ($hasStockUpdate) {
+            // Check if stock record exists
+            $stmt = $this->db->prepare("SELECT * FROM stock WHERE product_id = ? AND salon_id = ?");
+            $stmt->execute([$productId, $salonId]);
+            $stock = $stmt->fetch();
 
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute($values);
+            if ($stock) {
+                // Update existing stock record
+                $stockUpdates = [];
+                $stockValues = [];
+
+                if (isset($data['minimum_quantity'])) {
+                    $stockUpdates[] = "minimum_quantity = ?";
+                    $stockValues[] = $data['minimum_quantity'];
+                }
+
+                if (isset($data['maximum_quantity'])) {
+                    $stockUpdates[] = "maximum_quantity = ?";
+                    $stockValues[] = $data['maximum_quantity'];
+                }
+
+                if (!empty($stockUpdates)) {
+                    $stockValues[] = $productId;
+                    $stockValues[] = $salonId;
+
+                    $sql = "UPDATE stock SET " . implode(', ', $stockUpdates) . ", updated_at = NOW()
+                            WHERE product_id = ? AND salon_id = ?";
+
+                    $stmt = $this->db->prepare($sql);
+                    $stmt->execute($stockValues);
+                }
+            }
+        }
 
         Response::json([
             "status" => "success"

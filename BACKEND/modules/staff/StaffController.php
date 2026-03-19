@@ -603,4 +603,123 @@ class StaffController
             ], 500);
         }
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | 8️⃣ GET UNPAID INCENTIVES BY STAFF (ADMIN only)
+    |--------------------------------------------------------------------------
+    */
+    public function getUnpaidIncentives($staffId)
+    {
+        $auth = $GLOBALS['auth_user'] ?? null;
+        $salonId = $auth['salon_id'] ?? null;
+
+        if (!$salonId) {
+            Response::json(["status" => "error", "message" => "Invalid salon context"], 400);
+        }
+
+        // Verify staff exists and belongs to salon
+        $stmt = $this->db->prepare("SELECT staff_id FROM staff_info WHERE staff_id = ? AND salon_id = ?");
+        $stmt->execute([$staffId, $salonId]);
+        $staff = $stmt->fetch();
+
+        if (!$staff) {
+            Response::json(["status" => "error", "message" => "Staff not found"], 404);
+        }
+
+        // Get all unpaid/pending incentives for this staff
+        $stmt = $this->db->prepare("
+            SELECT 
+                i.incentive_id,
+                i.incentive_type,
+                i.calculation_type,
+                i.incentive_amount,
+                i.base_amount,
+                i.percentage_rate,
+                i.appointment_id,
+                i.remarks,
+                i.status,
+                i.created_at,
+                a.appointment_date,
+                a.final_amount as appointment_amount
+            FROM incentives i
+            LEFT JOIN appointments a ON i.appointment_id = a.appointment_id
+            WHERE i.staff_id = ? AND i.status != 'PAID'
+            ORDER BY i.created_at DESC
+        ");
+        $stmt->execute([$staffId]);
+        $incentives = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Calculate total outstanding
+        $totalOutstanding = array_sum(array_column($incentives, 'incentive_amount'));
+
+        Response::json([
+            "status" => "success",
+            "data" => [
+                "staff_id" => $staffId,
+                "total_outstanding" => $totalOutstanding,
+                "count" => count($incentives),
+                "incentives" => $incentives
+            ]
+        ]);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | 9️⃣ GET INCENTIVE HISTORY BY STAFF (ADMIN only)
+    |--------------------------------------------------------------------------
+    */
+    public function getIncentiveHistory($staffId)
+    {
+        $auth = $GLOBALS['auth_user'] ?? null;
+        $salonId = $auth['salon_id'] ?? null;
+
+        if (!$salonId) {
+            Response::json(["status" => "error", "message" => "Invalid salon context"], 400);
+        }
+
+        // Verify staff exists and belongs to salon
+        $stmt = $this->db->prepare("SELECT staff_id FROM staff_info WHERE staff_id = ? AND salon_id = ?");
+        $stmt->execute([$staffId, $salonId]);
+        $staff = $stmt->fetch();
+
+        if (!$staff) {
+            Response::json(["status" => "error", "message" => "Staff not found"], 404);
+        }
+
+        // Get all incentives for this staff with payout info
+        $stmt = $this->db->prepare("
+            SELECT 
+                i.*,
+                a.appointment_date,
+                a.final_amount as appointment_amount,
+                p.payout_id,
+                p.payout_amount,
+                p.payout_date,
+                p.payment_mode
+            FROM incentives i
+            LEFT JOIN appointments a ON i.appointment_id = a.appointment_id
+            LEFT JOIN incentive_payouts p ON i.incentive_id = p.incentive_id
+            WHERE i.staff_id = ?
+            ORDER BY i.created_at DESC
+        ");
+        $stmt->execute([$staffId]);
+        $incentives = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Calculate totals
+        $totalIncentives = array_sum(array_column($incentives, 'incentive_amount'));
+        $totalPaid = array_sum(array_column($incentives, 'payout_amount'));
+
+        Response::json([
+            "status" => "success",
+            "data" => [
+                "staff_id" => $staffId,
+                "total_incentives" => $totalIncentives,
+                "total_paid" => $totalPaid,
+                "total_outstanding" => $totalIncentives - $totalPaid,
+                "count" => count($incentives),
+                "incentives" => $incentives
+            ]
+        ]);
+    }
 }

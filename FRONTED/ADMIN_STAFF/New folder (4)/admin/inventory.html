@@ -212,6 +212,22 @@
                     <div class="form-group"><label class="form-label">Brand</label><input type="text" id="fBrand" class="form-input" placeholder="e.g. L'Oreal"></div>
                     <div class="form-group"><label class="form-label">Category</label><select id="fICat" class="form-select"><option value="product">Product</option><option value="equipment">Equipment</option></select></div>
                     <div class="form-group full"><label class="form-label">Description</label><textarea id="fDesc" class="form-textarea" rows="3" placeholder="Product description"></textarea></div>
+                    
+                    <!-- Stock Settings -->
+                    <div class="form-group full" style="margin-top:0.5rem;padding-top:0.5rem;border-top:1px solid var(--card-border);">
+                        <label class="form-label" style="color:var(--accent-gold);"><i class="fas fa-boxes"></i> Stock Settings</label>
+                        <small style="color:var(--text-muted);font-size:0.6rem;display:block;margin-top:0.25rem;">Use Stock Transactions to adjust quantities</small>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Minimum Quantity</label>
+                        <input type="number" id="fMinQty" class="form-input" placeholder="10" min="0" value="10">
+                        <small style="color:var(--text-muted);font-size:0.6rem;">Low stock alert threshold</small>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Maximum Quantity</label>
+                        <input type="number" id="fMaxQty" class="form-input" placeholder="100" min="0" value="100">
+                        <small style="color:var(--text-muted);font-size:0.6rem;">Maximum storage capacity</small>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer"><button class="btn btn-primary" onclick="saveProduct()"><i class="fas fa-save"></i> Save</button><button class="btn btn-secondary" onclick="closeModal('invModal')">Cancel</button></div>
@@ -450,6 +466,9 @@
             document.getElementById('invModalTitle').innerHTML = '<i class="fas fa-plus"></i> Add Product';
             ['fIName','fBrand','fDesc'].forEach(id => document.getElementById(id).value = '');
             document.getElementById('fICat').value = 'product';
+            // Reset stock fields to defaults
+            document.getElementById('fMinQty').value = '10';
+            document.getElementById('fMaxQty').value = '100';
             document.getElementById('invModal').classList.add('open');
         }
 
@@ -457,25 +476,54 @@
             editId = id;
             const p = products.find(x => x.product_id === id);
             if (!p) return;
+            
+            // Get stock data if available
+            const stock = stockLevels.find(s => s.product_id === id);
+            
             document.getElementById('invModalTitle').innerHTML = '<i class="fas fa-edit"></i> Edit Product';
             document.getElementById('fIName').value = p.product_name || '';
             document.getElementById('fBrand').value = p.brand || '';
             document.getElementById('fICat').value = p.category || 'product';
             document.getElementById('fDesc').value = p.description || '';
+            
+            // Load stock threshold values (not current quantity - that's managed via transactions)
+            document.getElementById('fMinQty').value = stock ? stock.minimum_quantity : 10;
+            document.getElementById('fMaxQty').value = stock ? stock.maximum_quantity : 100;
+            
             document.getElementById('invModal').classList.add('open');
         }
 
         async function saveProduct() {
             const product_name = document.getElementById('fIName').value.trim();
             if (!product_name) { alert('Product name required'); return; }
-            const productData = { product_name, brand: document.getElementById('fBrand').value.trim(), category: document.getElementById('fICat').value, description: document.getElementById('fDesc').value.trim() };
+            
+            const productData = {
+                product_name,
+                brand: document.getElementById('fBrand').value.trim(),
+                category: document.getElementById('fICat').value,
+                description: document.getElementById('fDesc').value.trim(),
+                // Stock threshold fields
+                minimum_quantity: parseInt(document.getElementById('fMinQty').value) || 10,
+                maximum_quantity: parseInt(document.getElementById('fMaxQty').value) || 100
+            };
+            
             try {
                 let result;
-                if (editId) result = await StockAPI.updateProduct(editId, productData);
-                else result = await StockAPI.createProduct(productData);
-                if (result.success) { alert(editId ? 'Product updated!' : 'Product added!'); await loadInventory(); closeModal('invModal'); }
-                else { alert(result.message || 'Failed'); }
-            } catch (error) { alert(error.message || 'Failed'); }
+                if (editId) {
+                    result = await StockAPI.updateProduct(editId, productData);
+                } else {
+                    result = await StockAPI.createProduct(productData);
+                }
+                if (result.success) {
+                    alert(editId ? 'Product updated!' : 'Product added!');
+                    await loadInventory();
+                    closeModal('invModal');
+                } else {
+                    alert(result.message || 'Failed');
+                }
+            } catch (error) {
+                alert(error.message || 'Failed');
+            }
         }
 
         function closeModal(id) { document.getElementById(id).classList.remove('open'); }
