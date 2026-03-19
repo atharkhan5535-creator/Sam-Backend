@@ -1,5 +1,9 @@
 <?php
 
+// 🔥 ERROR REPORTING - SUPPRESS ERRORS FOR JSON API
+error_reporting(0);
+ini_set('display_errors', 0);
+
 // 🔥 CORS HEADERS — REQUIRED FOR BROWSER
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Headers: Content-Type, Authorization");

@@ -8,6 +8,22 @@ $controller = new SalonController();
 
 /*
 |--------------------------------------------------------------------------
+| PUBLIC ROUTE - Customer Access
+|--------------------------------------------------------------------------
+*/
+
+// 6️⃣ Get Salon Info (PUBLIC - for customer pages)
+$router->register(
+    'GET',
+    '/api/salon/info',
+    function() use ($controller) {
+        // No authentication required - public access
+        $controller->getSalonInfo();
+    }
+);
+
+/*
+|--------------------------------------------------------------------------
 | SALON MANAGEMENT ROUTES (SUPER_ADMIN ONLY)
 |--------------------------------------------------------------------------
 */

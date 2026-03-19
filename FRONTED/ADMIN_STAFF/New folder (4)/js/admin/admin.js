@@ -320,7 +320,7 @@ async function exportData(exportType, dataType, format) {
                 if (svcResult.success) data = svcResult.data.items;
                 break;
             case 'packages':
-                const pkgResult = await PackageAPI.getPackages({ limit: 1000 });
+                const pkgResult = await PackageAPI.getPackages({ limit: 1000, include: 'services' });
                 if (pkgResult.success) data = pkgResult.data.items;
                 break;
         }

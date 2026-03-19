@@ -165,3 +165,17 @@ $router->register(
         $documentController->delete($staffId, $docId);
     }
 );
+
+/*
+|--------------------------------------------------------------------------
+| PUBLIC STAFF LIST (For Customer Booking)
+|--------------------------------------------------------------------------
+*/
+$router->register(
+    'GET',
+    '/api/staff',
+    function() use ($staffController) {
+        // PUBLIC - No authentication required
+        $staffController->publicList();
+    }
+);

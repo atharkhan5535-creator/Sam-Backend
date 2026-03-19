@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Italiana&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&family=Poetsen+One&display=swap" rel="stylesheet">
+
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@4.9.0/fonts/remixicon.css" rel="stylesheet" />
+
+<title></title>
+      <!-- Global CSS -->
+    <link rel="stylesheet" href="../CSS/Base/main.css">
+</head>
+<body>
+    <div class="user-profile-info-section">
+      <div class="profile-container">
+          <h2 class="profile-page-title">set Your profile now</h2>
+          <p class="profile-page-subtitle">To enhance Your Experience.</p>
+
+          <div class="profile-top">
+                <div class="profile-page-avatar">
+                  <img src="../Assets/images/profillPng.png" alt="">
+                </div>
+             <!-- these two will come from signup data later -->
+             <div class="profile-name" id="profileNameDisplay">user name</div>
+             <div class="profile-number" id="profileNumberDisplay" ></div>
+          </div>
+
+          <form class="user-profile-form">
+              <!-- Name (from signup – editable) -->
+               <div class="user-profile-form-group">
+                  <label>User Name</label>
+                  <div class="input-wrapper">
+                     <input type="text" placeholder="user Name" value="user name" id="profileNameInput">
+                     <i class="ri-pencil-fill edit-icon"></i>
+                  </div>
+               </div>
+
+               <div class="user-profile-form-group">
+                  <label>Email</label>
+                  <div class="input-wrapper">
+                     <input type="email" placeholder="user email" value="useremail@gmail.com" id="profileEmailInput" >
+                     <i class="ri-pencil-fill edit-icon"></i>
+                  </div>
+               </div>
+
+               <!-- extra info -->
+                <div class="user-profile-form-group">
+                   <label>Gender</label>
+                   <div class="gender-box-wrapper" id="genderBoxWrapper">
+                         <div class="gender-box" data-value="male">Male</div>
+                         <div class="gender-box" data-value="female">Female</div>
+                   </div>
+                </div>
+
+               <div class="user-profile-form-group">
+                  <label>City </label>
+                  <div class="input-wrapper">
+                     <input type="text" placeholder="user City" value="user city" id="profileCityInput">
+                     <i class="ri-pencil-fill edit-icon"></i>
+                  </div>
+               </div>
+
+               <div class="user-profile-form-group">
+                  <label>Date of Birth</label>
+                  <div class="input-wrapper">
+                     <input type="date" id="profileDOBInput">
+                     <i class="ri-pencil-fill edit-icon"></i>
+                  </div>
+               </div>
+
+               <div class="user-profile-form-group">
+                  <label>anniversary Date</label>
+                  <div class="input-wrapper">
+                     <input type="date" id="profileAnniInput">
+                     <i class="ri-pencil-fill edit-icon"></i>
+                  </div>
+               </div>
+
+               <div class="user-profile-form-group">
+                  <label>age</label>
+                  <div class="input-wrapper">
+                     <input type="number" id="profileAgeInput" min="6" max="90" placeholder = "age" readonly>
+                  </div>
+               </div>
+
+               <div class="user-profile-form-group">
+                  <label>Preferences</label>
+                  <div class="input-wrapper">
+                     <input type="text" id="profilePreferencesInput" placeholder ="add some preferences">
+                     <i class="ri-pencil-fill edit-icon"></i>
+                  </div>
+               </div>
+
+               <button type="button" class="save-btn" id="profileSaveBtn">Save Changes</button>
+
+               <!-- used  only when user comes here after signup -->
+               <span class="skip-profile-info" id="profileSkipBtn">skip now</span>
+          </form>
+      </div>
+    </div>
+
+
+      <!-- Include SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="../Js/Core/alert.js"></script>
+  <script src="../Js/Core/config.js"></script>
+  <script src="../Js/pages/profileInfo.js"></script>
+</body>
+</html>

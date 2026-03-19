@@ -336,4 +336,38 @@ class SalonController
             "data" => $salon
         ]);
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | 6️⃣ GET SALON INFO (PUBLIC) - For customer landing pages
+    |--------------------------------------------------------------------------
+    */
+    public function getSalonInfo()
+    {
+        $salonId = $_GET['salon_id'] ?? null;
+
+        if (!$salonId) {
+            Response::json(["status" => "error", "message" => "Salon ID required"], 400);
+            return;
+        }
+
+        $stmt = $this->db->prepare("
+            SELECT salon_id, salon_name, salon_ownername, email, phone, 
+                   address, city, state, country, salon_logo, status
+            FROM salons
+            WHERE salon_id = ? AND status = 1
+        ");
+        $stmt->execute([$salonId]);
+        $salon = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$salon) {
+            Response::json(["status" => "error", "message" => "Salon not found or inactive"], 404);
+            return;
+        }
+
+        Response::json([
+            "status" => "success",
+            "data" => $salon
+        ]);
+    }
 }

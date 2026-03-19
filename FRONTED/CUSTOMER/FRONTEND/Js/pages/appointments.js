@@ -1,0 +1,510 @@
+document.addEventListener("DOMContentLoaded", initPage);
+
+function initPage(){
+    cacheDOM();
+    checkAuth();
+    fetchSalonInfo();
+    fetchAppointments();
+}
+let DOM = {};
+let salonAddressText = "Salon Address";
+const token = localStorage.getItem("auth_token");
+// ===============================
+// CACHE DOM
+// ===============================
+function cacheDOM() {
+
+    DOM.loginBtn = document.getElementById("nav-log-btn");
+    DOM.signupBtn = document.getElementById("nav-signup-btn");
+    DOM.profileDiv = document.getElementById("nav-profile-div");
+
+    DOM.searchInput = document.getElementById("package-search");
+    DOM.packagesContainer = document.querySelector(".packages-container");
+}
+
+/* ── Scroll: darken navbar ── */
+  const navbar = document.getElementById('navbar');
+  window.addEventListener('scroll', () => {
+    navbar.classList.toggle('scrolled', window.scrollY > 20);
+  }, { passive: true });
+
+
+//=====================================
+// AUTH CHECK
+//=====================================
+function checkAuth() {
+    if (token) {
+        DOM.loginBtn.style.display = "none";
+        DOM.signupBtn.style.display = "none";
+        DOM.profileDiv.style.display = "flex";
+        
+    } else {
+        DOM.loginBtn.style.display = "inline-block";
+        DOM.signupBtn.style.display = "inline-block";
+        DOM.profileDiv.style.display = "none";
+        showWarning("Please login to check your appointment");
+           setTimeout(()=>{
+           window.location.href = "./login.html";
+          },3500);
+     }
+ }
+// ===============================
+// SALON INFO  (public — no token)
+// ===============================
+async function fetchSalonInfo() {
+    try {
+        const res  = await fetch(`${API_BASE_URL}/salon/info?salon_id=${salonId}`);
+        const data = await res.json();
+ 
+        if (data.status !== "success") return;
+ 
+        populateSalonInfo(data.data);
+ 
+    } catch (err) {
+        showError("Could not load salon info");
+    }
+}
+function populateSalonInfo(salon) {
+    const wordMark = document.getElementById("logo-text");
+
+    if (wordMark) {
+        wordMark.textContent = salon.salon_name ?? wordMark.textContent;
+        const words = wordMark.textContent.split(/\s+/);
+        if (words.length > 1) {
+            const first = words[0];
+            const rest = words.slice(1).join(' ');
+            wordMark.innerHTML = `${first} <span>${rest}</span>`;
+        } else {
+            wordMark.innerHTML = wordMark.textContent;
+        }
+    } else {
+        showError("Could not load salon name");
+    }
+
+    // Build a readable address from the parts returned by the API.
+    const parts = [
+        salon.address,
+        salon.city,
+        salon.state,
+        salon.country
+    ].filter(Boolean);
+    const fullAddress = parts.join(", ");
+    salonAddressText = fullAddress || salonAddressText;
+
+    /* ── Page / browser title ── */
+    if (salon.salon_name) {
+        document.title = `${salon.salon_name} | Appointments`;
+    }
+}
+
+//=====================================
+// FETCH APPOINTMENTS
+//=====================================
+
+async function fetchAppointments(){
+    try{
+        const token = localStorage.getItem("auth_token");
+
+        if (!token) {
+            showWarning("Please login to view your appointments");
+            setTimeout(() => {
+                window.location.href = "./login.html";
+            }, 2000);
+            return;
+        }
+
+        const res = await fetch(`${API_BASE_URL}/customers/me/appointments`,{
+            headers:{
+                "Authorization":`Bearer ${token}`,
+                "Content-Type": "application/json"
+            }
+        });
+
+        // Handle 401 Unauthorized (token expired)
+        if (res.status === 401) {
+            showError("Your session has expired. Please login again.");
+            localStorage.removeItem("auth_token");
+            localStorage.removeItem("refresh_token");
+            setTimeout(() => {
+                window.location.href = "./login.html";
+            }, 2000);
+            return;
+        }
+
+        // Handle 403 Forbidden
+        if (res.status === 403) {
+            showError("You don't have permission to access this resource.");
+            return;
+        }
+
+        const data = await res.json();
+
+        if (!res.ok) {
+            showError(data.message || "Failed to load appointments.");
+            return;
+        }
+
+        if(data.status !== "success") {
+            showError(data.message || "Failed to load appointments.");
+            return;
+        }
+
+        renderAppointments(data.data.items);
+
+    }
+    catch(err){
+        console.error("Fetch appointments error:", err);
+        if (err instanceof TypeError && err.message.includes("fetch")) {
+            showError("Cannot connect to server. Please check your connection.");
+        } else {
+            showError("Failed to load appointments. Please try again.");
+        }
+    }
+
+}
+
+//=====================================
+// RENDER APPOINTMENTS
+//=====================================
+function renderAppointments(appointments = []) {
+
+    const upcomingContainer = document.getElementById("upcoming");
+    const pastContainer = document.getElementById("past");
+
+    upcomingContainer.innerHTML = "";
+    pastContainer.innerHTML = "";
+
+    if (!appointments.length) {
+        upcomingContainer.innerHTML = "<p>No appointments found</p>";
+        upcomingContainer.classList.add("no-text");
+        return;
+    }
+
+    const now = new Date();
+
+    // Split into upcoming and past
+    const upcoming = [];
+    const past = [];
+
+    appointments.forEach(appt => {
+        const apptDateTime = new Date(`${appt.appointment_date}T${appt.start_time}`);
+        if (apptDateTime >= now) {
+            upcoming.push(appt);
+        } else {
+            past.push(appt);
+        }
+    });
+
+    // Upcoming: soonest first (ASC — next appointment at top)
+    upcoming.sort((a, b) =>
+        new Date(`${a.appointment_date}T${a.start_time}`) -
+        new Date(`${b.appointment_date}T${b.start_time}`)
+    );
+
+    // Past: most recent first (DESC — last visited at top)
+    past.sort((a, b) =>
+        new Date(`${b.appointment_date}T${b.start_time}`) -
+        new Date(`${a.appointment_date}T${a.start_time}`)
+    );
+
+    // Render upcoming
+    upcoming.forEach(appt => {
+        upcomingContainer.appendChild(buildCard(appt));
+    });
+
+    // Render past
+    past.forEach(appt => {
+        pastContainer.appendChild(buildCard(appt));
+    });
+
+    attachCancelEvents();
+}
+function buildCard(appt) {
+
+    const now = new Date();
+    const apptDateTime = new Date(`${appt.appointment_date}T${appt.start_time}`);
+    const formattedDate = formatDate(apptDateTime);
+    const formattedTime = formatTime(appt.start_time);
+
+    let serviceNames = [];
+    let staffName = null;
+
+    // Note: Backend doesn't return staff_name for services/packages anymore
+    // because appointment_services and appointment_packages tables don't have staff_id
+    if (appt.services && appt.services.length) {
+        appt.services.forEach(s => {
+            serviceNames.push(s.service_name);
+        });
+    }
+
+    if (appt.packages && appt.packages.length) {
+        appt.packages.forEach(p => {
+            serviceNames.push(p.package_name);
+        });
+    }
+
+    const itemsList = serviceNames.join(", ");
+    const statusConfig = getStatusConfig(appt.status);
+
+    const card = document.createElement("div");
+    card.className = "AppointmentCard";
+
+    card.innerHTML = `
+        <div class="AppointmentCard-body">
+
+            <div class="AppointmentCard-header">
+                <span class="AppointmentCard-title">
+                    ${itemsList || "Salon Service"}
+                </span>
+                <span class="badge"
+                    style="background:${statusConfig.bg};
+                    color:${statusConfig.color};">
+                    ${statusConfig.text}
+                </span>
+            </div>
+
+            <div class="AppointmentCard-datetime">
+                <span class="appointment-date">${formattedDate}</span>
+                <span class="dot">•</span>
+                <span class="appointment-time">${formattedTime}</span>
+            </div>
+
+            <div class="AppointmentCard-stylist">
+                Staff Name :
+                <strong>Not assigned</strong>
+            </div>
+
+            <div class="AppointmentCard-location salon-address">
+               ${salonAddressText || "Salon Address"}
+            </div>
+
+            <div class="AppointmentCard-footer">
+                ${appt.status && appt.status.toLowerCase() === "cancelled" ? "" : `<button class="cancel-appointment-btn" data-id="${appt.appointment_id}">Cancel Appointment</button>`}
+            </div>
+
+        </div>
+    `;
+
+    return card;
+}
+//=====================================
+// CANCEL BUTTON
+//=====================================
+
+function attachCancelEvents() {
+
+    const buttons = document.querySelectorAll(".cancel-appointment-btn");
+
+    buttons.forEach(btn => {
+
+        btn.addEventListener("click", async function () {
+
+            const appointmentId = this.dataset.id;
+
+            const result = await confirmAction(
+                "Cancel Appointment?",
+                "Yes, Cancel it"
+            );
+
+            if (!result.isConfirmed) return;
+
+            try {
+
+                const token = localStorage.getItem("auth_token");
+
+                showLoading("Cancelling appointment...");
+
+                const res = await fetch(
+                    `${API_BASE_URL}/appointments/${appointmentId}/cancel`,
+                    {
+                        method: "PATCH",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": `Bearer ${token}`
+                        },
+                        body: JSON.stringify({
+                            cancellation_reason: "Cancelled by customer"
+                        })
+                    }
+                );
+
+                const data = await res.json();
+
+                Swal.close();
+
+                if (data.status === "success") {
+
+                    await showSuccess("Your appointment has been cancelled.");
+
+                    fetchAppointments();
+                } else {
+                    showError(data.message || "Cancellation failed.");
+                }
+
+            } catch (err) {
+                Swal.close();
+                showError("Something went wrong while cancelling.");
+            }
+
+        });
+
+    });
+}
+
+//=====================================
+// DATE FORMAT
+//=====================================
+
+function formatDate(date){
+
+    const options={
+        weekday:"short",
+        month:"short",
+        day:"numeric"
+    };
+
+    return date.toLocaleDateString("en-IN",options);
+
+}
+
+//=====================================
+// TIME FORMAT
+//=====================================
+
+function formatTime(time){
+
+    const [hour,min]=time.split(":");
+
+    let h=parseInt(hour);
+
+    const ampm=h>=12?"PM":"AM";
+
+    h=h%12;
+    h=h?h:12;
+
+    return `${String(h).padStart(2,"0")}:${min} ${ampm}`;
+
+}
+
+//=====================================
+// STATUS STYLE
+//=====================================
+
+function getStatusConfig(status){
+
+    switch(status){
+
+        case "PENDING":
+        case "pending":
+
+        return{
+            text:"PENDING",
+            bg:"#FFF4E5",
+            color:"#FF9800"
+        };
+
+        case "CONFIRMED":
+
+        return{
+            text:"CONFIRMED",
+            bg:"#E8F5E9",
+            color:"#2E7D32"
+        };
+
+        case "CANCELLED":
+
+        return{
+            text:"CANCELLED",
+            bg:"#FDECEA",
+            color:"#C62828"
+        };
+
+        case "COMPLETED":
+
+        return{
+            text:"COMPLETED",
+            bg:"#E3F2FD",
+            color:"#1565C0"
+        };
+
+        default:
+
+        return{
+            text:status,
+            bg:"#eee",
+            color:"#333"
+        };
+
+    }
+
+}
+
+//=====================================
+// TAB SWITCH
+//=====================================
+
+function switchTab(btn,tab){
+
+    const buttons=document.querySelectorAll(".UpPast-btn");
+
+    buttons.forEach(b=>b.classList.remove("active"));
+
+    btn.classList.add("active");
+
+    document.getElementById("upcoming").style.display=
+        tab==="upcoming"?"flex":"none";
+
+    document.getElementById("past").style.display=
+        tab==="past"?"flex":"none";
+
+}
+
+async function logout() {
+
+    const confirm = await confirmAction(
+        "Logout?",
+        "You will be logged out of your account.",
+        "Yes, Logout"
+    );
+
+    if (!confirm.isConfirmed) return;
+
+    const refreshToken =
+        localStorage.getItem("refresh_token");
+
+    try {
+
+        showLoading("Logging out...");
+
+        await fetch(`${API_BASE_URL}/auth/logout`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                refresh_token: refreshToken
+            })
+        });
+
+        Swal.close();
+
+        localStorage.removeItem("auth_token");
+        localStorage.removeItem("refresh_token");
+
+        await showSuccess("Logged out successfully");
+
+        window.location.reload();
+
+    } catch (error) {
+
+        Swal.close();
+        showError("Failed to logout.");
+
+        localStorage.removeItem("auth_token");
+        localStorage.removeItem("refresh_token");
+
+        await showSuccess("Logged out");
+
+        window.location.reload();
+    }
+}

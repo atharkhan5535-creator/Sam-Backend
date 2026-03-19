@@ -1,0 +1,654 @@
+// ===============================
+// GLOBAL STATE
+// ===============================
+
+const bookingData = {
+    type: null,
+    items: [],
+    staff: null,
+    staff_name: null,
+    date: null,
+    time: null,
+    totalAmount: 0,
+    status: "pending"
+};
+
+let DOM = {};
+let selectedDate = null;
+// ===============================
+// INIT
+// ===============================
+
+document.addEventListener("DOMContentLoaded", initApp);
+
+function initApp() {
+    cacheDOM();
+    fetchSalonInfo();
+    loadBookingItems();
+    fetchStaff();
+    renderDates();
+    attachEvents();
+    drawClock();
+    updateTimeBadge();
+}
+
+// ===============================
+// CACHE DOM
+// ===============================
+
+function cacheDOM(){
+
+    DOM.staffList = document.getElementById("staffList");
+    DOM.daysRow = document.getElementById("daysRow");
+    DOM.monthLabel = document.getElementById("monthLabel");
+
+    DOM.bookBtn = document.getElementById("bookBtn");
+    DOM.summaryDate = document.getElementById("summaryDate");
+    DOM.successModal = document.getElementById("successModal");
+}
+// ===============================
+// SALON INFO  (public — no token)
+// ===============================
+async function fetchSalonInfo() {
+    try {
+        const res  = await fetch(`${API_BASE_URL}/salon/info?salon_id=${salonId}`);
+        const data = await res.json();
+ 
+        if (data.status !== "success") return;
+        populateSalonInfo(data.data);
+ 
+    } catch (err) {
+        showError("Could not load salon info");
+    }
+}
+function populateSalonInfo(salon) {
+            /* ── Page / browser title ── */
+        if (salon.salon_name) {
+            document.title = `${salon.salon_name} | Booking`;
+        }
+}
+// ===============================
+// LOAD ITEMS FROM SERVICES / PACKAGES
+// ===============================
+function loadBookingItems(){
+
+    const source = localStorage.getItem("bookingSource");
+    const items = JSON.parse(localStorage.getItem("bookingItems")) || [];
+
+    bookingData.type = source;
+    bookingData.items = items;
+
+    let total = 0;
+    items.forEach(item => {
+        total += Number(item.price || 0) + ((Number(item.price || 0) * 5) / 100);
+    });
+
+    bookingData.totalAmount = total;
+
+    document.getElementById("summaryItem").textContent = source;
+
+    document.getElementById("summaryItems").textContent =
+    items.map(i => getItemName(i)).join(", ");
+}
+// ===============================
+// ITEM HELPERS
+// ===============================
+function getItemName(item){
+    return item.service_name || item.package_name || item.name || "Item";
+}
+function getItemId(item){
+    return item.service_id || item.package_id || item.id;
+}
+
+//================================
+//FETCH STAFF
+//================================
+async function fetchStaff(){
+
+    try{
+        const res = await fetch(`${API_BASE_URL}/staff?salon_id=${salonId}`);
+        const data = await res.json();
+
+        if(data.status !== "success") return;
+        renderStaff(data.data.items);
+
+    }
+    catch(err) {
+            showError("Failed to load staff members");
+    }
+}
+// ===============================
+// RENDER STAFF
+// ===============================
+function renderStaff(staffList = []) {
+
+    if (!DOM.staffList) return;
+
+    DOM.staffList.innerHTML = "";
+
+    if (!Array.isArray(staffList) || staffList.length === 0) {
+        DOM.staffList.innerHTML = `<p>No staff available</p>`;
+        return;
+    }
+
+    staffList.forEach(staff => {
+        const div = document.createElement("div");
+        div.className = "staff-item";
+
+        div.dataset.staffId = staff.staff_id;
+
+        div.innerHTML = `
+            <div>
+                <div class="staff-name">${staff.name}</div>
+                <div class="staff-role">${staff.specialization || "Staff Member"}</div>
+            </div>
+            <div class="radio"></div>
+        `;
+
+        div.addEventListener("click", () => {
+
+            document
+            .querySelectorAll(".staff-item .radio")
+            .forEach(r => r.classList.remove("selected"));
+
+            div.querySelector(".radio").classList.add("selected");
+
+            bookingData.staff = staff.staff_id;
+            bookingData.staff_name = staff.name;
+        });
+        DOM.staffList.appendChild(div);
+    });
+
+}
+
+// ===============================
+// DATE RENDER
+// ===============================
+
+const DAY_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+function renderDates(){
+
+    const today = new Date();
+
+    today.setHours(0,0,0,0);
+
+    DOM.daysRow.innerHTML = "";
+
+    for(let i=0;i<7;i++){
+
+        const date = new Date(today);
+
+        date.setDate(today.getDate()+i);
+
+        const cell = document.createElement("div");
+
+        cell.className = "day-cell";
+
+        if(i===0){
+            cell.classList.add("dayActive");
+            selectedDate = date;
+            updateSummaryDate(date);
+        }
+
+        cell.innerHTML = `
+            <div class="day-name">${DAY_NAMES[date.getDay()]}</div>
+            <div class="day-num">${date.getDate()}</div>
+        `;
+
+        cell.addEventListener("click",()=>{
+
+            document
+            .querySelectorAll(".day-cell")
+            .forEach(c=>c.classList.remove("dayActive"));
+
+            cell.classList.add("dayActive");
+
+            selectedDate = date;
+
+            updateSummaryDate(date);
+
+        });
+
+        DOM.daysRow.appendChild(cell);
+
+    }
+
+    DOM.monthLabel.textContent =
+        MONTH_NAMES[today.getMonth()] +
+        " " +
+        today.getFullYear();
+
+}
+function updateSummaryDate(date){
+
+    const label =
+        MONTH_NAMES[date.getMonth()] + ", " +
+        DAY_NAMES[date.getDay()] + " " +
+        date.getDate();
+
+    DOM.summaryDate.textContent = label;
+
+    bookingData.date = date;
+}
+
+// ===============================
+// AM PM BUTTON
+// ===============================
+function attachEvents(){
+
+    document.querySelectorAll(".am-pm-btn").forEach(btn=>{
+
+    btn.addEventListener("click",()=>{
+         document.querySelectorAll(".am-pm-btn").forEach(b=>b.classList.remove("active"));
+         btn.classList.add("active");
+
+         enforceBusinessHours();
+         drawClock();
+         updateTimeBadge();
+        });
+    });
+
+    DOM.bookBtn.addEventListener("click", handleBooking);
+
+    document
+    .getElementById("backHomeBtn")
+    .addEventListener("click", closeModal);
+
+    document
+    .querySelector(".back-btn")
+    .addEventListener("click", handleBack);
+}
+
+// ===============================
+// FORMAT DATA AND TIME FOR API BACKEND
+// ===============================
+function formatDateForAPI(date){
+    const d = new Date(date);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2,'0');
+    const day = String(d.getDate()).padStart(2,'0');
+
+    return `${year}-${month}-${day}`;
+}
+function formatTimeForAPI(time){
+    const [timePart, modifier] = time.split(" ");
+    let [hours, minutes] = timePart.split(":");
+    hours = parseInt(hours);
+
+    if(modifier === "PM" && hours !== 12){
+        hours += 12;
+    }
+    if(modifier === "AM" && hours === 12){
+        hours = 0;
+    }
+
+    return `${String(hours).padStart(2,"0")}:${minutes}:00`;
+}
+
+// ===============================
+// FINAL BOOKING
+// ===============================
+
+async function handleBooking(){
+
+    if(!bookingData.staff){
+        showWarning("Please select a staff member");
+        return;
+    }
+    const token = localStorage.getItem("auth_token");
+    if(!token){
+        showWarning("Please login to book appointment");
+        setTimeout(()=>{
+            window.location.href = "./login.html";
+        },1500);
+
+        return;
+    }
+    const confirm = await confirmBookingSummary();
+
+    if(!confirm.isConfirmed) return;
+
+    try{
+        const token = localStorage.getItem("auth_token");
+
+        let services = [];
+        let packages = [];
+
+        if(bookingData.type === "services"){
+
+            services = bookingData.items.map(item => ({
+                service_id: getItemId(item),
+                staff_id: bookingData.staff,
+                price: item.price
+            }));
+
+        }
+
+        if(bookingData.type === "packages"){
+
+            packages = bookingData.items.map(item => ({
+                package_id: getItemId(item),
+                staff_id: bookingData.staff,
+                price: item.price
+            }));
+
+        }
+
+        const payload = {
+            appointment_date: formatDateForAPI(bookingData.date),
+            start_time: formatTimeForAPI(bookingData.time),
+            estimated_duration: 60,
+
+            services: services,
+            packages: packages
+        };
+
+        showLoading("Booking appointment...");
+        const res = await fetch(`${API_BASE_URL}/appointments`,{
+
+            method:"POST",
+
+            headers:{
+                "Content-Type":"application/json",
+                "Authorization":`Bearer ${token}`
+            },
+            body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        swal.close();
+
+        if(data.status !== "success"){
+            showError(data.message || "Booking failed");
+            return;
+        }
+        swal.close();
+        populateSuccessModal();
+        DOM.successModal.classList.add("show");
+    }
+    catch(err){
+       showError("Something went wrong while booking");
+    }
+}
+
+async function confirmBookingSummary() {
+
+    const servicesList = bookingData.items
+        .map(item => `<li>${getItemName(item)}</li>`)
+        .join("");
+
+    const html = `
+        <div class="confirm-appointment">
+            <p><strong>Staff:</strong> ${bookingData.staff_name}</p>
+            <p><strong>Date:</strong> ${DOM.summaryDate.textContent}</p>
+            <p><strong>Time:</strong> ${bookingData.time}</p>
+
+            <p style="margin-top:10px"><strong>Items:</strong></p>
+            <ul style="padding-left:20px">${servicesList}</ul>
+
+            <p style="margin-top:10px">
+                <strong>Total:</strong> ₹${bookingData.totalAmount}
+            </p>
+        </div>
+    `;
+
+    return Swal.fire({
+        title: "Confirm Appointment",
+        html: html,
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonText: "Confirm Booking",
+        cancelButtonText: "Edit Booking",
+        confirmButtonColor: "#C0274A",
+        width: 420
+    });
+
+}
+
+// ===============================
+// SUCCESS MODAL DATA
+// ===============================
+
+function populateSuccessModal(){
+    CartManager.clearAll();
+
+    document.getElementById("modalDate")
+        .textContent = DOM.summaryDate.textContent;
+
+    document.getElementById("modalTime")
+        .textContent = bookingData.time;
+
+    document.querySelector(".counter-ser")
+        .textContent = bookingData.items.length;
+
+    document.querySelector(".serviceOrPackage")
+        .textContent = bookingData.type + " added";
+
+    document.getElementById("modalStaff")
+        .textContent = bookingData.staff_name;
+
+    document.getElementById("modalServices")
+        .innerHTML =
+        bookingData.items
+        .map(item =>
+            `<span class="model-services-span">${getItemName(item)}</span>`
+        ).join(",");
+
+    document.getElementById("modTotalValue")
+        .textContent = bookingData.totalAmount;
+}
+
+
+// ===============================
+// CLOSE MODAL
+// ===============================
+
+function closeModal(){
+
+    localStorage.removeItem("bookingSource");
+    localStorage.removeItem("bookingItems");
+
+    DOM.successModal.classList.remove("show");
+
+    window.location.href="../index.html";
+
+}
+
+// ===============================
+// BACK BUTTON
+// ===============================
+
+function handleBack(){
+
+    CartManager.clearAll();
+    const source = localStorage.getItem("bookingSource");
+
+    if(source==="services"){
+        window.location.href="services.html";
+    }
+
+    else if(source==="packages"){
+        window.location.href="packages.html";
+    }
+
+    else{
+        window.history.back();
+    }
+
+}
+
+
+// ===============================
+// CLOCK
+// ===============================
+let lastTimeWarning = 0;
+function showTimeWarning(message){
+    const now = Date.now();
+    // prevent spam alerts (2 sec cool down)
+    if(now - lastTimeWarning < 2000) return;
+    lastTimeWarning = now;
+    Swal.fire({
+        toast: true,
+        position: "top-end",
+        icon: "warning",
+        title: message,
+        showConfirmButton: false,
+        timer: 2000
+    });
+}
+
+  const canvas = document.getElementById('clockCanvas');
+  const ctx = canvas.getContext('2d');
+  const cx = canvas.width / 2;
+  const cy = canvas.height / 2;
+  const R  = cx - 10; // outer radius
+
+  let hours   = 10;   // 10:30 default
+  let minutes = 0;
+
+  function drawClock() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // Face
+    ctx.beginPath();
+    ctx.arc(cx, cy, R, 0, 2 * Math.PI);
+    ctx.fillStyle = 'rgba(20,10,16,0.9)';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(201,53,107,0.3)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Hour numbers
+    ctx.font = 'bold 10px "Plus Jakarta Sans", sans-serif';
+    ctx.fillStyle = '#f5f0f2';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    for (let n = 1; n <= 12; n++) {
+      const angle = (n / 12) * 2 * Math.PI - Math.PI / 2;
+      const nx = cx + (R - 13) * Math.cos(angle);
+      const ny = cy + (R - 13) * Math.sin(angle);
+      ctx.fillText(n, nx, ny);
+    }
+
+    // Minute hand (thin red)
+    const minAngle = (minutes / 60) * 2 * Math.PI - Math.PI / 2;
+    drawHand(minAngle, R - 18, 2, '#e8829a');
+
+    // Hour hand (thick dark) — includes minute contribution
+    const hrAngle = ((hours % 12 + minutes / 60) / 12) * 2 * Math.PI - Math.PI / 2;
+    drawHand(hrAngle, R - 32, 4, '#f5f0f2');
+
+    // Center dot
+    ctx.beginPath();
+    ctx.arc(cx, cy, 4, 0, 2 * Math.PI);
+    ctx.fillStyle = '#c9356b';
+    ctx.fill();
+  }
+
+  function drawHand(angle, length, width, color) {
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx + length * Math.cos(angle), cy + length * Math.sin(angle));
+    ctx.strokeStyle = color;
+    ctx.lineWidth = width;
+    ctx.lineCap = 'round';
+    ctx.stroke();
+  }
+
+  // Drag to set time
+  let dragging = null; // 'hour' or 'minute'
+
+  function getAngle(e) {
+    const rect = canvas.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    const x = clientX - rect.left - cx;
+    const y = clientY - rect.top  - cy;
+    return Math.atan2(y, x); // radians, -π to π
+  }
+
+  function distToHandTip(angle, length, ex, ey) {
+    const rect = canvas.getBoundingClientRect();
+    const tx = cx + length * Math.cos(angle);
+    const ty = cy + length * Math.sin(angle);
+    return Math.hypot(ex - rect.left - tx, ey - rect.top - ty);
+  }
+
+  canvas.addEventListener('mousedown', startDrag);
+  canvas.addEventListener('touchstart', startDrag, { passive: true });
+
+  function startDrag(e) {
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+    const minAngle = (minutes / 60) * 2 * Math.PI - Math.PI / 2;
+    const hrAngle  = ((hours % 12 + minutes / 60) / 12) * 2 * Math.PI - Math.PI / 2;
+
+    const dMin  = distToHandTip(minAngle, R - 18, clientX, clientY);
+    const dHour = distToHandTip(hrAngle,  R - 32, clientX, clientY);
+
+    dragging = dMin < dHour ? 'minute' : 'hour';
+  }
+
+  window.addEventListener('touchmove', onDrag, { passive: true });
+
+  function onDrag(e) {
+    if (!dragging) return;
+    const angle = getAngle(e) + Math.PI / 2; // offset so 12 o'clock = 0
+    const norm  = (angle + 2 * Math.PI) % (2 * Math.PI); // 0–2π
+
+    if (dragging === 'minute') {
+       minutes = Math.round((norm / (2 * Math.PI)) * 60 / 15) * 15 % 60;
+    } else {
+      hours = Math.round((norm / (2 * Math.PI)) * 12) % 12 || 12;
+      enforceBusinessHours();
+    }
+    drawClock();
+    updateTimeBadge();
+  }
+
+  window.addEventListener('mousemove', onDrag);
+  window.addEventListener('touchmove', function(e) {
+  if (dragging) e.preventDefault();
+    onDrag(e);
+  }, { passive: false });
+   window.addEventListener('mouseup', () => dragging = null);
+    window.addEventListener('touchend', () => dragging = null); 
+
+// =========================================
+function enforceBusinessHours(){
+    const ampm =
+        document.querySelector(".am-pm-btn.active").textContent;
+    // AM Mode → only 10 and 11 allowed
+    if(ampm === "AM"){
+        if(hours < 10){
+            hours = 10;
+            showTimeWarning("Salon opens at 10:00 AM");
+        }
+        if(hours > 11){
+           hours = 11;
+        }
+    }
+
+    // PM Mode → allow 12 → 10 only
+    if(ampm === "PM"){
+        if(hours === 11){
+            hours = 10;
+            showTimeWarning("Last booking time is 10:45 PM");
+        }
+    }
+}
+//===============================
+function updateTimeBadge(){
+    const ampm = document.querySelector(".am-pm-btn.active").textContent;
+
+    const h = String(hours).padStart(2,"0");
+
+    const m = String(minutes).padStart(2,"0");
+
+    bookingData.time =`${h}:${m} ${ampm}`;
+    
+    document.querySelector(".time-badge").textContent = bookingData.time;
+    document.getElementById("summaryTime").textContent = bookingData.time;
+}

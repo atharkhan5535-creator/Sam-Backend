@@ -859,4 +859,46 @@ class StaffController
             ]
         ]);
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | 🔟 PUBLIC STAFF LIST (For Customer Booking)
+    | - PUBLIC: Can view active staff members (for booking)
+    | - Returns only ACTIVE staff with essential info
+    |--------------------------------------------------------------------------
+    */
+    public function publicList()
+    {
+        // Get salon_id from query parameter (public access)
+        $salonId = $_GET['salon_id'] ?? null;
+
+        if (!$salonId) {
+            Response::json(["status" => "error", "message" => "Salon ID required (pass as query parameter ?salon_id=X)"], 400);
+        }
+
+        // Get only ACTIVE staff members with essential info for booking
+        $stmt = $this->db->prepare("
+            SELECT 
+                s.staff_id,
+                s.salon_id,
+                s.name,
+                s.phone,
+                s.email,
+                s.specialization,
+                s.experience_years,
+                s.status
+            FROM staff_info s
+            WHERE s.salon_id = ? AND s.status = 'ACTIVE'
+            ORDER BY s.name ASC
+        ");
+        $stmt->execute([$salonId]);
+        $staff = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        Response::json([
+            "status" => "success",
+            "data" => [
+                "items" => $staff
+            ]
+        ]);
+    }
 }

@@ -197,6 +197,7 @@
                     <div class="form-group full"><label class="form-label">Description</label><textarea id="fPDesc" class="form-textarea" rows="3" placeholder="Describe this package…"></textarea></div>
                     <div class="form-group"><label class="form-label">Total Price (₹) *</label><input type="number" id="fTotalPrice" class="form-input" placeholder="5000" min="0" step="0.01" onchange="manualPriceOverride=true"></div>
                     <div class="form-group"><label class="form-label">Validity (days)</label><input type="number" id="fValidity" class="form-input" value="30" min="1"></div>
+                    <div class="form-group"><label class="form-label">Image URL</label><input type="url" id="fImageUrl" class="form-input" placeholder="https://example.com/image.jpg"></div>
                     <div class="form-group"><label class="form-label">Status</label><select id="fPStatus" class="form-select"><option value="ACTIVE">Active</option><option value="INACTIVE">Inactive</option></select></div>
                     <div class="form-group full"><label class="form-label">Services *</label><div id="serviceSelector" style="max-height:200px;overflow-y:auto;border:1px solid var(--card-border);padding:0.65rem;border-radius:var(--radius-lg);"></div><small id="servicesError" style="color:var(--danger);display:none;">Please select at least one service</small></div>
                 </div>
@@ -240,7 +241,7 @@
             document.getElementById('loadingState').style.display = 'flex';
             document.getElementById('packagesContent').style.display = 'none';
             try {
-                const result = await PackagesAPI.list();
+                const result = await PackagesAPI.list({ include: 'services' });
                 if (result.success && result.data && result.data.items) {
                     packages = result.data.items;
                     console.log('Loaded packages:', packages.length, 'Statuses:', packages.map(p => p.status));
@@ -341,7 +342,7 @@
             selectedServiceIds = [];
             manualPriceOverride = false;
             document.getElementById('pkgModalTitle').innerHTML = '<i class="fas fa-plus"></i> Create Package';
-            ['fPName','fPDesc'].forEach(id => document.getElementById(id).value = '');
+            ['fPName','fPDesc','fImageUrl'].forEach(id => document.getElementById(id).value = '');
             ['fTotalPrice','fValidity'].forEach(id => document.getElementById(id).value = '');
             document.getElementById('fPStatus').value = 'ACTIVE';
             loadServicesForSelector();
@@ -355,20 +356,21 @@
                 console.error('❌ Package not found with ID:', id);
                 return;
             }
-            
+
             console.log('📦 Editing package:', p.package_name);
             console.log('📦 Full package data:', p);
             console.log('📦 Package services:', p.services);
             console.log('📦 Services type:', Array.isArray(p.services));
-            
+
             manualPriceOverride = false;
             document.getElementById('pkgModalTitle').innerHTML = '<i class="fas fa-edit"></i> Edit Package';
             document.getElementById('fPName').value = p.package_name || '';
             document.getElementById('fPDesc').value = p.description || '';
             document.getElementById('fTotalPrice').value = p.total_price || 0;
             document.getElementById('fValidity').value = p.validity_days || 30;
+            document.getElementById('fImageUrl').value = p.image_url || '';
             document.getElementById('fPStatus').value = p.status || 'ACTIVE';
-            
+
             // Get existing service IDs from package - handle different data structures
             let existingServiceIds = [];
             if (p.services && Array.isArray(p.services)) {
@@ -377,12 +379,12 @@
                     return parseInt(s.service_id) || parseInt(s.id) || 0;
                 }).filter(id => id > 0);
             }
-            
+
             selectedServiceIds = existingServiceIds;
-            
+
             console.log('✅ Existing service IDs:', existingServiceIds);
             console.log('✅ selectedServiceIds:', selectedServiceIds);
-            
+
             // Load services with pre-selected IDs
             loadServicesForSelector(existingServiceIds);
             document.getElementById('pkgModal').classList.add('open');
@@ -393,6 +395,7 @@
             const description = document.getElementById('fPDesc').value.trim();
             const total_price = parseFloat(document.getElementById('fTotalPrice').value) || 0;
             const validity_days = parseInt(document.getElementById('fValidity').value) || 30;
+            const image_url = document.getElementById('fImageUrl').value.trim();
             const status = document.getElementById('fPStatus').value;
             const service_ids = selectedServiceIds;
 
@@ -414,6 +417,7 @@
                 description: description || null,
                 total_price: total_price,
                 validity_days: validity_days,
+                image_url: image_url || null,
                 status: status,
                 service_ids: service_ids
             };

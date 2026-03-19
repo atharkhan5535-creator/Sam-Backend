@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Salon ID Switcher - Developer Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 500px;
+            width: 100%;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .current-salon {
+            background: #f0f0f0;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .current-salon h2 {
+            color: #667eea;
+            font-size: 48px;
+            margin-bottom: 5px;
+        }
+        
+        .current-salon p {
+            color: #888;
+            font-size: 14px;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            color: #555;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        
+        input[type="number"] {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        button {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+        
+        .btn-danger {
+            background: #ff4757;
+            color: white;
+        }
+        
+        .quick-select {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        .quick-btn {
+            padding: 10px;
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .quick-btn:hover {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        
+        .info-box h3 {
+            color: #1976d2;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        
+        .info-box p {
+            color: #555;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+        
+        .info-box code {
+            background: #fff;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            color: #d81b60;
+        }
+        
+        .success-msg {
+            background: #4caf50;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            margin-top: 15px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏪 Salon ID Switcher</h1>
+        <p class="subtitle">Developer Tool - Test Different Salons</p>
+        
+        <div class="current-salon">
+            <h2 id="currentSalonId">-</h2>
+            <p>Current Salon ID</p>
+        </div>
+        
+        <div class="input-group">
+            <label for="salonIdInput">Enter Salon ID:</label>
+            <input 
+                type="number" 
+                id="salonIdInput" 
+                placeholder="e.g., 1, 5, 10" 
+                min="1"
+            >
+        </div>
+        
+        <div class="quick-select">
+            <button class="quick-btn" onclick="setSalonId(1)">Salon 1</button>
+            <button class="quick-btn" onclick="setSalonId(2)">Salon 2</button>
+            <button class="quick-btn" onclick="setSalonId(3)">Salon 3</button>
+            <button class="quick-btn" onclick="setSalonId(5)">Salon 5</button>
+            <button class="quick-btn" onclick="setSalonId(10)">Salon 10</button>
+            <button class="quick-btn" onclick="setSalonId(99)">Salon 99</button>
+        </div>
+        
+        <div class="btn-group">
+            <button class="btn-primary" onclick="setSalonIdFromInput()">Set Salon ID</button>
+            <button class="btn-secondary" onclick="goToHome()">Go to Home</button>
+        </div>
+        
+        <div class="btn-group">
+            <button class="btn-danger" onclick="clearSalonId()">Reset to Default</button>
+        </div>
+        
+        <div class="success-msg" id="successMsg">
+            ✅ Salon ID updated! Redirecting...
+        </div>
+        
+        <div class="info-box">
+            <h3>💡 How It Works</h3>
+            <p>
+                This tool sets the <code>salon_id</code> in localStorage. All customer pages will use this ID to fetch data from the backend.
+            </p>
+            <p style="margin-top: 10px;">
+                <strong>URL Method:</strong> You can also append <code>?salon_id=10</code> to any page URL.
+            </p>
+            <p style="margin-top: 10px;">
+                <strong>Priority:</strong> URL parameter > localStorage > default (1)
+            </p>
+        </div>
+    </div>
+    
+    <script>
+        // Display current salon ID
+        const currentSalonId = localStorage.getItem('salon_id') || 1;
+        document.getElementById('currentSalonId').textContent = currentSalonId;
+        
+        // Set salon ID from input
+        function setSalonId(id) {
+            localStorage.setItem('salon_id', id);
+            showSuccess();
+            document.getElementById('currentSalonId').textContent = id;
+        }
+        
+        function setSalonIdFromInput() {
+            const input = document.getElementById('salonIdInput');
+            const id = input.value.trim();
+            
+            if (!id || id < 1) {
+                alert('Please enter a valid salon ID (minimum 1)');
+                return;
+            }
+            
+            setSalonId(id);
+            input.value = '';
+        }
+        
+        function clearSalonId() {
+            if (confirm('Reset salon ID to default (1)?')) {
+                localStorage.removeItem('salon_id');
+                document.getElementById('currentSalonId').textContent = '1';
+                showSuccess();
+            }
+        }
+        
+        function goToHome() {
+            const salonId = localStorage.getItem('salon_id') || 1;
+            window.location.href = `../index.html?salon_id=${salonId}`;
+        }
+        
+        function showSuccess() {
+            const msg = document.getElementById('successMsg');
+            msg.style.display = 'block';
+            setTimeout(() => {
+                msg.style.display = 'none';
+            }, 2000);
+        }
+        
+        // Enter key to set salon ID
+        document.getElementById('salonIdInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                setSalonIdFromInput();
+            }
+        });
+    </script>
+</body>
+</html>

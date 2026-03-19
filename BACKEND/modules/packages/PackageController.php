@@ -289,15 +289,17 @@ class PackageController
     | - PUBLIC: Can only view ACTIVE packages (landing page)
     | - CUSTOMER: Can only view ACTIVE packages
     | - ADMIN/STAFF: Can view all packages (active & inactive)
+    | - Query param: ?include=services to include services array for each package
     |--------------------------------------------------------------------------
     */
     public function index()
     {
         $auth = $GLOBALS['auth_user'] ?? null;
-        
+
         // Get salon_id from auth token OR query parameter (for public access)
         $salonId = $auth['salon_id'] ?? ($_GET['salon_id'] ?? null);
         $userRole = $auth['role'] ?? null;
+        $includeServices = isset($_GET['include']) && $_GET['include'] === 'services';
 
         if (!$salonId) {
             Response::json(["status" => "error", "message" => "Salon ID required (pass as query parameter ?salon_id=X)"], 400);
@@ -347,6 +349,22 @@ class PackageController
         }
 
         $packages = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Optionally include services for each package
+        if ($includeServices) {
+            $stmt = $this->db->prepare("
+                SELECT ps.package_id, s.service_id, s.service_name, s.description, s.price, s.duration
+                FROM services s
+                INNER JOIN package_services ps ON s.service_id = ps.service_id
+                WHERE ps.package_id = ? AND ps.salon_id = ?
+            ");
+
+            foreach ($packages as &$package) {
+                $stmt->execute([$package['package_id'], $salonId]);
+                $services = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                $package['services'] = $services;
+            }
+        }
 
         Response::json([
             "status" => "success",

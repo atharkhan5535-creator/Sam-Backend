@@ -514,30 +514,34 @@ class CustomerController
         // Get services and packages for each appointment
         foreach ($appointments as &$appointment) {
             // Check if feedback exists
-            $stmt = $this->db->prepare("SELECT feedback_id FROM appointment_feedback WHERE appointment_id = ?");
-            $stmt->execute([$appointment['appointment_id']]);
-            $appointment['feedback_given'] = (bool) $stmt->fetch();
+            $feedbackStmt = $this->db->prepare("SELECT feedback_id FROM appointment_feedback WHERE appointment_id = ?");
+            $feedbackStmt->execute([$appointment['appointment_id']]);
+            $appointment['feedback_given'] = (bool) $feedbackStmt->fetch();
 
-            // Get services - staff_id inherited from services table
-            $stmt = $this->db->prepare("
-                SELECT asvc.service_id, s.service_name, svc.staff_id
+            // Get services with staff name (LEFT JOIN in case staff is deleted)
+            // Note: appointment_services doesn't have staff_id, so we don't fetch staff for services
+            $serviceStmt = $this->db->prepare("
+                SELECT asvc.service_id, s.service_name,
+                       asvc.service_price, asvc.discount_amount, asvc.final_price,
+                       asvc.start_time, asvc.end_time, asvc.status
                 FROM appointment_services asvc
                 INNER JOIN services s ON asvc.service_id = s.service_id
-                INNER JOIN services svc ON asvc.service_id = svc.service_id
                 WHERE asvc.appointment_id = ?
             ");
-            $stmt->execute([$appointment['appointment_id']]);
-            $appointment['services'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $serviceStmt->execute([$appointment['appointment_id']]);
+            $appointment['services'] = $serviceStmt->fetchAll(PDO::FETCH_ASSOC);
 
-            // Get packages - no staff_id (packages don't have staff, services do)
-            $stmt = $this->db->prepare("
-                SELECT ap.package_id, p.package_name
+            // Get packages with staff name (LEFT JOIN in case staff is deleted)
+            // Note: appointment_packages doesn't have staff_id, so we don't fetch staff for packages
+            $packageStmt = $this->db->prepare("
+                SELECT ap.package_id, p.package_name,
+                       ap.package_price, ap.discount_amount, ap.final_price, ap.status
                 FROM appointment_packages ap
                 INNER JOIN packages p ON ap.package_id = p.package_id
                 WHERE ap.appointment_id = ?
             ");
-            $stmt->execute([$appointment['appointment_id']]);
-            $appointment['packages'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $packageStmt->execute([$appointment['appointment_id']]);
+            $appointment['packages'] = $packageStmt->fetchAll(PDO::FETCH_ASSOC);
         }
 
         Response::json([

@@ -140,13 +140,17 @@ const PackageAPI = {
             if (filters.status) queryParams.append('status', filters.status);
             if (filters.page) queryParams.append('page', filters.page);
             if (filters.limit) queryParams.append('limit', filters.limit);
-            
+            // Add include parameter for services
+            if (filters.include && filters.include === 'services') {
+                queryParams.append('include', 'services');
+            }
+
             const queryString = queryParams.toString() ? `?${queryParams.toString()}` : '';
-            
+
             const response = await apiRequest(`/packages${queryString}`, {
                 method: 'GET'
             });
-            
+
             if (response.status === API_STATUS.SUCCESS) {
                 return { success: true, data: response.data };
             }

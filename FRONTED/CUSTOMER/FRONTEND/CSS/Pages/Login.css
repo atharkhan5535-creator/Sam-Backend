@@ -1,0 +1,231 @@
+/* ════════════════════════════════
+   CONTAINER
+════════════════════════════════ */
+.login-container {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+  gap: var(--gutter-md);
+}
+
+/* ════════════════════════════════
+   LEFT  –  brand / banner panel
+════════════════════════════════ */
+.login-left-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.4rem 0.8rem;
+  width: 100%;
+}
+
+svg { display: none; }
+
+.word-mark {
+  margin: 0.5rem 0;
+  width: 100%;
+  text-align: center;
+}
+.word-mark h3 {
+  font-family: var(--font-display);
+  font-size: var(--font-size-2xl);
+  color: var(--sp-text);
+  letter-spacing: 3px;
+}
+.word-mark h3::after {
+  content: '.';
+  color: var(--color-accent2);
+}
+
+/* mobile label */
+.login-create-text {
+  font-size: var(--font-size-sm);
+  font-family: var(--primary-font);
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--highLight);
+  width: 100%;
+  margin-bottom: var(--margin-md);
+  margin-left: var(--margin-md);
+}
+
+.login-banner-sec {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.login-banner-img-d {
+  width: 100%;
+  height: 260px;
+  background-image: url(/FRONTEND/Assets/images/signup\ banner\ mobile.png);
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  border-radius: var(--border-radius-3xl);
+  position: relative;
+  overflow: hidden;
+}
+
+/* ════════════════════════════════
+   RIGHT  –  form panel
+════════════════════════════════ */
+.login-right-section {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.login-form-box {
+  width: 96%;
+  background: rgba(20,10,16,0.82);
+  backdrop-filter: blur(24px) saturate(1.5);
+  -webkit-backdrop-filter: blur(24px) saturate(1.5);
+  border: 1px solid var(--sp-border);
+  border-radius: var(--border-radius-3xl);
+  padding: 1.3rem 1.2rem 1.8rem;
+  position: relative;
+  top: -28px;
+  overflow: hidden;
+}
+
+/* pink shimmer line on top */
+.login-form-box::before {
+  content: '';
+  position: absolute;
+  top: 0;
+   left: 15%;
+   right: 15%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-accent), transparent);
+  opacity: 0.7;
+}
+
+.login-form-box h2 {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 400;
+  letter-spacing: 3px;
+  color: var(--sp-text);
+  padding-left: 0.3rem;
+  padding-bottom: 1.2rem;
+}
+
+/* ── form all other form styling in signup.css── */
+#loginForm {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+
+/* ── entrance animations ── */
+.login-form-box h2,
+.input-group,
+.login-btn,
+.login-link,
+.login-option-bar,
+.third-party-login {
+  animation: fadeUp 0.6s cubic-bezier(0.22,1,0.36,1) both;
+}
+.login-form-box h2      { animation-delay: 0.05s; }
+.input-group:nth-child(1){ animation-delay: 0.12s; }
+.input-group:nth-child(2){ animation-delay: 0.19s; }
+.input-group:nth-child(3){ animation-delay: 0.26s; }
+.login-btn              { animation-delay: 0.33s; }
+.login-link             { animation-delay: 0.38s; }
+.login-option-bar       { animation-delay: 0.43s; }
+.third-party-login      { animation-delay: 0.48s; }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ════════════════════════════════
+   TABLET  ≥ 768px
+════════════════════════════════ */
+@media (min-width: 768px) {
+  .login-container {
+    flex-direction: row;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  .login-left-section {
+    width: 50%; height: 100%;
+    padding: var(--padding-sm);
+    justify-content: flex-start;
+    position: relative;
+  }
+
+  .login-right-section {
+    width: 50%; height: 100%;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .login-form-box {
+    top: 0;
+    width: 78%;
+  }
+
+  .word-mark {
+    position: absolute;
+    top: 3%;
+    left: 50%; transform: translateX(-50%);
+    z-index: 9;
+    white-space: nowrap;
+    width: auto;
+    text-align: center;
+  }
+  .word-mark h3 {
+    color: #fff;
+    font-size: 2.1rem;
+    text-shadow: 0 2px 12px rgba(0,0,0,0.5);
+  }
+
+  .login-banner-img-d {
+    height: 100%;
+    width: calc(100% - 28px);
+    margin-left: 28px;
+    background-image: url(/FRONTEND/Assets/images/signupBannerDesktop.jpg);
+    background-size: cover;
+    border-radius: 20px;
+    clip-path: url(#leftPanelShape);
+  }
+
+  .login-create-text { display: none; }
+
+  .login-alt-text-d,
+  .signup-alt-text-d {
+    position: absolute;
+    bottom: 3%; 
+    left: 2%;
+    width: 65%;
+    z-index: 9;
+  }
+  
+  .signup-alt-text,
+  .login-alt-text {
+    font-size: var(--font-size-sm);
+    font-family: var(--primary-font);
+    font-weight: 300;
+    line-height: 1;
+    text-align: start;
+  }
+
+  svg { display: block; }
+
+  .input-group, .login-btn,
+  .login-option-bar, .login-google { max-width: 300px; }
+}

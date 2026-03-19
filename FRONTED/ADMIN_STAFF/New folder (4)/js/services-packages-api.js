@@ -115,13 +115,17 @@ window.ServicesAPI = ServicesAPI;
 const PackagesAPI = {
     /**
      * Get list of all packages (active and inactive)
-     * Query params: status (optional - if not provided, returns ALL)
+     * Query params: status (optional), include (optional - 'services' to include services array)
      */
     list: async (params = {}) => {
         const queryParams = new URLSearchParams();
-        // Only add status if explicitly provided
+        // Add status if provided
         if (params.status && params.status !== '') {
             queryParams.append('status', params.status);
+        }
+        // Add include if provided (e.g., 'services')
+        if (params.include && params.include === 'services') {
+            queryParams.append('include', 'services');
         }
 
         const query = queryParams.toString();
