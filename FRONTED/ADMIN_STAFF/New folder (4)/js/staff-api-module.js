@@ -218,6 +218,42 @@ const StaffAPI = {
     },
 
     /**
+     * Process batch incentive payout (ADMIN only)
+     * Processes multiple incentives in a single transaction
+     * Backend requires: staff_id, incentive_ids[], payment_mode
+     * Optional: payout_date, transaction_reference, remarks
+     * Payment modes: CASH, UPI, BANK, CHEQUE
+     * @param {object} batchData - Batch payout data
+     */
+    processBatchPayout: async (batchData) => {
+        // Validate required fields
+        if (!batchData.staff_id) {
+            throw new Error('Staff ID is required');
+        }
+        if (!batchData.incentive_ids || !Array.isArray(batchData.incentive_ids) || batchData.incentive_ids.length === 0) {
+            throw new Error('At least one incentive ID is required');
+        }
+        if (!batchData.payment_mode) {
+            throw new Error('Payment mode is required');
+        }
+
+        const validModes = ['CASH', 'UPI', 'BANK', 'CHEQUE'];
+        if (!validModes.includes(batchData.payment_mode)) {
+            throw new Error('Invalid payment mode');
+        }
+
+        try {
+            const response = await apiRequest('/staff/incentives/batch-payout', {
+                method: 'POST',
+                body: JSON.stringify(batchData)
+            });
+            return { success: true, data: response.data };
+        } catch (error) {
+            return { success: false, message: error.message };
+        }
+    },
+
+    /**
      * Get list of all incentives (ADMIN only)
      * Query params: staff_id, status, start_date, end_date
      * @param {object} params - Query parameters

@@ -244,7 +244,13 @@
                 </div>
 
                 <div style="margin-bottom:1rem;">
-                    <label class="form-label">Unpaid Incentives</label>
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
+                        <label class="form-label" style="margin:0;">Unpaid Incentives</label>
+                        <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.85rem;color:var(--text-secondary);">
+                            <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll()" style="width:16px;height:16px;cursor:pointer;">
+                            Select All
+                        </label>
+                    </div>
                     <div id="unpaidIncentivesList" style="max-height:300px;overflow-y:auto;border:1px solid var(--card-border);border-radius:var(--radius-lg);padding:0.5rem;margin-top:0.5rem;">
                         <!-- Dynamically populated -->
                     </div>
@@ -720,11 +726,22 @@
 
         function renderUnpaidIncentivesList() {
             const container = document.getElementById('unpaidIncentivesList');
+            const selectAllCheckbox = document.getElementById('selectAllCheckbox');
 
             if (!unpaidIncentivesData.length) {
                 container.innerHTML = '<div class="empty-state"><div class="empty-icon"><i class="fas fa-check-circle"></i></div><h3 class="empty-title">All Paid!</h3><p class="empty-text">No unpaid incentives for this staff member</p></div>';
+                selectAllCheckbox.disabled = true;
+                selectAllCheckbox.checked = false;
                 return;
             }
+
+            // Update Select All checkbox state
+            const allSelected = unpaidIncentivesData.length > 0 && selectedIncentives.length === unpaidIncentivesData.length;
+            const someSelected = selectedIncentives.length > 0 && selectedIncentives.length < unpaidIncentivesData.length;
+            
+            selectAllCheckbox.checked = allSelected;
+            selectAllCheckbox.indeterminate = someSelected;
+            selectAllCheckbox.disabled = false;
 
             container.innerHTML = unpaidIncentivesData.map(inc => {
                 const typeLabels = {
@@ -736,8 +753,11 @@
                 const date = inc.appointment_date || inc.created_at;
                 const apptInfo = inc.appointment_id ? `Appt #${inc.appointment_id}` : '';
 
-                return `<div style="border:1px solid var(--card-border);border-radius:var(--radius-md);padding:0.75rem;margin-bottom:0.5rem;display:flex;align-items:center;gap:0.75rem;background:${selectedIncentives.includes(inc.incentive_id) ? 'rgba(16, 185, 129, 0.1)' : 'transparent'};">
-                    <input type="checkbox" 
+                return `<div style="border:1px solid var(--card-border);border-radius:var(--radius-md);padding:0.75rem;margin-bottom:0.5rem;display:flex;align-items:center;gap:0.75rem;background:${selectedIncentives.includes(inc.incentive_id) ? 'rgba(16, 185, 129, 0.1)' : 'transparent'};transition:background 0.2s;">
+                    <input type="checkbox"
+                        class="incentive-checkbox"
+                        data-incentive-id="${inc.incentive_id}"
+                        data-amount="${inc.incentive_amount}"
                         onchange="toggleIncentiveSelection(${inc.incentive_id}, ${inc.incentive_amount})"
                         ${selectedIncentives.includes(inc.incentive_id) ? 'checked' : ''}
                         style="width:18px;height:18px;cursor:pointer;">
@@ -749,6 +769,34 @@
                     <div style="font-size:1.1rem;font-weight:700;color:var(--accent-gold);">₹${parseFloat(inc.incentive_amount).toFixed(2)}</div>
                 </div>`;
             }).join('');
+        }
+
+        function toggleSelectAll() {
+            const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+            const checkboxes = document.querySelectorAll('.incentive-checkbox');
+            
+            if (selectAllCheckbox.checked) {
+                // Select all
+                selectedIncentives = unpaidIncentivesData.map(inc => inc.incentive_id);
+            } else {
+                // Deselect all
+                selectedIncentives = [];
+            }
+            
+            // Update all checkboxes
+            checkboxes.forEach(cb => {
+                cb.checked = selectAllCheckbox.checked;
+            });
+            
+            // Update total
+            const total = unpaidIncentivesData
+                .filter(inc => selectedIncentives.includes(inc.incentive_id))
+                .reduce((sum, inc) => sum + parseFloat(inc.incentive_amount), 0);
+            
+            document.getElementById('selectedTotal').textContent = '₹' + total.toFixed(2);
+            
+            // Re-render to update highlighting
+            renderUnpaidIncentivesList();
         }
 
         function toggleIncentiveSelection(incentiveId, amount) {
@@ -765,6 +813,19 @@
                 .reduce((sum, inc) => sum + parseFloat(inc.incentive_amount), 0);
 
             document.getElementById('selectedTotal').textContent = '₹' + total.toFixed(2);
+            
+            // Update Select All checkbox state
+            const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+            if (selectedIncentives.length === 0) {
+                selectAllCheckbox.checked = false;
+                selectAllCheckbox.indeterminate = false;
+            } else if (selectedIncentives.length === unpaidIncentivesData.length) {
+                selectAllCheckbox.checked = true;
+                selectAllCheckbox.indeterminate = false;
+            } else {
+                selectAllCheckbox.checked = false;
+                selectAllCheckbox.indeterminate = true;
+            }
 
             // Re-render to update highlighting
             renderUnpaidIncentivesList();
@@ -797,16 +858,11 @@
         }
 
         async function processPayout() {
-            const payoutAmount = parseFloat(document.getElementById('payoutAmount').value);
             const paymentMode = document.getElementById('payoutPaymentMode').value;
             const transactionRef = document.getElementById('payoutTransactionRef').value;
             const remarks = document.getElementById('payoutRemarks').value.trim();
             const payoutDate = document.getElementById('payoutDate').value;
 
-            if (!payoutAmount || payoutAmount <= 0) {
-                alert('Please enter a valid payout amount');
-                return;
-            }
             if (!paymentMode) {
                 alert('Please select a payment mode');
                 return;
@@ -816,45 +872,121 @@
                 return;
             }
 
+            // Calculate total amount from selected incentives
+            const totalAmount = unpaidIncentivesData
+                .filter(inc => selectedIncentives.includes(inc.incentive_id))
+                .reduce((sum, inc) => sum + parseFloat(inc.incentive_amount), 0);
+
+            // Confirmation dialog
+            const confirmed = await Swal.fire({
+                title: 'Confirm Payout',
+                html: `
+                    <p>Process payout for <strong>${selectedStaffName}</strong>?</p>
+                    <div style="text-align:left;margin-top:1rem;background:#f8f9fa;padding:1rem;border-radius:8px;">
+                        <p><strong>Incentives:</strong> ${selectedIncentives.length}</p>
+                        <p><strong>Total Amount:</strong> ₹${totalAmount.toFixed(2)}</p>
+                        <p><strong>Payment Mode:</strong> ${paymentMode}</p>
+                        ${transactionRef ? `<p><strong>Transaction Ref:</strong> ${transactionRef}</p>` : ''}
+                        <p><strong>Payout Date:</strong> ${formatDate(payoutDate)}</p>
+                    </div>
+                `,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, Process Payout',
+                cancelButtonText: 'Cancel',
+                confirmButtonColor: '#10b981',
+                cancelButtonColor: '#6b7280'
+            });
+
+            if (!confirmed.isConfirmed) {
+                return;
+            }
+
+            // Show loading state
+            Swal.fire({
+                title: 'Processing Payout...',
+                html: 'Please wait while we process the payout(s)',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
             try {
-                // Process payout for EACH selected incentive
-                const payoutResults = [];
-                for (const incentiveId of selectedIncentives) {
-                    const payoutData = {
-                        payout_amount: payoutAmount / selectedIncentives.length, // Split amount proportionally
-                        payment_mode: paymentMode,
-                        payout_date: payoutDate,
-                        transaction_reference: transactionRef,
-                        remarks: remarks || `Payout for incentive #${incentiveId}`
-                    };
+                // ✅ Use BATCH payout API (single transaction for all incentives)
+                const batchData = {
+                    staff_id: selectedStaffId,
+                    incentive_ids: selectedIncentives,
+                    payout_date: payoutDate,
+                    payment_mode: paymentMode,
+                    transaction_reference: transactionRef,
+                    remarks: remarks || `Batch payout for ${selectedIncentives.length} incentive(s)`
+                };
 
-                    console.log(`Processing payout for incentive ${incentiveId}:`, payoutData);
-                    const result = await StaffAPI.processPayout(incentiveId, payoutData);
-                    payoutResults.push({ incentiveId, success: result.success });
+                console.log('Processing batch payout:', batchData);
+                const result = await StaffAPI.processBatchPayout(batchData);
+
+                // Close loading
+                Swal.close();
+
+                if (result.success) {
+                    const { success_count, fail_count, total_paid } = result.data;
+                    
+                    if (fail_count === 0) {
+                        // All successful
+                        Swal.fire({
+                            title: 'Payout Successful! 🎉',
+                            html: `
+                                <div style="text-align:left;">
+                                    <p><strong>Staff:</strong> ${selectedStaffName}</p>
+                                    <p><strong>Total Amount:</strong> ₹${total_paid.toFixed(2)}</p>
+                                    <p><strong>Mode:</strong> ${paymentMode}</p>
+                                    <p><strong>Incentives Paid:</strong> ${success_count}/${selectedIncentives.length}</p>
+                                </div>
+                            `,
+                            icon: 'success',
+                            confirmButtonText: 'OK'
+                        });
+                    } else {
+                        // Partial success
+                        Swal.fire({
+                            title: 'Payout Partially Completed',
+                            html: `
+                                <div style="text-align:left;">
+                                    <p><strong>Staff:</strong> ${selectedStaffName}</p>
+                                    <p><strong>Amount Paid:</strong> ₹${total_paid.toFixed(2)}</p>
+                                    <p style="color:#10b981;"><strong>✅ Successful:</strong> ${success_count}</p>
+                                    <p style="color:#f59e0b;"><strong>⚠️ Failed:</strong> ${fail_count}</p>
+                                    <p style="font-size:0.8rem;color:#6b7280;margin-top:0.5rem;">Check results for details</p>
+                                </div>
+                            `,
+                            icon: 'warning',
+                            confirmButtonText: 'OK'
+                        });
+                    }
+                } else {
+                    // API returned error
+                    Swal.fire({
+                        title: 'Payout Failed',
+                        text: result.message || 'An unexpected error occurred',
+                        icon: 'error',
+                        confirmButtonText: 'OK'
+                    });
                 }
-
-                // Check results
-                const successCount = payoutResults.filter(r => r.success).length;
-                const failCount = payoutResults.filter(r => !r.success).length;
-
-                // Success!
-                closeModal('payoutModal');
-                
-                let message = `✅ Payout Successful!\n\nStaff: ${selectedStaffName}\nTotal Amount: ₹${payoutAmount.toFixed(2)}\nMode: ${paymentMode}\n\n`;
-                message += `Incentives Paid: ${successCount}/${selectedIncentives.length}`;
-                if (failCount > 0) {
-                    message += `\n⚠️ ${failCount} failed - check console for details`;
-                }
-
-                alert(message);
 
                 // Reload data
                 console.log('Reloading data after processing payout...');
-                setTimeout(() => loadData(), 500);
+                setTimeout(() => loadData(), 1000);
 
             } catch (error) {
                 console.error('Payout error:', error);
-                alert('❌ Payout Failed: ' + error.message);
+                Swal.close();
+                Swal.fire({
+                    title: 'Payout Failed',
+                    text: error.message || 'An unexpected error occurred',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
             }
         }
 
@@ -920,16 +1052,41 @@
             const incentiveAmount = parseFloat(document.getElementById('newIncentiveAmount').value);
             const remarks = document.getElementById('newIncentiveRemarks').value.trim();
 
+            // Validation
             if (!staffId) {
-                alert('Please select a staff member');
+                Swal.fire({
+                    title: 'Staff Required',
+                    text: 'Please select a staff member',
+                    icon: 'warning',
+                    confirmButtonText: 'OK'
+                });
                 return;
             }
             if (!incentiveType) {
-                alert('Please select an incentive type');
+                Swal.fire({
+                    title: 'Type Required',
+                    text: 'Please select an incentive type',
+                    icon: 'warning',
+                    confirmButtonText: 'OK'
+                });
                 return;
             }
             if (!incentiveAmount || incentiveAmount <= 0) {
-                alert('Please enter a valid incentive amount');
+                Swal.fire({
+                    title: 'Invalid Amount',
+                    text: 'Please enter a valid incentive amount greater than 0',
+                    icon: 'warning',
+                    confirmButtonText: 'OK'
+                });
+                return;
+            }
+            if (incentiveAmount > 1000000) {
+                Swal.fire({
+                    title: 'Amount Too Large',
+                    text: 'Incentive amount cannot exceed ₹1,000,000',
+                    icon: 'warning',
+                    confirmButtonText: 'OK'
+                });
                 return;
             }
 
@@ -948,15 +1105,30 @@
             try {
                 const result = await StaffAPI.createIncentive(incentiveData);
                 if (result.success) {
-                    alert('✅ Incentive created successfully!');
+                    Swal.fire({
+                        title: 'Incentive Created! ✅',
+                        text: 'Incentive has been created successfully',
+                        icon: 'success',
+                        confirmButtonText: 'OK'
+                    });
                     closeModal('createIncentiveModal');
                     console.log('Reloading data after creating incentive...');
                     setTimeout(() => loadData(), 500);
                 } else {
-                    alert('❌ Failed: ' + (result.message || 'Unknown error'));
+                    Swal.fire({
+                        title: 'Failed to Create',
+                        text: result.message || 'Unknown error',
+                        icon: 'error',
+                        confirmButtonText: 'OK'
+                    });
                 }
             } catch (error) {
-                alert('❌ Error: ' + error.message);
+                Swal.fire({
+                    title: 'Error',
+                    text: error.message || 'An unexpected error occurred',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
             }
         }
 
@@ -993,17 +1165,28 @@
         function onAppointmentChange() {
             const apptId = parseInt(document.getElementById('appointmentSelect').value);
             const appointment = appointmentsList.find(a => a.appointment_id === apptId);
-            
+
             if (appointment) {
                 // Get staff name from appointment
-                const staffName = appointment.staff ? appointment.staff.name : 'Not assigned';
+                const staffName = appointment.staff ? appointment.staff.name : (appointment.staff_name || 'Not assigned');
+                const staffId = appointment.staff_id || (appointment.staff ? appointment.staff.staff_id : null);
+                
+                // Store staff_id in a data attribute for later use
+                document.getElementById('appointmentSelect').dataset.staffId = staffId || '';
+                
                 document.getElementById('apptStaffName').value = staffName;
                 document.getElementById('apptDate').value = appointment.appointment_date;
                 document.getElementById('apptAmount').value = '₹' + (appointment.final_amount || 0).toFixed(2);
+                
+                // Show warning if no staff assigned
+                if (!staffId) {
+                    document.getElementById('apptStaffName').placeholder = 'No staff assigned to this appointment';
+                }
             } else {
                 document.getElementById('apptStaffName').value = '';
                 document.getElementById('apptDate').value = '';
                 document.getElementById('apptAmount').value = '';
+                document.getElementById('appointmentSelect').dataset.staffId = '';
             }
         }
 
@@ -1017,12 +1200,20 @@
                 alert('Please select an appointment');
                 return;
             }
+            
+            // Get staff_id from the stored data attribute
+            const staffId = document.getElementById('appointmentSelect').dataset.staffId;
+            if (!staffId) {
+                alert('No staff assigned to this appointment. Please select a different appointment.');
+                return;
+            }
+            
             if (!incentiveType) {
                 alert('Please select an incentive type');
                 return;
             }
             if (!incentiveAmount || incentiveAmount <= 0) {
-                alert('Please enter a valid incentive amount');
+                alert('Please enter a valid incentive amount greater than 0');
                 return;
             }
 
@@ -1033,7 +1224,7 @@
             }
 
             const incentiveData = {
-                staff_id: appointment.staff_id,
+                staff_id: parseInt(staffId), // ✅ Use captured staff_id
                 appointment_id: apptId,
                 incentive_type: incentiveType,
                 calculation_type: 'FIXED',
@@ -1045,15 +1236,30 @@
             try {
                 const result = await StaffAPI.createIncentive(incentiveData);
                 if (result.success) {
-                    alert('✅ Incentive created successfully!');
+                    Swal.fire({
+                        title: 'Incentive Created! ✅',
+                        text: 'Incentive has been created successfully',
+                        icon: 'success',
+                        confirmButtonText: 'OK'
+                    });
                     closeModal('createByAppointmentModal');
                     console.log('Reloading data after creating incentive by appointment...');
                     setTimeout(() => loadData(), 500);
                 } else {
-                    alert('❌ Failed: ' + (result.message || 'Unknown error'));
+                    Swal.fire({
+                        title: 'Failed to Create',
+                        text: result.message || 'Unknown error',
+                        icon: 'error',
+                        confirmButtonText: 'OK'
+                    });
                 }
             } catch (error) {
-                alert('❌ Error: ' + error.message);
+                Swal.fire({
+                    title: 'Error',
+                    text: error.message || 'An unexpected error occurred',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
             }
         }
 

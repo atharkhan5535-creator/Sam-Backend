@@ -90,6 +90,16 @@ $router->register(
     }
 );
 
+// 7️⃣BATCH Incentive Payout (ADMIN only)
+$router->register(
+    'POST',
+    '/api/staff/incentives/batch-payout',
+    function() use ($staffController) {
+        authorize(['ADMIN']);
+        $staffController->createBatchPayout();
+    }
+);
+
 // 8️⃣ Get Unpaid Incentives by Staff (ADMIN only)
 $router->register(
     'GET',

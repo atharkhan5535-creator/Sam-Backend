@@ -538,8 +538,8 @@ class StaffController
 
         // Verify incentive exists and get staff_id from it
         $stmt = $this->db->prepare("
-            SELECT incentive_id, staff_id, incentive_amount, status 
-            FROM incentives 
+            SELECT incentive_id, staff_id, incentive_amount, status
+            FROM incentives
             WHERE incentive_id = ?
         ");
         $stmt->execute([$incentiveId]);
@@ -600,6 +600,143 @@ class StaffController
             Response::json([
                 "status" => "error",
                 "message" => "Failed to create payout: " . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | 7️⃣BATCH INCENTIVE PAYOUT (ADMIN only)
+    | Process multiple incentive payouts in a single transaction
+    |--------------------------------------------------------------------------
+    */
+    public function createBatchPayout()
+    {
+        $auth = $GLOBALS['auth_user'] ?? null;
+        $salonId = $auth['salon_id'] ?? null;
+
+        if (!$salonId) {
+            Response::json(["status" => "error", "message" => "Invalid salon context"], 400);
+        }
+
+        $data = json_decode(file_get_contents("php://input"), true);
+
+        $staffId = $data['staff_id'] ?? null;
+        $incentiveIds = $data['incentive_ids'] ?? [];
+        $payoutDate = $data['payout_date'] ?? date('Y-m-d');
+        $paymentMode = $data['payment_mode'] ?? null;
+        $transactionReference = trim($data['transaction_reference'] ?? '');
+        $remarks = trim($data['remarks'] ?? '');
+
+        // Validation
+        if (!$staffId) {
+            Response::json(["status" => "error", "message" => "Staff ID is required"], 400);
+        }
+
+        if (empty($incentiveIds) || !is_array($incentiveIds)) {
+            Response::json(["status" => "error", "message" => "At least one incentive ID is required"], 400);
+        }
+
+        if (!$paymentMode) {
+            Response::json(["status" => "error", "message" => "Payment mode is required"], 400);
+        }
+
+        // Verify staff belongs to salon
+        $stmt = $this->db->prepare("SELECT staff_id FROM staff_info WHERE staff_id = ? AND salon_id = ?");
+        $stmt->execute([$staffId, $salonId]);
+        if (!$stmt->fetch()) {
+            Response::json(["status" => "error", "message" => "Staff not found in this salon"], 404);
+        }
+
+        try {
+            $this->db->beginTransaction();
+
+            $successCount = 0;
+            $failCount = 0;
+            $totalPaid = 0;
+            $results = [];
+
+            foreach ($incentiveIds as $incentiveId) {
+                // Check if incentive exists and get its details
+                $stmt = $this->db->prepare("
+                    SELECT incentive_id, staff_id, incentive_amount, status
+                    FROM incentives
+                    WHERE incentive_id = ? AND staff_id = ?
+                ");
+                $stmt->execute([$incentiveId, $staffId]);
+                $incentive = $stmt->fetch();
+
+                if (!$incentive) {
+                    $results[] = [
+                        'incentive_id' => $incentiveId,
+                        'success' => false,
+                        'message' => 'Incentive not found'
+                    ];
+                    $failCount++;
+                    continue;
+                }
+
+                // Check if already paid
+                if ($incentive['status'] === 'PAID') {
+                    $results[] = [
+                        'incentive_id' => $incentiveId,
+                        'success' => false,
+                        'message' => 'Already paid'
+                    ];
+                    $failCount++;
+                    continue;
+                }
+
+                // Insert payout record
+                $stmt = $this->db->prepare("
+                    INSERT INTO incentive_payouts
+                    (incentive_id, staff_id, payout_amount, payout_date, payment_mode, transaction_reference, remarks, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
+                ");
+
+                $stmt->execute([
+                    $incentiveId,
+                    $staffId,
+                    $incentive['incentive_amount'], // Use actual incentive amount
+                    $payoutDate,
+                    $paymentMode,
+                    $transactionReference ?: null,
+                    $remarks ?: null
+                ]);
+
+                // Update incentive status to PAID
+                $stmt = $this->db->prepare("
+                    UPDATE incentives SET status = 'PAID', updated_at = NOW()
+                    WHERE incentive_id = ?
+                ");
+                $stmt->execute([$incentiveId]);
+
+                $results[] = [
+                    'incentive_id' => $incentiveId,
+                    'success' => true,
+                    'payout_amount' => $incentive['incentive_amount']
+                ];
+                $successCount++;
+                $totalPaid += floatval($incentive['incentive_amount']);
+            }
+
+            $this->db->commit();
+
+            Response::json([
+                "status" => "success",
+                "data" => [
+                    "success_count" => $successCount,
+                    "fail_count" => $failCount,
+                    "total_paid" => $totalPaid,
+                    "results" => $results
+                ]
+            ], 201);
+
+        } catch (Exception $e) {
+            $this->db->rollBack();
+            Response::json([
+                "status" => "error",
+                "message" => "Failed to process batch payout: " . $e->getMessage()
             ], 500);
         }
     }
