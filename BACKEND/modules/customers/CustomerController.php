@@ -518,19 +518,20 @@ class CustomerController
             $stmt->execute([$appointment['appointment_id']]);
             $appointment['feedback_given'] = (bool) $stmt->fetch();
 
-            // Get services
+            // Get services - staff_id inherited from services table
             $stmt = $this->db->prepare("
-                SELECT asvc.service_id, s.service_name, asvc.staff_id
+                SELECT asvc.service_id, s.service_name, svc.staff_id
                 FROM appointment_services asvc
                 INNER JOIN services s ON asvc.service_id = s.service_id
+                INNER JOIN services svc ON asvc.service_id = svc.service_id
                 WHERE asvc.appointment_id = ?
             ");
             $stmt->execute([$appointment['appointment_id']]);
             $appointment['services'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-            // Get packages
+            // Get packages - no staff_id (packages don't have staff, services do)
             $stmt = $this->db->prepare("
-                SELECT ap.package_id, p.package_name, ap.staff_id
+                SELECT ap.package_id, p.package_name
                 FROM appointment_packages ap
                 INNER JOIN packages p ON ap.package_id = p.package_id
                 WHERE ap.appointment_id = ?

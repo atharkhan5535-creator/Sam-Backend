@@ -300,7 +300,7 @@ class ReportController
 
         // Staff performance with appointments count and incentives
         $stmt = $this->db->prepare("
-            SELECT 
+            SELECT
                 si.staff_id,
                 si.name,
                 si.specialization,
@@ -319,7 +319,8 @@ class ReportController
                     AND ip.payout_date BETWEEN ? AND ?
                 ), 0) AS total_payouts
             FROM staff_info si
-            LEFT JOIN appointment_services asvc ON si.staff_id = asvc.staff_id
+            LEFT JOIN services svc ON si.staff_id = svc.staff_id
+            LEFT JOIN appointment_services asvc ON svc.service_id = asvc.service_id
             LEFT JOIN appointments a ON asvc.appointment_id = a.appointment_id
                 AND a.appointment_date BETWEEN ? AND ?
             WHERE si.salon_id = ?
