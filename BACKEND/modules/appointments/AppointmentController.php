@@ -150,7 +150,6 @@ class AppointmentController
 
             foreach ($packages as $package) {
                 $packageId = $package['package_id'];
-                $staffId = $package['staff_id'] ?? null;
                 $packagePrice = $package['price'] ?? 0;
                 $discountAmount = $package['discount_amount'] ?? 0;
 
@@ -166,7 +165,6 @@ class AppointmentController
 
                 $packageDetails[] = [
                     'package_id' => $packageId,
-                    'staff_id' => $staffId,
                     'package_price' => $packagePrice,
                     'discount_amount' => $discountAmount,
                     'final_price' => $packagePrice - $discountAmount
