@@ -400,7 +400,7 @@ class AppointmentController
 
     /*
     |--------------------------------------------------------------------------
-    | 4️⃣ LIST APPOINTMENTS (ADMIN, STAFF, CUSTOMER)
+    | 4️⃣ LIST APPOINTMENTS (ADMIN, STAFF, CUSTOMER, SUPER_ADMIN)
     |--------------------------------------------------------------------------
     */
     public function index()
@@ -408,6 +408,15 @@ class AppointmentController
         $auth = $GLOBALS['auth_user'] ?? null;
         $salonId = $auth['salon_id'] ?? null;
         $userRole = $auth['role'] ?? null;
+
+        // SUPER_ADMIN can fetch appointments for any salon by passing salon_id as parameter
+        if ($userRole === 'SUPER_ADMIN') {
+            $salonId = $_GET['salon_id'] ?? null;
+            if (!$salonId) {
+                Response::json(["status" => "error", "message" => "Salon ID required for SUPER_ADMIN"], 400);
+                return;
+            }
+        }
 
         if (!$salonId) {
             Response::json(["status" => "error", "message" => "Invalid salon context"], 400);

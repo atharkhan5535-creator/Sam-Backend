@@ -80,8 +80,20 @@ class SalonSubscriptionController
 
             $subscriptionId = $this->db->lastInsertId();
 
-            // 2. Auto-create invoice for the subscription
+            // 2. Auto-create invoice for the subscription with proration for flat plans
             $amount = (float) $plan['flat_price'];
+            
+            // Calculate proration if subscription starts mid-month
+            $startDateTime = new DateTime($startDate);
+            $daysInMonth = $startDateTime->format('t'); // Total days in start month
+            $dayOfMonth = (int) $startDateTime->format('d');
+            
+            if ($plan['plan_type'] === 'flat' && $dayOfMonth > 1) {
+                // Prorate: charge only for remaining days in the month
+                $daysRemaining = $daysInMonth - $dayOfMonth + 1;
+                $amount = ($plan['flat_price'] / $daysInMonth) * $daysRemaining;
+            }
+            
             $taxRate = 0; // Change to 18 for GST
             $taxAmount = ($amount * $taxRate) / 100;
             $totalAmount = $amount + $taxAmount;
@@ -297,6 +309,53 @@ class SalonSubscriptionController
 
     /*
     |--------------------------------------------------------------------------
+    | 4️⃣.5️⃣ VIEW SUBSCRIPTION DETAILS (SUPER_ADMIN ONLY)
+    | View any salon's subscription details (no salon_id required)
+    |--------------------------------------------------------------------------
+    */
+    public function showBySuperAdmin($subscriptionId)
+    {
+        try {
+            // Verify subscription exists - use CORRECT database column names
+            $stmt = $this->db->prepare("
+                SELECT ss.*, sp.plan_name, sp.duration_days, sp.plan_type, 
+                       sp.flat_price, sp.rate_per_appointment, sp.percentage_rate,
+                       s.salon_name, s.salon_id as salon_salon_id
+                FROM salon_subscriptions ss
+                INNER JOIN subscription_plans sp ON ss.plan_id = sp.plan_id
+                INNER JOIN salons s ON ss.salon_id = s.salon_id
+                WHERE ss.subscription_id = ?
+            ");
+
+            $stmt->execute([$subscriptionId]);
+            $subscription = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$subscription) {
+                Response::json(["status" => "error", "message" => "Subscription not found"], 404);
+                return;
+            }
+
+            // Map database column names to API field names for frontend compatibility
+            if ($subscription) {
+                $subscription['per_appointments_price'] = $subscription['rate_per_appointment'];
+                $subscription['percentage_per_appointment'] = $subscription['percentage_rate'];
+                // Keep original columns for backward compatibility
+            }
+
+            Response::json([
+                "status" => "success",
+                "data" => $subscription
+            ]);
+        } catch (Exception $e) {
+            Response::json([
+                "status" => "error",
+                "message" => "Failed to fetch subscription: " . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /*
+    |--------------------------------------------------------------------------
     | 5️⃣ GET SALON'S CURRENT SUBSCRIPTION (SUPER_ADMIN, ADMIN)
     | - ADMIN: Get own salon's current subscription
     | - SUPER_ADMIN: Get any salon's current subscription
@@ -456,8 +515,20 @@ class SalonSubscriptionController
 
             $subscriptionId = $this->db->lastInsertId();
 
-            // 2. Auto-create invoice for the subscription
+            // 2. Auto-create invoice for the subscription with proration for flat plans
             $amount = (float) $plan['flat_price'];
+            
+            // Calculate proration if subscription starts mid-month
+            $startDateTime = new DateTime($startDate);
+            $daysInMonth = $startDateTime->format('t'); // Total days in start month
+            $dayOfMonth = (int) $startDateTime->format('d');
+            
+            if ($plan['plan_type'] === 'flat' && $dayOfMonth > 1) {
+                // Prorate: charge only for remaining days in the month
+                $daysRemaining = $daysInMonth - $dayOfMonth + 1;
+                $amount = ($plan['flat_price'] / $daysInMonth) * $daysRemaining;
+            }
+            
             $taxRate = 0; // Change to 18 for GST
             $taxAmount = ($amount * $taxRate) / 100;
             $totalAmount = $amount + $taxAmount;
@@ -753,22 +824,13 @@ class SalonSubscriptionController
         // 7️⃣ Generate invoice number
         $invoiceNumber = 'INV-SUB-' . $salonId . '-' . date('Ymd', strtotime($invoiceDate)) . '-' . str_pad(mt_rand(1, 9999), 4, '0', STR_PAD_LEFT);
 
-        // 8️⃣ Prepare usage details (store in notes column as JSON)
-        $usageDetails = [
-            'billing_month' => $data['billing_month'],
-            'total_appointments' => $data['total_appointments'] ?? 0,
-            'total_revenue' => $data['total_revenue'] ?? 0,
-            'plan_type' => $subscription['plan_type'],
-            'calculation_breakdown' => $data['calculation_breakdown'] ?? []
-        ];
-
         try {
-            // 9️⃣ Insert invoice into invoice_salon table
+            // 8️⃣ Insert invoice into invoice_salon table (only existing columns)
             $stmt = $this->db->prepare("
                 INSERT INTO invoice_salon
                 (salon_id, subscription_id, invoice_number, amount, tax_amount, total_amount,
-                 payment_status, invoice_date, due_date, notes, created_at, updated_at)
-                VALUES (?, ?, ?, ?, ?, ?, 'UNPAID', ?, ?, ?, NOW(), NOW())
+                 payment_status, invoice_date, due_date, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, 'UNPAID', ?, ?, NOW(), NOW())
             ");
 
             $stmt->execute([
@@ -779,8 +841,7 @@ class SalonSubscriptionController
                 $taxAmount,
                 $totalAmount,
                 $invoiceDate,
-                $dueDate,
-                json_encode($usageDetails)
+                $dueDate
             ]);
 
             $invoiceSalonId = $this->db->lastInsertId();
@@ -805,6 +866,140 @@ class SalonSubscriptionController
             Response::json([
                 "status" => "error",
                 "message" => "Failed to generate invoice: " . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | 1️⃣2️⃣ RENEW SUBSCRIPTION (SUPER_ADMIN ONLY)
+    | Extend subscription end date and optionally change plan
+    |--------------------------------------------------------------------------
+    */
+    public function renew($subscriptionId)
+    {
+        $data = json_decode(file_get_contents("php://input"), true);
+
+        // 1️⃣ Validate required fields
+        if (!isset($data['renewal_days']) || !isset($data['new_end_date'])) {
+            Response::json([
+                "status" => "error",
+                "message" => "Missing required fields: renewal_days, new_end_date"
+            ], 400);
+        }
+
+        // 2️⃣ Verify subscription exists
+        $stmt = $this->db->prepare("
+            SELECT ss.*, sp.plan_name, sp.duration_days, s.salon_name
+            FROM salon_subscriptions ss
+            INNER JOIN subscription_plans sp ON ss.plan_id = sp.plan_id
+            INNER JOIN salons s ON ss.salon_id = s.salon_id
+            WHERE ss.subscription_id = ?
+        ");
+        $stmt->execute([$subscriptionId]);
+        $subscription = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$subscription) {
+            Response::json(["status" => "error", "message" => "Subscription not found"], 404);
+        }
+
+        $salonId = $subscription['salon_id'];
+        $renewalDays = (int) $data['renewal_days'];
+        $newEndDate = $data['new_end_date'];
+        $renewalType = $data['renewal_type'] ?? 'MANUAL';
+        $planChange = $data['plan_change'] ?? false;
+        $newPlanId = $data['new_plan_id'] ?? null;
+        $notes = $data['notes'] ?? '';
+
+        // 3️⃣ Validate renewal days
+        if ($renewalDays <= 0 || $renewalDays > 365) {
+            Response::json([
+                "status" => "error",
+                "message" => "Renewal days must be between 1 and 365"
+            ], 400);
+        }
+
+        // 4️⃣ Validate new end date format
+        if (!DateTime::createFromFormat('Y-m-d', $newEndDate)) {
+            Response::json([
+                "status" => "error",
+                "message" => "Invalid new_end_date format. Use YYYY-MM-DD"
+            ], 400);
+        }
+
+        // 5️⃣ Verify new plan if changing plan
+        if ($planChange && $newPlanId) {
+            $stmt = $this->db->prepare("SELECT * FROM subscription_plans WHERE plan_id = ? AND status = 1");
+            $stmt->execute([$newPlanId]);
+            $newPlan = $stmt->fetch();
+
+            if (!$newPlan) {
+                Response::json(["status" => "error", "message" => "New plan not found or inactive"], 404);
+            }
+        }
+
+        try {
+            $this->db->beginTransaction();
+
+            // 6️⃣ Update subscription end date and optionally plan
+            $updateFields = ['end_date = ?'];
+            $updateValues = [$newEndDate];
+
+            if ($planChange && $newPlanId) {
+                $updateFields[] = 'plan_id = ?';
+                $updateValues[] = $newPlanId;
+            }
+
+            $updateValues[] = $subscriptionId;
+
+            $stmt = $this->db->prepare("
+                UPDATE salon_subscriptions
+                SET " . implode(', ', $updateFields) . ", status = 'ACTIVE', updated_at = NOW()
+                WHERE subscription_id = ?
+            ");
+            $stmt->execute($updateValues);
+
+            // 7️⃣ Log renewal in subscription_renewals table
+            $stmt = $this->db->prepare("
+                INSERT INTO subscription_renewals
+                (subscription_id, previous_end_date, new_end_date, renewal_type, renewed_by,
+                 duration_days, plan_changed, old_plan_id, new_plan_id, notes, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+            ");
+
+            $stmt->execute([
+                $subscriptionId,
+                $subscription['end_date'],
+                $newEndDate,
+                $renewalType,
+                $GLOBALS['auth_user']['user_id'] ?? null,
+                $renewalDays,
+                $planChange ? 1 : 0,
+                $planChange ? $subscription['plan_id'] : null,
+                $planChange ? $newPlanId : null,
+                $notes
+            ]);
+
+            $this->db->commit();
+
+            Response::json([
+                "status" => "success",
+                "data" => [
+                    "subscription_id" => $subscriptionId,
+                    "previous_end_date" => $subscription['end_date'],
+                    "new_end_date" => $newEndDate,
+                    "renewal_days" => $renewalDays,
+                    "renewal_type" => $renewalType,
+                    "plan_changed" => $planChange,
+                    "new_plan_id" => $newPlanId
+                ]
+            ]);
+
+        } catch (Exception $e) {
+            $this->db->rollBack();
+            Response::json([
+                "status" => "error",
+                "message" => "Failed to renew subscription: " . $e->getMessage()
             ], 500);
         }
     }

@@ -185,6 +185,18 @@ class SalonInvoiceController
         $stmt->execute($params);
         $invoices = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+        // Fetch payments for each invoice
+        foreach ($invoices as &$invoice) {
+            $stmt = $this->db->prepare("
+                SELECT payment_salon_id, payment_mode, transaction_no, amount, payment_date
+                FROM payments_salon
+                WHERE invoice_salon_id = ?
+                ORDER BY payment_date DESC
+            ");
+            $stmt->execute([$invoice['invoice_salon_id']]);
+            $invoice['payments'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
+
         Response::json([
             "status" => "success",
             "data" => [

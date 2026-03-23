@@ -112,13 +112,13 @@ $router->register(
     }
 );
 
-// 4️⃣ List All Subscriptions Across All Salons (SUPER_ADMIN only)
+// 4️⃣ View Subscription Details (SUPER_ADMIN only) - MUST be before list all
 $router->register(
     'GET',
-    '/api/super-admin/subscriptions',
-    function() use ($controller) {
+    '/api/super-admin/subscriptions/{subscription_id}',
+    function($subscriptionId) use ($controller) {
         authorize(['SUPER_ADMIN']);
-        $controller->listAll();
+        $controller->showBySuperAdmin($subscriptionId);
     }
 );
 
@@ -129,5 +129,25 @@ $router->register(
     function($subscriptionId) use ($controller) {
         authorize(['SUPER_ADMIN']);
         $controller->generateInvoice($subscriptionId);
+    }
+);
+
+// 6️⃣ Renew Subscription (SUPER_ADMIN only)
+$router->register(
+    'POST',
+    '/api/super-admin/subscriptions/{subscription_id}/renew',
+    function($subscriptionId) use ($controller) {
+        authorize(['SUPER_ADMIN']);
+        $controller->renew($subscriptionId);
+    }
+);
+
+// 7️⃣ List All Subscriptions Across All Salons (SUPER_ADMIN only) - MUST be last
+$router->register(
+    'GET',
+    '/api/super-admin/subscriptions',
+    function() use ($controller) {
+        authorize(['SUPER_ADMIN']);
+        $controller->listAll();
     }
 );

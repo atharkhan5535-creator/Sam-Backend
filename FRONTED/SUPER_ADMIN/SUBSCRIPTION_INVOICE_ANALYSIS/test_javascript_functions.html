@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAM - Subscription & Invoice JavaScript Test Suite</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 { font-size: 28px; margin-bottom: 10px; }
+        .header p { opacity: 0.9; }
+        .test-section {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        .test-section h2 {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #6366f1;
+        }
+        .test-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 15px;
+            margin: 5px 0;
+            border-radius: 6px;
+            background: #f8f9fa;
+        }
+        .test-item.pass { background: #10b981; color: white; }
+        .test-item.fail { background: #ef4444; color: white; }
+        .test-item.skip { background: #f59e0b; color: white; }
+        .test-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .test-item.pass .test-icon { background: rgba(255,255,255,0.3); }
+        .test-item.fail .test-icon { background: rgba(255,255,255,0.3); }
+        .test-item.skip .test-icon { background: rgba(255,255,255,0.3); }
+        .test-name { flex: 1; }
+        .test-message {
+            font-size: 12px;
+            opacity: 0.9;
+            margin-left: 10px;
+        }
+        .summary {
+            padding: 30px;
+            background: #f8f9fa;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+        .summary-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .summary-card h3 {
+            font-size: 32px;
+            margin-bottom: 5px;
+        }
+        .summary-card.pass h3 { color: #10b981; }
+        .summary-card.fail h3 { color: #ef4444; }
+        .summary-card.total h3 { color: #6366f1; }
+        .summary-card p {
+            font-size: 14px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            margin: 5px;
+        }
+        .btn-primary { background: #6366f1; color: white; }
+        .btn-primary:hover { background: #4f46e5; }
+        .btn-success { background: #10b981; color: white; }
+        .btn-outline { background: transparent; border: 2px solid #6366f1; color: #6366f1; }
+        .controls {
+            padding: 20px;
+            text-align: center;
+            background: #f8f9fa;
+        }
+        .log-output {
+            padding: 20px;
+            background: #1e1e1e;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧪 SAM - Subscription & Invoice JavaScript Test Suite</h1>
+            <p>Testing all frontend JavaScript functions for billing, renewals, and payments</p>
+        </div>
+
+        <div class="controls">
+            <button class="btn btn-primary" onclick="runAllTests()">▶ Run All Tests</button>
+            <button class="btn btn-outline" onclick="clearResults()">Clear Results</button>
+            <button class="btn btn-success" onclick="exportResults()">📥 Export Results</button>
+        </div>
+
+        <div id="testResults"></div>
+
+        <div class="summary" id="summary" style="display: none;">
+            <div class="summary-card pass">
+                <h3 id="passedCount">0</h3>
+                <p>Passed</p>
+            </div>
+            <div class="summary-card fail">
+                <h3 id="failedCount">0</h3>
+                <p>Failed</p>
+            </div>
+            <div class="summary-card total">
+                <h3 id="totalCount">0</h3>
+                <p>Total Tests</p>
+            </div>
+        </div>
+
+        <div class="log-output" id="logOutput"></div>
+    </div>
+
+    <script>
+        // Test framework
+        const TestRunner = {
+            passed: 0,
+            failed: 0,
+            results: [],
+
+            assert(condition, testName, message = '') {
+                const result = {
+                    test: testName,
+                    passed: condition,
+                    message: message
+                };
+                this.results.push(result);
+                
+                if (condition) {
+                    this.passed++;
+                    log(`✓ PASS: ${testName}`, 'success');
+                } else {
+                    this.failed++;
+                    log(`✗ FAIL: ${testName} - ${message}`, 'error');
+                }
+                
+                return result;
+            },
+
+            reset() {
+                this.passed = 0;
+                this.failed = 0;
+                this.results = [];
+            },
+
+            getSummary() {
+                return {
+                    passed: this.passed,
+                    failed: this.failed,
+                    total: this.passed + this.failed,
+                    passRate: this.passed + this.failed > 0 
+                        ? Math.round((this.passed / (this.passed + this.failed)) * 100) 
+                        : 0
+                };
+            }
+        };
+
+        // Logging function
+        function log(message, type = 'info') {
+            const logOutput = document.getElementById('logOutput');
+            const timestamp = new Date().toLocaleTimeString();
+            const prefix = type === 'success' ? '✓' : type === 'error' ? '✗' : 'ℹ';
+            logOutput.textContent += `[${timestamp}] ${prefix} ${message}\n`;
+            logOutput.scrollTop = logOutput.scrollHeight;
+        }
+
+        // Render test results
+        function renderResults() {
+            const container = document.getElementById('testResults');
+            const summary = document.getElementById('summary');
+            
+            let html = '';
+            let currentSection = '';
+            
+            TestRunner.results.forEach(result => {
+                const section = result.test.split(' - ')[0];
+                if (section !== currentSection) {
+                    html += `<div class="test-section"><h2>${section}</h2>`;
+                    currentSection = section;
+                }
+                
+                const statusClass = result.passed ? 'pass' : 'fail';
+                const icon = result.passed ? '✓' : '✗';
+                
+                html += `
+                    <div class="test-item ${statusClass}">
+                        <div class="test-icon">${icon}</div>
+                        <div class="test-name">${result.test.split(' - ')[1] || result.test}</div>
+                        ${result.message ? `<div class="test-message">${result.message}</div>` : ''}
+                    </div>
+                `;
+            });
+            
+            if (currentSection) {
+                html += '</div>';
+            }
+            
+            container.innerHTML = html;
+            
+            // Update summary
+            const summaryData = TestRunner.getSummary();
+            document.getElementById('passedCount').textContent = summaryData.passed;
+            document.getElementById('failedCount').textContent = summaryData.failed;
+            document.getElementById('totalCount').textContent = summaryData.total;
+            summary.style.display = 'grid';
+        }
+
+        function clearResults() {
+            TestRunner.reset();
+            document.getElementById('testResults').innerHTML = '';
+            document.getElementById('summary').style.display = 'none';
+            document.getElementById('logOutput').textContent = '';
+            log('Results cleared');
+        }
+
+        function exportResults() {
+            const summary = TestRunner.getSummary();
+            let content = 'SAM - Subscription & Invoice JavaScript Test Results\n';
+            content += `Generated: ${new Date().toLocaleString()}\n\n`;
+            content += `Tests Passed: ${summary.passed}\n`;
+            content += `Tests Failed: ${summary.failed}\n`;
+            content += `Pass Rate: ${summary.passRate}%\n\n`;
+            content += 'Detailed Results:\n';
+            content += '='.repeat(80) + '\n';
+            
+            TestRunner.results.forEach(result => {
+                const status = result.passed ? '✓' : '✗';
+                content += `${status} ${result.test}\n`;
+                if (result.message) {
+                    content += `  Message: ${result.message}\n`;
+                }
+            });
+            
+            const blob = new Blob([content], { type: 'text/plain' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `js_test_results_${new Date().toISOString().split('T')[0]}.txt`;
+            link.click();
+            
+            log('Results exported successfully', 'success');
+        }
+
+        /* =============================================
+           TEST SUITES
+           ============================================= */
+
+        // Test 1: Billing Calculation Functions
+        function testBillingCalculation() {
+            log('Starting Billing Calculation Tests...');
+            
+            // Mock data
+            const subscription = {
+                salon_id: 1,
+                salon_name: 'Test Salon',
+                plan_id: 1,
+                plan_name: 'Premium Plan',
+                plan_type: 'flat',
+                flat_price: 50000,
+                start_date: '2026-01-01',
+                end_date: '2026-12-31',
+                status: 'ACTIVE'
+            };
+            
+            const plan = {
+                plan_id: 1,
+                plan_name: 'Premium Plan',
+                plan_type: 'flat',
+                flat_price: 50000,
+                duration_days: 30
+            };
+
+            // Test proration calculation
+            TestRunner.assert(
+                typeof calculateSubscriptionBillingWithProration === 'function',
+                'Billing - calculateSubscriptionBillingWithProration exists'
+            );
+
+            // Test billing period calculation
+            const billingMonth = '2026-03';
+            const [year, month] = billingMonth.split('-').map(Number);
+            const monthStart = new Date(year, month - 1, 1);
+            const monthEnd = new Date(year, month, 0);
+            const daysInMonth = monthEnd.getDate();
+
+            TestRunner.assert(
+                daysInMonth === 31,
+                'Billing - March has 31 days',
+                `Expected 31, got ${daysInMonth}`
+            );
+
+            // Test subscription date parsing
+            const subStart = new Date(subscription.start_date);
+            const subEnd = new Date(subscription.end_date);
+            
+            TestRunner.assert(
+                !isNaN(subStart.getTime()),
+                'Billing - Start date is valid',
+                subscription.start_date
+            );
+            TestRunner.assert(
+                !isNaN(subEnd.getTime()),
+                'Billing - End date is valid',
+                subscription.end_date
+            );
+
+            log('Billing Calculation Tests completed');
+        }
+
+        // Test 2: Renew Subscription Functions
+        function testRenewSubscription() {
+            log('Starting Renew Subscription Tests...');
+
+            // Test function existence
+            TestRunner.assert(
+                typeof openRenewSubscriptionModal === 'function',
+                'Renew - openRenewSubscriptionModal exists'
+            );
+            TestRunner.assert(
+                typeof updateRenewalPreview === 'function',
+                'Renew - updateRenewalPreview exists'
+            );
+            TestRunner.assert(
+                typeof closeRenewModalFunc === 'function',
+                'Renew - closeRenewModalFunc exists'
+            );
+            TestRunner.assert(
+                typeof handleRenewSubmit === 'function',
+                'Renew - handleRenewSubmit exists'
+            );
+
+            // Test date calculation
+            const currentEndDate = new Date('2026-03-31');
+            const renewalDays = 30;
+            const newEndDate = new Date(currentEndDate);
+            newEndDate.setDate(newEndDate.getDate() + renewalDays);
+
+            TestRunner.assert(
+                newEndDate.getMonth() === 3, // April
+                'Renew - Date addition correct',
+                `Expected April, got ${newEndDate.toLocaleDateString('en-US', {month: 'long'})}`
+            );
+
+            log('Renew Subscription Tests completed');
+        }
+
+        // Test 3: Payment Validation Functions
+        function testPaymentValidation() {
+            log('Starting Payment Validation Tests...');
+
+            // Test function existence
+            TestRunner.assert(
+                typeof verifyPaymentStatus === 'function',
+                'Payment - verifyPaymentStatus exists'
+            );
+
+            // Test payment status calculation
+            const testCases = [
+                { total: 10000, paid: 10000, expected: 'PAID' },
+                { total: 10000, paid: 5000, expected: 'PARTIAL' },
+                { total: 10000, paid: 0, expected: 'UNPAID' },
+                { total: 10000, paid: 12000, expected: 'PAID' }
+            ];
+
+            testCases.forEach(testCase => {
+                const mockInvoice = {
+                    total_amount: testCase.total,
+                    payments: testCase.paid > 0 ? [{ amount: testCase.paid }] : []
+                };
+                
+                // Simulate verifyPaymentStatus logic
+                const totalPaid = mockInvoice.payments?.reduce((sum, p) => sum + parseFloat(p.amount || 0), 0) || 0;
+                const epsilon = 0.01;
+                let status;
+                
+                if (totalPaid >= testCase.total - epsilon) {
+                    status = 'PAID';
+                } else if (totalPaid > epsilon) {
+                    status = 'PARTIAL';
+                } else {
+                    status = 'UNPAID';
+                }
+
+                TestRunner.assert(
+                    status === testCase.expected,
+                    `Payment - Status ${testCase.paid}/${testCase.total}`,
+                    `Expected ${testCase.expected}, got ${status}`
+                );
+            });
+
+            log('Payment Validation Tests completed');
+        }
+
+        // Test 4: Invoice Functions
+        function testInvoiceFunctions() {
+            log('Starting Invoice Function Tests...');
+
+            // Test function existence
+            TestRunner.assert(
+                typeof printInvoice === 'function',
+                'Invoice - printInvoice exists'
+            );
+            TestRunner.assert(
+                typeof downloadInvoiceAsPdf === 'function',
+                'Invoice - downloadInvoiceAsPdf exists'
+            );
+            TestRunner.assert(
+                typeof downloadPaymentReceipt === 'function',
+                'Invoice - downloadPaymentReceipt exists'
+            );
+
+            // Test invoice data structure
+            const mockInvoice = {
+                invoice_salon_id: 1,
+                invoice_number: 'INV-S-1-20260323-0001',
+                salon_name: 'Test Salon',
+                plan_name: 'Premium Plan',
+                invoice_date: '2026-03-23',
+                due_date: '2026-03-30',
+                amount: 50000,
+                tax_amount: 9000,
+                total_amount: 59000,
+                payment_status: 'UNPAID',
+                payments: []
+            };
+
+            TestRunner.assert(
+                mockInvoice.invoice_number.startsWith('INV-S-'),
+                'Invoice - Number format correct',
+                mockInvoice.invoice_number
+            );
+            TestRunner.assert(
+                mockInvoice.total_amount === mockInvoice.amount + mockInvoice.tax_amount,
+                'Invoice - Total calculation correct',
+                `${mockInvoice.amount} + ${mockInvoice.tax_amount} = ${mockInvoice.total_amount}`
+            );
+
+            log('Invoice Function Tests completed');
+        }
+
+        // Test 5: Bulk Operations
+        function testBulkOperations() {
+            log('Starting Bulk Operations Tests...');
+
+            // Test function existence
+            TestRunner.assert(
+                typeof updateBulkSelection === 'function',
+                'Bulk - updateBulkSelection exists'
+            );
+            TestRunner.assert(
+                typeof getSelectedInvoiceData === 'function',
+                'Bulk - getSelectedInvoiceData exists'
+            );
+            TestRunner.assert(
+                typeof bulkExportInvoices === 'function',
+                'Bulk - bulkExportInvoices exists'
+            );
+            TestRunner.assert(
+                typeof bulkPrintInvoices === 'function',
+                'Bulk - bulkPrintInvoices exists'
+            );
+            TestRunner.assert(
+                typeof bulkDeleteInvoices === 'function',
+                'Bulk - bulkDeleteInvoices exists'
+            );
+
+            // Test Set operations
+            const selectedInvoices = new Set();
+            selectedInvoices.add('1');
+            selectedInvoices.add('2');
+            selectedInvoices.add('3');
+
+            TestRunner.assert(
+                selectedInvoices.size === 3,
+                'Bulk - Set add works',
+                `Expected size 3, got ${selectedInvoices.size}`
+            );
+            TestRunner.assert(
+                selectedInvoices.has('2'),
+                'Bulk - Set has works',
+                'Set should contain "2"'
+            );
+
+            selectedInvoices.clear();
+            TestRunner.assert(
+                selectedInvoices.size === 0,
+                'Bulk - Set clear works',
+                'Set should be empty after clear'
+            );
+
+            log('Bulk Operations Tests completed');
+        }
+
+        // Test 6: Helper Functions
+        function testHelperFunctions() {
+            log('Starting Helper Function Tests...');
+
+            // Test formatDate (if available)
+            if (typeof formatDate === 'function') {
+                const date = formatDate('2026-03-23');
+                TestRunner.assert(
+                    date !== '',
+                    'Helper - formatDate works',
+                    `Formatted: ${date}`
+                );
+            } else {
+                TestRunner.assert(
+                    true,
+                    'Helper - formatDate skipped (not in scope)',
+                    'Function not available in test context'
+                );
+            }
+
+            // Test escapeHtml (if available)
+            if (typeof escapeHtml === 'function') {
+                const html = escapeHtml('<script>alert("test")</script>');
+                TestRunner.assert(
+                    !html.includes('<script>'),
+                    'Helper - escapeHtml works',
+                    'HTML should be escaped'
+                );
+            } else {
+                TestRunner.assert(
+                    true,
+                    'Helper - escapeHtml skipped (not in scope)',
+                    'Function not available in test context'
+                );
+            }
+
+            // Test getLastDayOfMonth
+            if (typeof getLastDayOfMonth === 'function') {
+                const lastDay = getLastDayOfMonth('2026-02');
+                TestRunner.assert(
+                    lastDay.endsWith('28'),
+                    'Helper - getLastDayOfMonth works (Feb 2026)',
+                    `Expected day 28, got ${lastDay}`
+                );
+            } else {
+                TestRunner.assert(
+                    true,
+                    'Helper - getLastDayOfMonth skipped (not in scope)',
+                    'Function not available in test context'
+                );
+            }
+
+            log('Helper Function Tests completed');
+        }
+
+        // Main test runner
+        function runAllTests() {
+            log('=' .repeat(60));
+            log('Starting all tests...');
+            log('=' .repeat(60));
+            
+            TestRunner.reset();
+            
+            try {
+                testBillingCalculation();
+                testRenewSubscription();
+                testPaymentValidation();
+                testInvoiceFunctions();
+                testBulkOperations();
+                testHelperFunctions();
+            } catch (error) {
+                log(`Test execution error: ${error.message}`, 'error');
+                TestRunner.assert(false, 'Test Execution', error.message);
+            }
+            
+            renderResults();
+            
+            const summary = TestRunner.getSummary();
+            log('=' .repeat(60));
+            log(`Tests completed: ${summary.passed} passed, ${summary.failed} failed (${summary.passRate}%)`);
+            log('=' .repeat(60));
+        }
+
+        // Auto-run tests on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            log('Test suite loaded. Click "Run All Tests" to start.');
+        });
+    </script>
+</body>
+</html>

@@ -560,6 +560,9 @@ document.addEventListener('DOMContentLoaded', () => {
                             <button class="btn-icon btn-billing" data-subscription-id="${sub.subscription_id}" title="Calculate Billing" style="background: var(--info-bg); color: var(--info);">
                                 <i class="fa-solid fa-calculator"></i>
                             </button>
+                            <button class="btn-icon btn-renew" data-subscription-id="${sub.subscription_id}" title="Renew Subscription" style="background: var(--success-bg); color: var(--success);" ${sub.status !== 'ACTIVE' ? 'disabled' : ''}>
+                                <i class="fa-solid fa-rotate-right"></i>
+                            </button>
                             <button class="btn-icon btn-view" data-subscription-id="${sub.subscription_id}" title="View">
                                 <i class="fa-regular fa-eye"></i>
                             </button>
@@ -577,10 +580,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Add event listeners using event delegation
         if (subscriptionsTableBody) {
+            console.log('Setting up event delegation on subscriptionsTableBody');
             subscriptionsTableBody.addEventListener('click', (e) => {
+                console.log('Table clicked, target:', e.target);
                 const billingBtn = e.target.closest('.btn-billing');
                 if (billingBtn) {
-                    openBillingPreview(billingBtn.dataset.subscriptionId);
+                    console.log('Billing button clicked, subscriptionId:', billingBtn.dataset.subscriptionId);
+                    // Open NEW billing calculation modal with month selector inside
+                    openBillingCalculationModal(billingBtn.dataset.subscriptionId);
                 }
 
                 const viewBtn = e.target.closest('.btn-view');
@@ -597,7 +604,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (cancelBtn) {
                     handleCancelSubscription(cancelBtn.dataset.subscriptionId);
                 }
+
+                const renewBtn = e.target.closest('.btn-renew');
+                if (renewBtn) {
+                    openRenewSubscriptionModal(renewBtn.dataset.subscriptionId);
+                }
             });
+            console.log('Event delegation set up successfully');
+        } else {
+            console.error('subscriptionsTableBody not found!');
         }
     }
 
@@ -753,6 +768,196 @@ document.addEventListener('DOMContentLoaded', () => {
         state.editingSubscriptionId = null;
     }
 
+    /* =============================================
+       RENEW SUBSCRIPTION MODAL FUNCTIONS
+       ============================================= */
+
+    let renewState = {
+        subscription: null,
+        plan: null,
+        currentEndDays: 0
+    };
+
+    /**
+     * Open renew subscription modal
+     */
+    async function openRenewSubscriptionModal(subscriptionId) {
+        try {
+            // Reset state
+            renewState = { subscription: null, plan: null, currentEndDays: 0 };
+
+            // Reset form
+            document.getElementById('renewForm').reset();
+            document.getElementById('renewSubscriptionId').value = subscriptionId;
+
+            // Fetch subscription details
+            const subResponse = await apiRequest(`/super-admin/subscriptions/${subscriptionId}`);
+            if (subResponse.status !== 'success' || !subResponse.data) {
+                showErrorToast('Failed to load subscription details');
+                return;
+            }
+
+            const subscription = subResponse.data;
+            renewState.subscription = subscription;
+
+            // Fetch plan details
+            const planResponse = await apiRequest(`/subscription-plans/${subscription.plan_id}`);
+            if (planResponse.status === 'success' && planResponse.data) {
+                renewState.plan = planResponse.data;
+            }
+
+            // Display current subscription info
+            document.getElementById('renewSalonName').textContent = subscription.salon_name || 'Unknown Salon';
+            document.getElementById('renewPlanName').textContent = subscription.plan_name || 'Unknown Plan';
+            document.getElementById('renewCurrentEndDate').textContent = formatDate(subscription.end_date);
+
+            // Calculate days remaining
+            const now = new Date();
+            const endDate = new Date(subscription.end_date);
+            const daysRemaining = Math.ceil((endDate - now) / (1000 * 60 * 60 * 24));
+            renewState.currentEndDays = daysRemaining;
+
+            const daysRemainingEl = document.getElementById('renewDaysRemaining');
+            if (daysRemaining > 0) {
+                daysRemainingEl.textContent = daysRemaining + ' days';
+                daysRemainingEl.style.color = 'var(--success)';
+            } else {
+                daysRemainingEl.textContent = Math.abs(daysRemaining) + ' days ago';
+                daysRemainingEl.style.color = 'var(--danger)';
+            }
+
+            // Populate plan dropdown
+            const planSelect = document.getElementById('renewPlanChange');
+            planSelect.innerHTML = '<option value="0">Keep Current Plan</option>' +
+                state.plans.filter(p => p.status === 1 && p.plan_id != subscription.plan_id).map(p =>
+                    `<option value="${p.plan_id}">${escapeHtml(p.plan_name)} - ${getPriceDisplay(p).price}</option>`
+                ).join('');
+
+            // Set default renewal days to plan duration
+            if (renewState.plan) {
+                document.getElementById('renewalDays').value = renewState.plan.duration_days;
+            }
+
+            // Update preview
+            updateRenewalPreview();
+
+            // Show modal
+            const modal = document.getElementById('renewModal');
+            if (modal) {
+                modal.classList.add('active');
+            }
+
+        } catch (error) {
+            console.error('Error opening renew modal:', error);
+            showErrorToast('Failed to open renew modal: ' + error.message);
+        }
+    }
+
+    /**
+     * Update renewal preview when inputs change
+     */
+    function updateRenewalPreview() {
+        const subscription = renewState.subscription;
+        if (!subscription) return;
+
+        const renewalType = document.getElementById('renewalType').value;
+        const renewalDaysInput = document.getElementById('renewalDays');
+        const renewalDaysField = document.getElementById('renewalDaysField');
+
+        // Show/hide renewal days field based on type
+        if (renewalType === 'AUTO' && renewState.plan) {
+            renewalDaysField.style.display = 'none';
+            renewalDaysInput.value = renewState.plan.duration_days;
+        } else {
+            renewalDaysField.style.display = 'block';
+        }
+
+        const renewalDays = parseInt(renewalDaysInput.value) || 0;
+        const currentEndDate = new Date(subscription.end_date);
+        const newEndDate = new Date(currentEndDate);
+        newEndDate.setDate(newEndDate.getDate() + renewalDays);
+
+        // Update preview
+        document.getElementById('previewCurrentEnd').textContent = formatDate(currentEndDate);
+        document.getElementById('previewExtension').textContent = '+' + renewalDays + ' days';
+        document.getElementById('previewNewEnd').textContent = formatDate(newEndDate);
+    }
+
+    /**
+     * Close renew modal
+     */
+    function closeRenewModalFunc() {
+        const modal = document.getElementById('renewModal');
+        if (modal) {
+            modal.classList.remove('active');
+        }
+        renewState = { subscription: null, plan: null, currentEndDays: 0 };
+    }
+
+    /**
+     * Handle renew form submit
+     */
+    async function handleRenewSubmit(e) {
+        e.preventDefault();
+
+        const subscriptionId = document.getElementById('renewSubscriptionId').value;
+        const renewalType = document.getElementById('renewalType').value;
+        const renewalDays = parseInt(document.getElementById('renewalDays').value) || 0;
+        const planChange = document.getElementById('renewPlanChange').value;
+        const notes = document.getElementById('renewNotes').value.trim();
+
+        if (!subscriptionId || !renewalDays) {
+            showErrorToast('Please fill in all required fields');
+            return;
+        }
+
+        try {
+            showLoading('Processing renewal...');
+
+            // Calculate new end date
+            const subscription = renewState.subscription;
+            const currentEndDate = new Date(subscription.end_date);
+            const newEndDate = new Date(currentEndDate);
+            newEndDate.setDate(newEndDate.getDate() + renewalDays);
+
+            // Prepare renewal data
+            const renewalData = {
+                renewal_type: renewalType,
+                renewal_days: renewalDays,
+                new_end_date: newEndDate.toISOString().split('T')[0],
+                plan_change: planChange !== '0',
+                new_plan_id: planChange !== '0' ? parseInt(planChange) : null,
+                notes: notes
+            };
+
+            // Call renew API (will create endpoint)
+            const response = await apiRequest(
+                `/super-admin/subscriptions/${subscriptionId}/renew`,
+                {
+                    method: 'POST',
+                    body: JSON.stringify(renewalData)
+                }
+            );
+
+            if (response.status === 'success') {
+                closeLoading();
+                closeRenewModalFunc();
+                showSuccess('Subscription renewed successfully! New end date: ' + formatDate(newEndDate));
+                
+                // Refresh subscriptions
+                await fetchSubscriptions();
+            } else {
+                closeLoading();
+                showErrorToast(response.message || 'Failed to renew subscription');
+            }
+
+        } catch (error) {
+            closeLoading();
+            console.error('Error renewing subscription:', error);
+            showErrorToast('Failed to renew subscription: ' + error.message);
+        }
+    }
+
     // =============================================
     // EVENT HANDLERS
     // =============================================
@@ -796,6 +1001,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (cancelEditBtn) cancelEditBtn.addEventListener('click', closeEditModalFunc);
         if (editSubscriptionForm) editSubscriptionForm.addEventListener('submit', handleEditSubmit);
 
+        // Renew modal
+        const closeRenewModal = document.getElementById('closeRenewModal');
+        const cancelRenewBtn = document.getElementById('cancelRenewBtn');
+        const renewForm = document.getElementById('renewForm');
+        if (closeRenewModal) closeRenewModal.addEventListener('click', closeRenewModalFunc);
+        if (cancelRenewBtn) cancelRenewBtn.addEventListener('click', closeRenewModalFunc);
+        if (renewForm) renewForm.addEventListener('submit', handleRenewSubmit);
+
         // Filters
         if (searchSubscriptions) searchSubscriptions.addEventListener('input', renderSubscriptions);
         if (filterStatus) filterStatus.addEventListener('change', renderSubscriptions);
@@ -806,6 +1019,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (e.target === assignModal) closeAssignModalFunc();
             if (e.target === viewModal) viewModal.classList.remove('active');
             if (e.target === editModal) closeEditModalFunc();
+            if (e.target === document.getElementById('renewModal')) closeRenewModalFunc();
         });
 
         // Logout button
@@ -1895,6 +2109,721 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    /* =============================================
+       NEW BILLING CALCULATION MODAL FUNCTIONS
+       Phase 3 Implementation - Month selector INSIDE modal
+       ============================================= */
+
+    // State for billing calculation modal
+    let currentBillingCalculation = {
+        subscriptionId: null,
+        subscription: null,
+        plan: null,
+        billingMonth: null,
+        appointments: [],
+        calculation: null,
+        existingInvoice: null
+    };
+
+    /**
+     * Open new billing calculation modal with month selector inside
+     * @param {number} subscriptionId - Subscription ID
+     */
+    async function openBillingCalculationModal(subscriptionId) {
+        console.log('=== openBillingCalculationModal called ===');
+        console.log('Subscription ID:', subscriptionId);
+
+        try {
+            // Reset state
+            currentBillingCalculation = {
+                subscriptionId: subscriptionId,
+                subscription: null,
+                plan: null,
+                billingMonth: null,
+                appointments: [],
+                calculation: null,
+                existingInvoice: null
+            };
+
+            // Hide warning and results initially
+            document.getElementById('invoiceExistenceWarning').style.display = 'none';
+            document.getElementById('billingCalculationResults').style.display = 'none';
+            document.getElementById('billingLoadingState').style.display = 'none';
+            document.getElementById('billingErrorState').style.display = 'none';
+            document.getElementById('generateInvoiceFromCalcBtn').disabled = true;
+            document.getElementById('recalculateBillingBtn').style.display = 'none';
+
+            // Reset month selector and populate it
+            const billingMonthInside = document.getElementById('billingMonthInside');
+            if (billingMonthInside) {
+                billingMonthInside.value = '';
+                console.log('Month selector found, will populate after fetching data');
+            } else {
+                console.error('Month selector NOT found!');
+            }
+
+            // Fetch subscription details (SUPER_ADMIN endpoint)
+            console.log('Fetching subscription details for ID:', subscriptionId);
+            const subResponse = await apiRequest(`/super-admin/subscriptions/${subscriptionId}`);
+            console.log('Subscription response:', subResponse);
+
+            if (subResponse.status !== 'success' || !subResponse.data) {
+                showErrorToast('Failed to load subscription details');
+                return;
+            }
+
+            currentBillingCalculation.subscription = subResponse.data;
+            const sub = subResponse.data;
+            console.log('Subscription loaded:', sub);
+
+            // Fetch plan details
+            console.log('Fetching plan details for plan ID:', sub.plan_id);
+            const planResponse = await apiRequest(`/subscription-plans/${sub.plan_id}`);
+            console.log('Plan response:', planResponse);
+
+            if (planResponse.status !== 'success' || !planResponse.data) {
+                showErrorToast('Failed to load plan details');
+                return;
+            }
+
+            currentBillingCalculation.plan = planResponse.data;
+            const plan = planResponse.data;
+            console.log('Plan loaded:', plan);
+
+            // Display subscription info
+            document.getElementById('billingSalonName').textContent = sub.salon_name || 'Unknown Salon';
+            document.getElementById('billingPlanName').textContent = plan.plan_name || 'Unknown Plan';
+            document.getElementById('billingPlanType').textContent = getPlanTypeLabel(plan.plan_type);
+            document.getElementById('billingSubscriptionPeriod').textContent =
+                `${formatDate(sub.start_date)} to ${formatDate(sub.end_date)}`;
+
+            // Populate month selector NOW that we have subscription data
+            if (billingMonthInside) {
+                populateBillingMonthInsideDropdown(billingMonthInside);
+                console.log('Month selector populated');
+
+                // Auto-select current month or first available month
+                const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
+                const firstOption = billingMonthInside.options[0];
+                billingMonthInside.value = billingMonthInside.querySelector(`option[value="${currentMonth}"]`) 
+                    ? currentMonth 
+                    : (firstOption ? firstOption.value : '');
+                
+                console.log('Auto-selected billing month:', billingMonthInside.value);
+
+                // Auto-calculate billing for selected month
+                setTimeout(() => {
+                    calculateBillingForMonth();
+                }, 300);
+            }
+
+            // Show modal
+            const modal = document.getElementById('billingCalculationModal');
+            if (modal) {
+                modal.classList.add('active');
+                console.log('Modal shown');
+            } else {
+                console.error('Modal element NOT found!');
+            }
+
+            console.log('=== openBillingCalculationModal completed ===');
+
+        } catch (error) {
+            console.error('Error opening billing calculation modal:', error);
+            showErrorToast('Failed to open billing calculation: ' + error.message);
+        }
+    }
+
+    /**
+     * Populate billing month dropdown inside modal (filtered by subscription period)
+     */
+    function populateBillingMonthInsideDropdown(selectElement) {
+        if (!selectElement) return;
+
+        const options = [];
+        const today = new Date();
+        const subscription = currentBillingCalculation.subscription;
+
+        // Determine start date for billing months (subscription start date)
+        let startDate = new Date(today.getFullYear(), today.getMonth(), 1); // Default to current month
+        
+        // Use subscription start date if available
+        if (subscription && subscription.start_date) {
+            const subStartDate = new Date(subscription.start_date);
+            // Set to first day of the subscription start month
+            startDate = new Date(subStartDate.getFullYear(), subStartDate.getMonth(), 1);
+        }
+
+        // End date is current month
+        const endDate = new Date(today.getFullYear(), today.getMonth(), 1);
+
+        console.log('Populating months from:', startDate.toLocaleString(), 'to:', endDate.toLocaleString());
+
+        // Generate months from start date to current month
+        for (let d = new Date(startDate); d <= endDate; d.setMonth(d.getMonth() + 1)) {
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const value = `${year}-${month}`;
+            const label = d.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+            const isSelected = (year === today.getFullYear() && month === String(today.getMonth() + 1).padStart(2, '0'));
+            options.push(`<option value="${value}" ${isSelected ? 'selected' : ''}>${label}</option>`);
+        }
+
+        selectElement.innerHTML = options.join('');
+        
+        console.log('Generated', options.length, 'month options');
+    }
+
+    /**
+     * Calculate billing for selected month (called when month changes)
+     */
+    async function calculateBillingForMonth() {
+        console.log('=== calculateBillingForMonth called ===');
+        
+        const billingMonth = document.getElementById('billingMonthInside').value;
+        console.log('Selected billing month:', billingMonth);
+
+        if (!billingMonth) {
+            console.log('No billing month selected');
+            document.getElementById('billingCalculationResults').style.display = 'none';
+            document.getElementById('invoiceExistenceWarning').style.display = 'none';
+            document.getElementById('generateInvoiceFromCalcBtn').disabled = true;
+            return;
+        }
+
+        currentBillingCalculation.billingMonth = billingMonth;
+
+        try {
+            // Show loading
+            document.getElementById('billingCalculationResults').style.display = 'none';
+            document.getElementById('billingLoadingState').style.display = 'block';
+            document.getElementById('billingErrorState').style.display = 'none';
+            document.getElementById('invoiceExistenceWarning').style.display = 'none';
+
+            const sub = currentBillingCalculation.subscription;
+            const plan = currentBillingCalculation.plan;
+            
+            console.log('Subscription:', sub);
+            console.log('Plan:', plan);
+
+            if (!sub || !plan) {
+                throw new Error('Subscription or plan data not loaded');
+            }
+
+            // 1. Check for existing invoice first
+            console.log('Checking for existing invoice...');
+            await checkExistingInvoiceForBillingMonth(billingMonth);
+
+            // 2. Fetch completed appointments for billing month
+            // Use salon_id from subscription data (SUPER_ADMIN doesn't have salon_id in token)
+            const startDate = billingMonth + '-01';
+            const endDate = getLastDayOfMonth(billingMonth);
+            const salonId = sub.salon_id || sub.salon_salon_id;
+            
+            console.log('Fetching appointments from', startDate, 'to', endDate, 'for salon', salonId);
+
+            // Fetch appointments directly with salon_id parameter
+            const appointmentsResponse = await apiRequest(
+                `/appointments?start_date=${startDate}&end_date=${endDate}&status=COMPLETED&salon_id=${salonId}`
+            );
+            
+            console.log('Appointments response:', appointmentsResponse);
+
+            const appointments = appointmentsResponse.data?.items || [];
+            currentBillingCalculation.appointments = appointments;
+            console.log('Completed appointments:', appointments.length);
+
+            // 3. Calculate billing based on plan type with proration
+            console.log('Calculating billing with proration...');
+            const calculation = calculateSubscriptionBillingWithProration(
+                sub,
+                plan,
+                appointments,
+                billingMonth
+            );
+            console.log('Calculation result:', calculation);
+            currentBillingCalculation.calculation = calculation;
+
+            // 4. Display results
+            console.log('Displaying results...');
+            displayBillingCalculation(calculation, billingMonth);
+
+            // Hide loading, show results
+            document.getElementById('billingLoadingState').style.display = 'none';
+            document.getElementById('billingCalculationResults').style.display = 'block';
+            document.getElementById('recalculateBillingBtn').style.display = 'inline-flex';
+
+            // Enable generate button only if no existing invoice
+            document.getElementById('generateInvoiceFromCalcBtn').disabled = !!currentBillingCalculation.existingInvoice;
+            
+            console.log('=== calculateBillingForMonth completed ===');
+
+        } catch (error) {
+            console.error('Error calculating billing:', error);
+            document.getElementById('billingLoadingState').style.display = 'none';
+            document.getElementById('billingErrorState').style.display = 'block';
+            document.getElementById('billingErrorMessage').textContent = error.message || 'Failed to calculate billing';
+        }
+    }
+
+    /**
+     * Check if invoice already exists for subscription + billing month
+     */
+    async function checkExistingInvoiceForBillingMonth(billingMonth) {
+        try {
+            const subscriptionId = currentBillingCalculation.subscriptionId;
+            
+            // Fetch all invoices for this subscription
+            const response = await apiRequest(`/super-admin/invoices/salon?subscription_id=${subscriptionId}`);
+            
+            if (response.status === 'success' && response.data && response.data.items) {
+                const invoices = response.data.items;
+                
+                // Find invoice for this billing month
+                const existingInvoice = invoices.find(inv => {
+                    if (!inv.invoice_date) return false;
+                    const invMonth = inv.invoice_date.substring(0, 7); // YYYY-MM
+                    return invMonth === billingMonth;
+                });
+
+                if (existingInvoice) {
+                    currentBillingCalculation.existingInvoice = existingInvoice;
+                    showExistingInvoiceWarning(existingInvoice);
+                } else {
+                    currentBillingCalculation.existingInvoice = null;
+                    document.getElementById('invoiceExistenceWarning').style.display = 'none';
+                }
+            }
+        } catch (error) {
+            console.error('Error checking existing invoice:', error);
+            // Don't block calculation if invoice check fails
+        }
+    }
+
+    /**
+     * Show existing invoice warning
+     */
+    function showExistingInvoiceWarning(invoice) {
+        const warningEl = document.getElementById('invoiceExistenceWarning');
+        const detailsEl = document.getElementById('existingInvoiceDetails');
+        
+        detailsEl.innerHTML = `
+            Invoice <strong>${escapeHtml(invoice.invoice_number || 'N/A')}</strong> already exists for this billing period.
+            Amount: <strong>₹${(invoice.total_amount || 0).toLocaleString('en-IN')}</strong>
+            Status: <strong>${invoice.payment_status || 'UNPAID'}</strong>
+        `;
+        
+        warningEl.style.display = 'block';
+    }
+
+    /**
+     * View existing invoice from warning
+     */
+    async function viewExistingInvoice() {
+        const invoice = currentBillingCalculation.existingInvoice;
+        if (!invoice) {
+            showErrorToast('No existing invoice found');
+            return;
+        }
+
+        // Close billing calculation modal
+        closeBillingCalculationModal();
+
+        // Redirect to invoices page or open invoice view
+        // For now, show invoice details in a SweetAlert
+        await Swal.fire({
+            title: 'Existing Invoice',
+            html: `
+                <div style="text-align: left;">
+                    <p><strong>Invoice Number:</strong> ${escapeHtml(invoice.invoice_number || 'N/A')}</p>
+                    <p><strong>Invoice Date:</strong> ${formatDate(invoice.invoice_date)}</p>
+                    <p><strong>Amount:</strong> ₹${(invoice.amount || 0).toLocaleString('en-IN')}</p>
+                    <p><strong>Tax:</strong> ₹${(invoice.tax_amount || 0).toLocaleString('en-IN')}</p>
+                    <p><strong>Total:</strong> ₹${(invoice.total_amount || 0).toLocaleString('en-IN')}</p>
+                    <p><strong>Payment Status:</strong> <span style="color: var(--${getPaymentStatusColor(invoice.payment_status)})">${invoice.payment_status || 'UNPAID'}</span></p>
+                    <p><strong>Due Date:</strong> ${formatDate(invoice.due_date)}</p>
+                </div>
+            `,
+            icon: 'info',
+            confirmButtonText: 'Close',
+            confirmButtonColor: 'var(--primary)'
+        });
+    }
+
+    /**
+     * Display billing calculation results - MODERN DYNAMIC VERSION
+     */
+    function displayBillingCalculation(calculation, billingMonth) {
+        console.log('Displaying billing calculation:', calculation);
+
+        const plan = currentBillingCalculation.plan;
+        const planType = plan?.plan_type || 'flat';
+
+        // Update plan type badge
+        const planTypeBadge = document.getElementById('planTypeBadge');
+        if (planTypeBadge) {
+            const planTypeLabels = {
+                'flat': 'Flat Rate Plan',
+                'per-appointments': 'Per Appointment Plan',
+                'Percentage-per-appointments': 'Percentage Plan'
+            };
+            planTypeBadge.textContent = planTypeLabels[planType] || planType;
+        }
+
+        // Update month display
+        const monthDate = new Date(billingMonth + '-01');
+        const monthLabel = monthDate.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+        document.getElementById('billingMonthDisplay').textContent = monthLabel;
+
+        // Usage Summary
+        document.getElementById('calcCompletedAppointments').textContent = calculation.usage?.total_appointments || 0;
+        document.getElementById('calcTotalRevenue').textContent = '₹' + (calculation.usage?.total_revenue || 0).toLocaleString('en-IN');
+
+        // Billing days (days in month)
+        const [year, month] = billingMonth.split('-').map(Number);
+        const daysInMonth = new Date(year, month, 0).getDate();
+        document.getElementById('calcBillingDays').textContent = daysInMonth;
+
+        // Enhanced Proration info for flat plans
+        const prorationInfoEl = document.getElementById('prorationInfo');
+        const prorationDetailEl = document.getElementById('prorationDetail');
+        
+        if (prorationInfoEl && prorationDetailEl) {
+            if (plan?.plan_type === 'flat' && calculation?.proration) {
+                const proration = calculation.proration;
+                const originalPrice = proration.original_price || plan.flat_price;
+                const proratedPrice = calculation.calculation?.base_amount || 0;
+                const savings = originalPrice - proratedPrice;
+                
+                const prorationHtml = `
+                    <div style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(167, 139, 250, 0.1)); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 10px; padding: 10px;">
+                        <div style="font-size: 10px; color: var(--primary); font-weight: 700; text-transform: uppercase; margin-bottom: 4px;">
+                            <i class="fa-solid fa-circle-info"></i> Prorated (Flat Plan)
+                        </div>
+                        <div style="font-size: 11px; color: var(--text-primary); font-weight: 600; margin-bottom: 6px;">
+                            ${proration.days_billed} / ${daysInMonth} days billed
+                        </div>
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; font-size: 9px;">
+                            <div style="background: rgba(239, 68, 68, 0.1); padding: 4px; border-radius: 4px; text-align: center;">
+                                <div style="color: var(--text-muted); font-size: 8px;">Original</div>
+                                <div style="color: var(--danger); font-weight: 700;">₹${originalPrice.toLocaleString('en-IN')}</div>
+                            </div>
+                            <div style="background: rgba(16, 185, 129, 0.1); padding: 4px; border-radius: 4px; text-align: center;">
+                                <div style="color: var(--text-muted); font-size: 8px;">You Pay</div>
+                                <div style="color: var(--success); font-weight: 700;">₹${proratedPrice.toLocaleString('en-IN')}</div>
+                            </div>
+                            <div style="background: rgba(16, 185, 129, 0.1); padding: 4px; border-radius: 4px; text-align: center;">
+                                <div style="color: var(--text-muted); font-size: 8px;">Save</div>
+                                <div style="color: var(--success); font-weight: 700;">₹${savings.toLocaleString('en-IN')}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                prorationInfoEl.innerHTML = prorationHtml;
+                prorationInfoEl.style.display = 'block';
+                
+                // Also show in base amount card
+                prorationDetailEl.innerHTML = `
+                    <div style="color: var(--primary); font-weight: 600;">
+                        <i class="fa-solid fa-calendar-check"></i> ${proration.days_billed}/${daysInMonth} days
+                    </div>
+                `;
+            } else {
+                prorationInfoEl.style.display = 'none';
+                prorationDetailEl.textContent = '';
+            }
+        }
+
+        // Amount Breakdown - Dynamic based on plan type
+        const calc = calculation?.calculation;
+        if (calc) {
+            const baseAmount = calc.base_amount || 0;
+            const perAppointmentAmount = calc.per_appointment_amount || 0;
+            const percentageAmount = calc.percentage_amount || 0;
+            
+            // Get card elements
+            const baseAmountCard = document.getElementById('baseAmountCard');
+            const perAppointmentCard = document.getElementById('perAppointmentCard');
+            const percentageCard = document.getElementById('percentageCard');
+            const perAppointmentDetail = document.getElementById('perAppointmentDetail');
+            const percentageDetail = document.getElementById('percentageDetail');
+            
+            // Update amounts
+            document.getElementById('calcBaseAmount').textContent = '₹' + baseAmount.toLocaleString('en-IN');
+            document.getElementById('calcPerAppointmentAmount').textContent = '₹' + perAppointmentAmount.toLocaleString('en-IN');
+            document.getElementById('calcPercentageAmount').textContent = '₹' + percentageAmount.toLocaleString('en-IN');
+            document.getElementById('calcSubtotal').textContent = '₹' + calc.subtotal_amount.toLocaleString('en-IN');
+            document.getElementById('calcTaxAmount').textContent = '₹' + calc.tax_amount.toLocaleString('en-IN');
+            document.getElementById('calcTotalAmount').textContent = '₹' + calc.total_amount.toLocaleString('en-IN');
+            
+            // Show/hide cards based on plan type and add detail info
+            if (planType === 'flat') {
+                // Show base amount prominently, dim others
+                baseAmountCard.style.opacity = '1';
+                baseAmountCard.style.transform = 'scale(1.02)';
+                perAppointmentCard.style.opacity = '0.5';
+                percentageCard.style.opacity = '0.5';
+                
+                // Add detail for per-appointments if there are any
+                if (calculation.usage?.total_appointments > 0) {
+                    perAppointmentDetail.textContent = `${calculation.usage.total_appointments} appointments`;
+                } else {
+                    perAppointmentDetail.textContent = 'No appointments';
+                }
+                percentageDetail.textContent = 'Not applicable';
+                
+            } else if (planType === 'per-appointments') {
+                // Show per-appointment prominently
+                perAppointmentCard.style.opacity = '1';
+                perAppointmentCard.style.transform = 'scale(1.02)';
+                baseAmountCard.style.opacity = '0.5';
+                percentageCard.style.opacity = '0.5';
+                
+                perAppointmentDetail.textContent = `${calculation.usage?.total_appointments || 0} × ₹${plan.per_appointments_price || 0}`;
+                baseAmountCard.querySelector('#prorationDetail').textContent = 'Not applicable';
+                percentageDetail.textContent = 'Not applicable';
+                
+            } else if (planType === 'Percentage-per-appointments') {
+                // Show percentage prominently
+                percentageCard.style.opacity = '1';
+                percentageCard.style.transform = 'scale(1.02)';
+                baseAmountCard.style.opacity = '0.5';
+                perAppointmentCard.style.opacity = '0.5';
+                
+                const percentageRate = plan.percentage_per_appointment || 0;
+                percentageDetail.textContent = `${percentageRate}% of ₹${(calculation.usage?.total_revenue || 0).toLocaleString('en-IN')}`;
+                baseAmountCard.querySelector('#prorationDetail').textContent = 'Not applicable';
+                perAppointmentDetail.textContent = `${calculation.usage?.total_appointments || 0} appointments`;
+            }
+            
+            // Reset transforms after animation
+            setTimeout(() => {
+                baseAmountCard.style.transform = 'scale(1)';
+                perAppointmentCard.style.transform = 'scale(1)';
+                percentageCard.style.transform = 'scale(1)';
+            }, 300);
+        } else {
+            console.error('No calculation data in calculation object');
+        }
+    }
+
+    /**
+     * Calculate subscription billing with proration for flat plans
+     */
+    function calculateSubscriptionBillingWithProration(subscription, plan, appointments, billingMonth) {
+        const taxRate = 0.18; // 18% GST
+        
+        // Filter appointments for billing month
+        const monthAppointments = appointments.filter(apt => {
+            const aptDate = new Date(apt.appointment_date);
+            const aptMonth = aptDate.toISOString().slice(0, 7);
+            return aptMonth === billingMonth && apt.status === 'COMPLETED';
+        });
+
+        const totalAppointments = monthAppointments.length;
+        const totalRevenue = monthAppointments.reduce((sum, apt) => 
+            sum + parseFloat(apt.final_amount || 0), 0
+        );
+
+        // Get billing period dates
+        const [year, month] = billingMonth.split('-').map(Number);
+        const monthStart = new Date(year, month - 1, 1);
+        const monthEnd = new Date(year, month, 0);
+        const daysInMonth = monthEnd.getDate();
+
+        // Calculate proration for flat plans
+        let proration = null;
+        let effectiveFlatPrice = parseFloat(plan.flat_price || 0);
+        
+        if (plan.plan_type === 'flat') {
+            const subStart = new Date(subscription.start_date);
+            const subEnd = new Date(subscription.end_date);
+            
+            // Check if subscription starts mid-month
+            if (subStart > monthStart && subStart <= monthEnd) {
+                // Proration needed - subscription started during this billing month
+                const daysRemaining = Math.ceil((monthEnd - subStart) / (1000 * 60 * 60 * 24)) + 1;
+                const daysToBill = Math.min(daysRemaining, daysInMonth);
+                
+                // Calculate prorated amount
+                effectiveFlatPrice = (parseFloat(plan.flat_price || 0) / daysInMonth) * daysToBill;
+                
+                proration = {
+                    is_prorated: true,
+                    original_price: parseFloat(plan.flat_price || 0),
+                    days_billed: daysToBill,
+                    total_days_in_month: daysInMonth,
+                    proration_factor: daysToBill / daysInMonth
+                };
+            }
+            // Check if subscription ends mid-month
+            else if (subEnd >= monthStart && subEnd < monthEnd) {
+                // Proration needed - subscription ends during this billing month
+                const daysActive = Math.ceil((subEnd - monthStart) / (1000 * 60 * 60 * 24)) + 1;
+                
+                effectiveFlatPrice = (parseFloat(plan.flat_price || 0) / daysInMonth) * daysActive;
+                
+                proration = {
+                    is_prorated: true,
+                    original_price: parseFloat(plan.flat_price || 0),
+                    days_billed: daysActive,
+                    total_days_in_month: daysInMonth,
+                    proration_factor: daysActive / daysInMonth
+                };
+            }
+        }
+
+        let baseAmount = 0;
+        let perAppointmentAmount = 0;
+        let percentageAmount = 0;
+
+        // Calculate based on plan type
+        if (plan.plan_type === 'flat') {
+            baseAmount = effectiveFlatPrice;
+        } else if (plan.plan_type === 'per-appointments') {
+            perAppointmentAmount = totalAppointments * parseFloat(plan.per_appointments_price || 0);
+        } else if (plan.plan_type === 'Percentage-per-appointments') {
+            percentageAmount = totalRevenue * (parseFloat(plan.percentage_per_appointment || 0) / 100);
+        }
+
+        const subtotalAmount = baseAmount + perAppointmentAmount + percentageAmount;
+        const taxAmount = subtotalAmount * taxRate;
+        const totalAmount = subtotalAmount + taxAmount;
+
+        return {
+            usage: {
+                total_appointments: totalAppointments,
+                total_revenue: Math.round(totalRevenue * 100) / 100
+            },
+            billing_year: year,
+            billing_month: month,
+            proration: proration,
+            calculation: {
+                base_amount: Math.round(baseAmount * 100) / 100,
+                per_appointment_amount: Math.round(perAppointmentAmount * 100) / 100,
+                percentage_amount: Math.round(percentageAmount * 100) / 100,
+                subtotal_amount: Math.round(subtotalAmount * 100) / 100,
+                tax_rate: 18,
+                tax_amount: Math.round(taxAmount * 100) / 100,
+                total_amount: Math.round(totalAmount * 100) / 100
+            }
+        };
+    }
+
+    /**
+     * Generate invoice from billing calculation modal
+     */
+    async function generateInvoiceFromCalculationModal() {
+        if (!currentBillingCalculation.calculation || !currentBillingCalculation.subscriptionId) {
+            showErrorToast('No billing data available');
+            return;
+        }
+
+        if (currentBillingCalculation.existingInvoice) {
+            showErrorToast('Invoice already exists for this billing period');
+            return;
+        }
+
+        try {
+            showLoading('Generating invoice...');
+
+            const calculation = currentBillingCalculation.calculation;
+            const subscription = currentBillingCalculation.subscription;
+            const billingMonth = currentBillingCalculation.billingMonth;
+
+            const invoiceData = {
+                billing_month: billingMonth,
+                invoice_date: new Date().toISOString().split('T')[0],
+                due_date: addDays(new Date(), 7).toISOString().split('T')[0],
+                amount: calculation.calculation.subtotal_amount,
+                tax_amount: calculation.calculation.tax_amount,
+                total_amount: calculation.calculation.total_amount,
+                total_appointments: calculation.usage.total_appointments,
+                total_revenue: calculation.usage.total_revenue,
+                calculation_breakdown: calculation.calculation
+            };
+
+            const response = await apiRequest(
+                API_ENDPOINTS.SUBSCRIPTIONS.GENERATE_INVOICE(currentBillingCalculation.subscriptionId),
+                {
+                    method: 'POST',
+                    body: JSON.stringify(invoiceData)
+                }
+            );
+
+            if (response.status === 'success') {
+                closeLoading();
+                closeBillingCalculationModal();
+                showSuccess('Invoice generated successfully: ' + response.data.invoice_number);
+
+                // Refresh subscriptions list
+                await fetchSubscriptions();
+            } else {
+                closeLoading();
+                showErrorToast(response.message || 'Failed to generate invoice');
+            }
+        } catch (error) {
+            closeLoading();
+            if (error.message.includes('409')) {
+                showErrorToast('Invoice already exists for this subscription and billing month');
+            } else {
+                showErrorToast('Failed to generate invoice: ' + error.message);
+            }
+        }
+    }
+
+    /**
+     * Close billing calculation modal
+     */
+    function closeBillingCalculationModal() {
+        const modal = document.getElementById('billingCalculationModal');
+        if (modal) {
+            modal.classList.remove('active');
+        }
+        
+        // Clear state
+        currentBillingCalculation = {
+            subscriptionId: null,
+            subscription: null,
+            plan: null,
+            billingMonth: null,
+            appointments: [],
+            calculation: null,
+            existingInvoice: null
+        };
+    }
+
+    /**
+     * Helper: Get last day of month
+     */
+    function getLastDayOfMonth(monthStr) {
+        const [year, month] = monthStr.split('-').map(Number);
+        return new Date(year, month, 0).toISOString().split('T')[0];
+    }
+
+    /**
+     * Helper: Add days to date
+     */
+    function addDays(date, days) {
+        const result = new Date(date);
+        result.setDate(result.getDate() + days);
+        return result;
+    }
+
+    /**
+     * Helper: Get payment status color
+     */
+    function getPaymentStatusColor(status) {
+        const colors = {
+            'UNPAID': 'danger',
+            'PARTIAL': 'warning',
+            'PAID': 'success',
+            'REFUNDED': 'info'
+        };
+        return colors[status] || 'secondary';
+    }
+
     /**
      * Populate billing month selector with last 12 months + current month
      */
@@ -1911,10 +2840,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const year = date.getFullYear();
             const month = String(date.getMonth() + 1).padStart(2, '0');
             const value = `${year}-${month}`;
-            
+
             // Format display: "February 2025"
             const label = date.toLocaleString('en-US', { month: 'long', year: 'numeric' });
-            
+
             options.push(`<option value="${value}" ${i === 0 ? 'selected' : ''}>${label}</option>`);
         }
 
@@ -1928,4 +2857,14 @@ document.addEventListener('DOMContentLoaded', () => {
     window.viewInvoice = viewInvoice;
     window.payInvoice = payInvoice;
     window.fetchBillingHistory = fetchBillingHistory;
+    // NEW: Billing Calculation Modal functions
+    window.openBillingCalculationModal = openBillingCalculationModal;
+    window.closeBillingCalculationModal = closeBillingCalculationModal;
+    window.calculateBillingForMonth = calculateBillingForMonth;
+    window.generateInvoiceFromCalculationModal = generateInvoiceFromCalculationModal;
+    window.viewExistingInvoice = viewExistingInvoice;
+    // Renew Subscription functions
+    window.openRenewSubscriptionModal = openRenewSubscriptionModal;
+    window.closeRenewModalFunc = closeRenewModalFunc;
+    window.updateRenewalPreview = updateRenewalPreview;
 });
