@@ -2451,20 +2451,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
-     * Display billing calculation results - MODERN DYNAMIC VERSION
+     * Display billing calculation results - NEW CLEAN DESIGN
      */
     function displayBillingCalculation(calculation, billingMonth) {
         console.log('Displaying billing calculation:', calculation);
 
         const plan = currentBillingCalculation.plan;
         const planType = plan?.plan_type || 'flat';
+        const [year, month] = billingMonth.split('-').map(Number);
+        const daysInMonth = new Date(year, month, 0).getDate();
 
         // Update plan type badge
         const planTypeBadge = document.getElementById('planTypeBadge');
         if (planTypeBadge) {
             const planTypeLabels = {
-                'flat': 'Flat Rate Plan',
-                'per-appointments': 'Per Appointment Plan',
+                'flat': 'Flat Plan',
+                'per-appointments': 'Per Appointment',
                 'Percentage-per-appointments': 'Percentage Plan'
             };
             planTypeBadge.textContent = planTypeLabels[planType] || planType;
@@ -2478,133 +2480,103 @@ document.addEventListener('DOMContentLoaded', () => {
         // Usage Summary
         document.getElementById('calcCompletedAppointments').textContent = calculation.usage?.total_appointments || 0;
         document.getElementById('calcTotalRevenue').textContent = '₹' + (calculation.usage?.total_revenue || 0).toLocaleString('en-IN');
-
-        // Billing days (days in month)
-        const [year, month] = billingMonth.split('-').map(Number);
-        const daysInMonth = new Date(year, month, 0).getDate();
         document.getElementById('calcBillingDays').textContent = daysInMonth;
 
-        // Enhanced Proration info for flat plans
-        const prorationInfoEl = document.getElementById('prorationInfo');
-        const prorationDetailEl = document.getElementById('prorationDetail');
+        // Proration badge (for flat plans)
+        const prorationBadge = document.getElementById('prorationBadge');
+        const prorationDetails = document.getElementById('prorationDetails');
         
-        if (prorationInfoEl && prorationDetailEl) {
+        if (prorationBadge && prorationDetails) {
             if (plan?.plan_type === 'flat' && calculation?.proration) {
+                prorationBadge.style.display = 'inline-block';
+                
+                // Show detailed proration box
                 const proration = calculation.proration;
                 const originalPrice = proration.original_price || plan.flat_price;
                 const proratedPrice = calculation.calculation?.base_amount || 0;
                 const savings = originalPrice - proratedPrice;
                 
-                const prorationHtml = `
-                    <div style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(167, 139, 250, 0.1)); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 10px; padding: 10px;">
-                        <div style="font-size: 10px; color: var(--primary); font-weight: 700; text-transform: uppercase; margin-bottom: 4px;">
-                            <i class="fa-solid fa-circle-info"></i> Prorated (Flat Plan)
-                        </div>
-                        <div style="font-size: 11px; color: var(--text-primary); font-weight: 600; margin-bottom: 6px;">
-                            ${proration.days_billed} / ${daysInMonth} days billed
-                        </div>
-                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; font-size: 9px;">
-                            <div style="background: rgba(239, 68, 68, 0.1); padding: 4px; border-radius: 4px; text-align: center;">
-                                <div style="color: var(--text-muted); font-size: 8px;">Original</div>
-                                <div style="color: var(--danger); font-weight: 700;">₹${originalPrice.toLocaleString('en-IN')}</div>
-                            </div>
-                            <div style="background: rgba(16, 185, 129, 0.1); padding: 4px; border-radius: 4px; text-align: center;">
-                                <div style="color: var(--text-muted); font-size: 8px;">You Pay</div>
-                                <div style="color: var(--success); font-weight: 700;">₹${proratedPrice.toLocaleString('en-IN')}</div>
-                            </div>
-                            <div style="background: rgba(16, 185, 129, 0.1); padding: 4px; border-radius: 4px; text-align: center;">
-                                <div style="color: var(--text-muted); font-size: 8px;">Save</div>
-                                <div style="color: var(--success); font-weight: 700;">₹${savings.toLocaleString('en-IN')}</div>
-                            </div>
-                        </div>
-                    </div>
-                `;
+                document.getElementById('prorationDays').textContent = `${proration.days_billed}/${daysInMonth} days`;
+                document.getElementById('prorationOriginal').textContent = '₹' + originalPrice.toLocaleString('en-IN');
+                document.getElementById('prorationFinal').textContent = '₹' + proratedPrice.toLocaleString('en-IN');
+                document.getElementById('prorationSave').textContent = '₹' + savings.toLocaleString('en-IN');
                 
-                prorationInfoEl.innerHTML = prorationHtml;
-                prorationInfoEl.style.display = 'block';
-                
-                // Also show in base amount card
-                prorationDetailEl.innerHTML = `
-                    <div style="color: var(--primary); font-weight: 600;">
-                        <i class="fa-solid fa-calendar-check"></i> ${proration.days_billed}/${daysInMonth} days
-                    </div>
-                `;
+                prorationDetails.style.display = 'block';
             } else {
-                prorationInfoEl.style.display = 'none';
-                prorationDetailEl.textContent = '';
+                prorationBadge.style.display = 'none';
+                prorationDetails.style.display = 'none';
             }
         }
 
-        // Amount Breakdown - Dynamic based on plan type
+        // Calculation Breakdown - Dynamic based on plan type
         const calc = calculation?.calculation;
         if (calc) {
             const baseAmount = calc.base_amount || 0;
             const perAppointmentAmount = calc.per_appointment_amount || 0;
             const percentageAmount = calc.percentage_amount || 0;
-            
-            // Get card elements
-            const baseAmountCard = document.getElementById('baseAmountCard');
-            const perAppointmentCard = document.getElementById('perAppointmentCard');
-            const percentageCard = document.getElementById('percentageCard');
-            const perAppointmentDetail = document.getElementById('perAppointmentDetail');
-            const percentageDetail = document.getElementById('percentageDetail');
-            
-            // Update amounts
-            document.getElementById('calcBaseAmount').textContent = '₹' + baseAmount.toLocaleString('en-IN');
-            document.getElementById('calcPerAppointmentAmount').textContent = '₹' + perAppointmentAmount.toLocaleString('en-IN');
-            document.getElementById('calcPercentageAmount').textContent = '₹' + percentageAmount.toLocaleString('en-IN');
-            document.getElementById('calcSubtotal').textContent = '₹' + calc.subtotal_amount.toLocaleString('en-IN');
-            document.getElementById('calcTaxAmount').textContent = '₹' + calc.tax_amount.toLocaleString('en-IN');
-            document.getElementById('calcTotalAmount').textContent = '₹' + calc.total_amount.toLocaleString('en-IN');
-            
-            // Show/hide cards based on plan type and add detail info
+            const subtotal = calc.subtotal_amount || 0;
+            const tax = calc.tax_amount || 0;
+            const total = calc.total_amount || 0;
+
+            // Update plan charges based on plan type
+            const mainChargeEl = document.getElementById('calcMainCharge');
+            const mainChargeDetailEl = document.getElementById('calcMainChargeDetail');
+            const originalPriceEl = document.getElementById('calcOriginalPrice');
+            const additionalChargesRow = document.getElementById('additionalChargesRow');
+            const additionalChargesEl = document.getElementById('calcAdditionalCharges');
+            const additionalChargesDetailEl = document.getElementById('calcAdditionalChargesDetail');
+
             if (planType === 'flat') {
-                // Show base amount prominently, dim others
-                baseAmountCard.style.opacity = '1';
-                baseAmountCard.style.transform = 'scale(1.02)';
-                perAppointmentCard.style.opacity = '0.5';
-                percentageCard.style.opacity = '0.5';
+                // Flat plan: Show original and prorated price
+                const originalPrice = plan.flat_price || 0;
                 
-                // Add detail for per-appointments if there are any
-                if (calculation.usage?.total_appointments > 0) {
-                    perAppointmentDetail.textContent = `${calculation.usage.total_appointments} appointments`;
+                mainChargeEl.textContent = '₹' + baseAmount.toLocaleString('en-IN');
+                
+                // Show original price if prorated
+                if (calculation.proration && baseAmount < originalPrice) {
+                    originalPriceEl.style.display = 'flex';
+                    originalPriceEl.querySelector('.original-amount').textContent = '₹' + originalPrice.toLocaleString('en-IN');
+                    mainChargeDetailEl.textContent = `Prorated (${calculation.proration.days_billed}/${daysInMonth} days)`;
                 } else {
-                    perAppointmentDetail.textContent = 'No appointments';
+                    originalPriceEl.style.display = 'none';
+                    mainChargeDetailEl.textContent = 'Flat monthly rate';
                 }
-                percentageDetail.textContent = 'Not applicable';
+                
+                // Hide additional charges
+                additionalChargesRow.style.display = 'none';
                 
             } else if (planType === 'per-appointments') {
-                // Show per-appointment prominently
-                perAppointmentCard.style.opacity = '1';
-                perAppointmentCard.style.transform = 'scale(1.02)';
-                baseAmountCard.style.opacity = '0.5';
-                percentageCard.style.opacity = '0.5';
+                // Per appointment: Calculate as main charge
+                const appointmentCount = calculation.usage?.total_appointments || 0;
+                const perAppointmentRate = plan.per_appointments_price || 0;
                 
-                perAppointmentDetail.textContent = `${calculation.usage?.total_appointments || 0} × ₹${plan.per_appointments_price || 0}`;
-                baseAmountCard.querySelector('#prorationDetail').textContent = 'Not applicable';
-                percentageDetail.textContent = 'Not applicable';
+                mainChargeEl.textContent = '₹' + perAppointmentAmount.toLocaleString('en-IN');
+                mainChargeDetailEl.textContent = `${appointmentCount} appts × ₹${perAppointmentRate}`;
+                originalPriceEl.style.display = 'none';
+                
+                // Hide additional charges
+                additionalChargesRow.style.display = 'none';
                 
             } else if (planType === 'Percentage-per-appointments') {
-                // Show percentage prominently
-                percentageCard.style.opacity = '1';
-                percentageCard.style.transform = 'scale(1.02)';
-                baseAmountCard.style.opacity = '0.5';
-                perAppointmentCard.style.opacity = '0.5';
-                
+                // Percentage plan: Show revenue and percentage
+                const revenue = calculation.usage?.total_revenue || 0;
                 const percentageRate = plan.percentage_per_appointment || 0;
-                percentageDetail.textContent = `${percentageRate}% of ₹${(calculation.usage?.total_revenue || 0).toLocaleString('en-IN')}`;
-                baseAmountCard.querySelector('#prorationDetail').textContent = 'Not applicable';
-                perAppointmentDetail.textContent = `${calculation.usage?.total_appointments || 0} appointments`;
+                
+                mainChargeEl.textContent = '₹' + percentageAmount.toLocaleString('en-IN');
+                mainChargeDetailEl.textContent = `${percentageRate}% of ₹${revenue.toLocaleString('en-IN')}`;
+                originalPriceEl.style.display = 'none';
+                
+                // Show additional charges for appointments info
+                const appointmentCount = calculation.usage?.total_appointments || 0;
+                additionalChargesEl.textContent = appointmentCount + ' appts';
+                additionalChargesDetailEl.textContent = 'Completed this month';
+                additionalChargesRow.style.display = 'flex';
             }
-            
-            // Reset transforms after animation
-            setTimeout(() => {
-                baseAmountCard.style.transform = 'scale(1)';
-                perAppointmentCard.style.transform = 'scale(1)';
-                percentageCard.style.transform = 'scale(1)';
-            }, 300);
-        } else {
-            console.error('No calculation data in calculation object');
+
+            // Update subtotal, tax, total
+            document.getElementById('calcSubtotal').textContent = '₹' + subtotal.toLocaleString('en-IN');
+            document.getElementById('calcTaxAmount').textContent = '₹' + tax.toLocaleString('en-IN');
+            document.getElementById('calcTotalAmount').textContent = '₹' + total.toLocaleString('en-IN');
         }
     }
 

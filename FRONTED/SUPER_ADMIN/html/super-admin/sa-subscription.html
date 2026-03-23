@@ -1349,6 +1349,659 @@
                 opacity: 1;
             }
         }
+
+        /* ============================================
+           BILLING CALCULATOR MODAL - NEW DESIGN
+           ============================================ */
+
+        /* Section Structure */
+        .billing-section {
+            margin-bottom: 28px;
+        }
+
+        .billing-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--border-light);
+        }
+
+        .section-title i {
+            color: var(--primary);
+            font-size: 16px;
+        }
+
+        /* Info Grid (4 columns) */
+        .info-grid-4 {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+
+        .info-item {
+            padding: 14px;
+            background: var(--bg-hover);
+            border-radius: var(--radius-md);
+            border-left: 3px solid var(--primary);
+        }
+
+        .info-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .info-label i {
+            font-size: 12px;
+        }
+
+        .info-value {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        /* Month Selector */
+        .month-selector-wrapper {
+            background: white;
+            padding: 20px;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-light);
+        }
+
+        .month-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+        }
+
+        .month-select {
+            width: 100%;
+            max-width: 320px;
+            padding: 12px 16px;
+            font-size: 14px;
+            border: 2px solid var(--border-light);
+            border-radius: var(--radius-md);
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .month-select:hover {
+            border-color: var(--primary);
+        }
+
+        .month-select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-bg);
+        }
+
+        .month-helper {
+            margin-top: 10px;
+            font-size: 12px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .month-helper i {
+            color: var(--primary);
+        }
+
+        /* Stats Grid (3 columns) */
+        .stats-grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .stat-card {
+            padding: 24px;
+            background: white;
+            border-radius: var(--radius-lg);
+            border: 2px solid var(--border-light);
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+        }
+
+        .stat-icon {
+            width: 56px;
+            height: 56px;
+            margin: 0 auto 12px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .stat-primary .stat-icon {
+            background: var(--primary-bg);
+            color: var(--primary);
+        }
+
+        .stat-success .stat-icon {
+            background: var(--success-bg);
+            color: var(--success);
+        }
+
+        .stat-info .stat-icon {
+            background: var(--info-bg);
+            color: var(--info);
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 36px;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .stat-primary .stat-value {
+            color: var(--primary);
+        }
+
+        .stat-success .stat-value {
+            color: var(--success);
+        }
+
+        .stat-info .stat-value {
+            color: var(--info);
+        }
+
+        /* Proration Badge */
+        .proration-badge {
+            margin-top: 12px;
+            padding: 8px 12px;
+            background: linear-gradient(135deg, var(--warning-bg), var(--warning-bg));
+            border: 1px solid var(--warning);
+            border-radius: var(--radius-sm);
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--warning);
+            display: inline-block;
+        }
+
+        .proration-badge i {
+            margin-right: 4px;
+        }
+
+        /* Calculation Card */
+        .calculation-card {
+            background: white;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-light);
+            padding: 20px;
+        }
+
+        /* Calculation Rows */
+        .calc-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 16px;
+            border-radius: var(--radius-md);
+            margin-bottom: 8px;
+        }
+
+        .calc-row:hover {
+            background: var(--bg-hover);
+        }
+
+        .calc-label-with-icon {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            flex: 1;
+        }
+
+        .calc-label-with-icon i {
+            font-size: 14px;
+            color: var(--text-muted);
+            width: 20px;
+        }
+
+        .calc-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+            min-width: 120px;
+            text-align: right;
+        }
+
+        .calc-value-group {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 4px;
+            min-width: 120px;
+        }
+
+        .calc-original-price {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .original-label {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .original-amount {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--danger);
+            text-decoration: line-through;
+        }
+
+        .calc-sublabel {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: normal;
+            margin-top: 2px;
+        }
+
+        .calc-detail {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-align: right;
+            margin-left: 16px;
+            min-width: 100px;
+        }
+
+        /* Row Variants */
+        .calc-row-main {
+            background: linear-gradient(135deg, var(--primary-bg), rgba(99, 102, 241, 0.05));
+            border: 2px solid var(--primary);
+        }
+
+        .calc-row-main .calc-label-with-icon i {
+            color: var(--primary);
+        }
+
+        .calc-row-main .calc-value {
+            color: var(--primary);
+        }
+
+        .calc-row-secondary {
+            background: var(--bg-hover);
+            border: 1px dashed var(--border-light);
+        }
+
+        .calc-row-subtotal {
+            background: var(--bg-hover);
+            border-top: 2px dashed var(--border-light);
+            border-bottom: 2px dashed var(--border-light);
+            margin-top: 12px;
+            margin-bottom: 12px;
+        }
+
+        .calc-row-tax {
+            background: linear-gradient(135deg, var(--danger-bg), rgba(239, 68, 68, 0.05));
+            border: 1px solid var(--danger-bg);
+        }
+
+        .calc-row-tax .calc-label-with-icon i {
+            color: var(--danger);
+        }
+
+        .calc-row-tax .calc-value {
+            color: var(--danger);
+        }
+
+        .tax-rate {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: normal;
+        }
+
+        .calc-divider {
+            height: 2px;
+            background: linear-gradient(90deg, var(--border-light), var(--primary), var(--border-light));
+            margin: 16px 0;
+            border-radius: 2px;
+        }
+
+        .calc-row-total {
+            background: linear-gradient(135deg, var(--primary), #7c3aed);
+            padding: 20px;
+            border-radius: var(--radius-lg);
+            margin-top: 8px;
+        }
+
+        .calc-label-total {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: white;
+        }
+
+        .calc-label-total i {
+            font-size: 20px;
+            color: rgba(255,255,255,0.9);
+        }
+
+        .calc-label-total > div {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .total-subtitle {
+            font-size: 11px;
+            color: rgba(255,255,255,0.7);
+            font-weight: normal;
+            margin-top: 2px;
+        }
+
+        .calc-value-total {
+            font-size: 36px;
+            font-weight: 900;
+            color: white;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        /* Proration Details Box */
+        .proration-details {
+            margin-top: 20px;
+            padding: 20px;
+            background: linear-gradient(135deg, var(--primary-bg), rgba(99, 102, 241, 0.05));
+            border: 2px solid var(--primary);
+            border-radius: var(--radius-lg);
+        }
+
+        .proration-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            color: var(--primary);
+            margin-bottom: 16px;
+            font-weight: 700;
+        }
+
+        .proration-header i {
+            font-size: 16px;
+        }
+
+        .proration-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+
+        .proration-item {
+            text-align: center;
+            padding: 12px;
+            background: white;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-light);
+        }
+
+        .proration-label {
+            font-size: 10px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .proration-value {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .proration-original {
+            color: var(--danger);
+            text-decoration: line-through;
+            font-size: 12px;
+        }
+
+        .proration-final {
+            color: var(--success);
+            font-size: 16px;
+        }
+
+        .proration-save {
+            color: var(--success);
+        }
+
+        /* Plan Badge */
+        .plan-badge {
+            margin-left: auto;
+            padding: 6px 12px;
+            background: var(--primary-bg);
+            color: var(--primary);
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        /* Warning Box */
+        .warning-box {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 20px;
+            background: var(--warning-bg);
+            border: 2px solid var(--warning);
+            border-radius: var(--radius-lg);
+            margin-bottom: 24px;
+        }
+
+        .warning-icon {
+            width: 48px;
+            height: 48px;
+            background: white;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: var(--warning);
+            flex-shrink: 0;
+        }
+
+        .warning-content {
+            flex: 1;
+        }
+
+        .warning-title {
+            font-size: 15px;
+            font-weight: 800;
+            color: var(--warning);
+            margin-bottom: 4px;
+        }
+
+        .warning-text {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .btn-warning {
+            background: white;
+            color: var(--warning);
+            border: 2px solid var(--warning);
+            font-weight: 700;
+            padding: 10px 20px;
+            border-radius: var(--radius-md);
+            white-space: nowrap;
+        }
+
+        .btn-warning:hover {
+            background: var(--warning);
+            color: white;
+        }
+
+        /* Loading State */
+        .loading-state {
+            text-align: center;
+            padding: 60px 40px;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            position: relative;
+            width: 80px;
+            height: 80px;
+        }
+
+        .loading-spinner i {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 32px;
+            color: var(--primary);
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: translate(-50%, -50%) rotate(0deg); }
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        .loading-text {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-top: 24px;
+            margin-bottom: 8px;
+        }
+
+        .loading-subtext {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        /* Error State */
+        .error-state {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 20px;
+            background: var(--danger-bg);
+            border: 2px solid var(--danger);
+            border-radius: var(--radius-lg);
+            margin-top: 20px;
+        }
+
+        .error-icon {
+            width: 48px;
+            height: 48px;
+            background: white;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: var(--danger);
+            flex-shrink: 0;
+        }
+
+        .error-content {
+            flex: 1;
+        }
+
+        .error-title {
+            font-size: 15px;
+            font-weight: 800;
+            color: var(--danger);
+            margin-bottom: 4px;
+        }
+
+        .error-text {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .btn-error {
+            background: white;
+            color: var(--danger);
+            border: 2px solid var(--danger);
+            font-weight: 700;
+            padding: 10px 20px;
+            border-radius: var(--radius-md);
+            white-space: nowrap;
+        }
+
+        .btn-error:hover {
+            background: var(--danger);
+            color: white;
+        }
+
+        /* Responsive for billing modal */
+        @media (max-width: 1024px) {
+            .info-grid-4,
+            .stats-grid-3,
+            .proration-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .info-grid-4,
+            .stats-grid-3,
+            .proration-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .calc-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+            
+            .calc-value {
+                text-align: left;
+            }
+            
+            .calc-detail {
+                text-align: left;
+                margin-left: 0;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1800,289 +2453,272 @@
         </div>
     </div>
 
-    <!-- Billing Calculation Modal (NEW - with month selector inside) -->
-    <!-- Billing Calculation Modal - MODERN REDESIGN -->
+    <!-- Billing Calculation Modal - COMPLETE REDESIGN -->
     <div class="modal-overlay" id="billingCalculationModal">
-        <div class="modal modal-xl" style="max-width: 1100px;">
-            <div class="modal-header" style="background: linear-gradient(135deg, var(--primary-bg), var(--info-bg)); border-bottom: 2px solid var(--primary);">
-                <div style="display: flex; align-items: center; gap: 12px;">
-                    <div style="width: 48px; height: 48px; background: white; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; color: var(--primary);">
-                        <i class="fa-solid fa-calculator"></i>
-                    </div>
-                    <div>
-                        <h3 class="modal-title" style="color: var(--primary); margin: 0;">Subscription Billing Calculator</h3>
-                        <div style="font-size: 12px; color: var(--text-secondary);">Smart billing with automatic proration</div>
-                    </div>
-                </div>
-                <button class="modal-close" onclick="closeBillingCalculationModal()" style="background: rgba(255,255,255,0.2); color: white;">&times;</button>
+        <div class="modal modal-xl" style="max-width: 1000px;">
+            <!-- Header -->
+            <div class="modal-header">
+                <h3 class="modal-title">
+                    <i class="fa-solid fa-calculator"></i>
+                    Subscription Billing Calculator
+                </h3>
+                <button class="modal-close" onclick="closeBillingCalculationModal()">&times;</button>
             </div>
             
-            <div class="modal-body" style="background: linear-gradient(180deg, #fafbff 0%, #f5f7ff 100%);">
-                <!-- Subscription Info Card -->
-                <div id="billingSubscriptionInfo" style="background: white; border-radius: 16px; padding: 20px; margin-bottom: 24px; box-shadow: 0 4px 20px rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.1);">
-                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px;">
-                        <div style="position: relative;">
-                            <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 8px;">
-                                <i class="fa-solid fa-shop" style="color: var(--primary); margin-right: 6px;"></i>Salon
+            <div class="modal-body">
+                <!-- SECTION 1: Context - What are we billing? -->
+                <div class="billing-section">
+                    <div class="section-title">
+                        <i class="fa-solid fa-circle-info"></i>
+                        <span>Subscription Details</span>
+                    </div>
+                    <div class="info-grid-4">
+                        <div class="info-item">
+                            <div class="info-label">
+                                <i class="fa-solid fa-shop"></i> Salon
                             </div>
-                            <div style="font-size: 15px; font-weight: 700; color: var(--text-primary);" id="billingSalonName">-</div>
-                            <div style="position: absolute; top: 0; right: 0; width: 4px; height: 100%; background: var(--primary); border-radius: 4px;"></div>
+                            <div class="info-value" id="billingSalonName">-</div>
                         </div>
-                        <div style="position: relative;">
-                            <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 8px;">
-                                <i class="fa-solid fa-crown" style="color: var(--warning); margin-right: 6px;"></i>Plan
+                        <div class="info-item">
+                            <div class="info-label">
+                                <i class="fa-solid fa-crown"></i> Plan
                             </div>
-                            <div style="font-size: 15px; font-weight: 700; color: var(--primary);" id="billingPlanName">-</div>
-                            <div style="position: absolute; top: 0; right: 0; width: 4px; height: 100%; background: var(--warning); border-radius: 4px;"></div>
+                            <div class="info-value" id="billingPlanName">-</div>
                         </div>
-                        <div style="position: relative;">
-                            <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 8px;">
-                                <i class="fa-solid fa-tag" style="color: var(--success); margin-right: 6px;"></i>Type
+                        <div class="info-item">
+                            <div class="info-label">
+                                <i class="fa-solid fa-tag"></i> Type
                             </div>
-                            <div style="font-size: 15px; font-weight: 700; color: var(--success);" id="billingPlanType">-</div>
-                            <div style="position: absolute; top: 0; right: 0; width: 4px; height: 100%; background: var(--success); border-radius: 4px;"></div>
+                            <div class="info-value" id="billingPlanType">-</div>
                         </div>
-                        <div style="position: relative;">
-                            <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 8px;">
-                                <i class="fa-regular fa-calendar-check" style="color: var(--info); margin-right: 6px;"></i>Period
+                        <div class="info-item">
+                            <div class="info-label">
+                                <i class="fa-regular fa-calendar"></i> Period
                             </div>
-                            <div style="font-size: 14px; font-weight: 700; color: var(--info);" id="billingSubscriptionPeriod">-</div>
-                            <div style="position: absolute; top: 0; right: 0; width: 4px; height: 100%; background: var(--info); border-radius: 4px;"></div>
+                            <div class="info-value" id="billingSubscriptionPeriod">-</div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Month Selection - Enhanced -->
-                <div style="background: white; border-radius: 16px; padding: 20px; margin-bottom: 24px; box-shadow: 0 4px 20px rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.1);">
-                    <label class="form-label" for="billingMonthInside" style="font-size: 14px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-                        <i class="fa-regular fa-calendar" style="color: var(--primary);"></i>
-                        Select Billing Month
-                        <span style="flex: 1;"></span>
-                        <span style="font-size: 11px; color: var(--text-muted); font-weight: normal; background: var(--bg-hover); padding: 6px 12px; border-radius: 20px;">
-                            <i class="fa-solid fa-circle-info"></i> Auto-calculates on selection
-                        </span>
-                    </label>
-                    <div style="position: relative; max-width: 320px;">
-                        <select id="billingMonthInside" class="form-select" onchange="calculateBillingForMonth()" style="font-size: 15px; padding: 14px 16px; border: 2px solid var(--border-light); border-radius: 12px; background: white; cursor: pointer; transition: all 0.3s;">
+                <!-- SECTION 2: Selection - Which month? -->
+                <div class="billing-section">
+                    <div class="section-title">
+                        <i class="fa-regular fa-calendar"></i>
+                        <span>Billing Period</span>
+                    </div>
+                    <div class="month-selector-wrapper">
+                        <label for="billingMonthInside" class="month-label">
+                            Select the month you want to bill for:
+                        </label>
+                        <select id="billingMonthInside" class="form-select month-select" onchange="calculateBillingForMonth()">
                             <option value="">Choose billing month...</option>
                         </select>
-                        <div style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%); pointer-events: none; color: var(--text-muted);">
-                            <i class="fa-solid fa-chevron-down"></i>
+                        <div class="month-helper">
+                            <i class="fa-solid fa-circle-info"></i>
+                            Billing is calculated based on completed appointments in the selected month
                         </div>
                     </div>
                 </div>
 
-                <!-- Invoice Existence Warning - Enhanced -->
-                <div id="invoiceExistenceWarning" style="display: none; background: linear-gradient(135deg, #fef3c7 0%, #fef9c3 100%); border: 2px solid #f59e0b; border-radius: 16px; padding: 20px; margin-bottom: 24px; box-shadow: 0 4px 20px rgba(245, 158, 11, 0.15);">
-                    <div style="display: flex; align-items: center; gap: 16px;">
-                        <div style="width: 56px; height: 56px; background: white; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 28px; color: #f59e0b; flex-shrink: 0;">
-                            <i class="fa-solid fa-triangle-exclamation"></i>
-                        </div>
-                        <div style="flex: 1;">
-                            <div style="font-size: 16px; font-weight: 800; color: #92400e; margin-bottom: 4px;">Invoice Already Exists</div>
-                            <div style="font-size: 13px; color: #78350f;" id="existingInvoiceDetails">An invoice has already been created for this billing period.</div>
-                        </div>
-                        <button type="button" class="btn" onclick="viewExistingInvoice()" style="background: white; color: #f59e0b; border: 2px solid #f59e0b; font-weight: 700; padding: 12px 24px; border-radius: 12px; white-space: nowrap; transition: all 0.3s;">
-                            <i class="fa-regular fa-eye"></i> View Invoice
-                        </button>
+                <!-- Invoice Existence Warning -->
+                <div id="invoiceExistenceWarning" class="warning-box" style="display: none;">
+                    <div class="warning-icon">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
                     </div>
+                    <div class="warning-content">
+                        <div class="warning-title">Invoice Already Exists</div>
+                        <div class="warning-text" id="existingInvoiceDetails">
+                            An invoice has already been created for this billing period.
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-warning" onclick="viewExistingInvoice()">
+                        <i class="fa-regular fa-eye"></i> View Invoice
+                    </button>
                 </div>
 
-                <!-- Calculation Results - MODERN CARD DESIGN -->
+                <!-- SECTION 3: Results - Calculation breakdown -->
                 <div id="billingCalculationResults" style="display: none;">
                     
-                    <!-- Usage Summary Cards -->
-                    <div style="margin-bottom: 24px;">
-                        <div style="font-size: 13px; font-weight: 700; color: var(--text-secondary); margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px;">
-                            <i class="fa-solid fa-chart-bar" style="color: var(--primary);"></i>
-                            Usage Summary for <span id="billingMonthDisplay" style="color: var(--primary); font-weight: 800;"></span>
+                    <!-- 3A: Usage Summary -->
+                    <div class="billing-section">
+                        <div class="section-title">
+                            <i class="fa-solid fa-chart-bar"></i>
+                            <span>Usage Summary for <strong id="billingMonthDisplay"></strong></span>
                         </div>
-                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
-                            <!-- Appointments Card -->
-                            <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 20px rgba(99, 102, 241, 0.08); border: 2px solid rgba(99, 102, 241, 0.1); position: relative; overflow: hidden;">
-                                <div style="position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: linear-gradient(90deg, var(--primary), var(--info));"></div>
-                                <div style="text-align: center;">
-                                    <div style="width: 56px; height: 56px; background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(99, 102, 241, 0.05)); border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 28px; color: var(--primary); margin: 0 auto 12px;">
-                                        <i class="fa-solid fa-handshake"></i>
-                                    </div>
-                                    <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 8px;">Completed Appointments</div>
-                                    <div style="font-size: 42px; font-weight: 800; color: var(--primary); line-height: 1;" id="calcCompletedAppointments">0</div>
+                        
+                        <div class="stats-grid-3">
+                            <!-- Appointments -->
+                            <div class="stat-card stat-primary">
+                                <div class="stat-icon">
+                                    <i class="fa-solid fa-handshake"></i>
                                 </div>
+                                <div class="stat-label">Completed Appointments</div>
+                                <div class="stat-value" id="calcCompletedAppointments">0</div>
                             </div>
                             
-                            <!-- Revenue Card -->
-                            <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 20px rgba(16, 185, 129, 0.08); border: 2px solid rgba(16, 185, 129, 0.1); position: relative; overflow: hidden;">
-                                <div style="position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: linear-gradient(90deg, var(--success), #34d399);"></div>
-                                <div style="text-align: center;">
-                                    <div style="width: 56px; height: 56px; background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05)); border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 28px; color: var(--success); margin: 0 auto 12px;">
-                                        <i class="fa-solid fa-sack-dollar"></i>
-                                    </div>
-                                    <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 8px;">Total Revenue</div>
-                                    <div style="font-size: 42px; font-weight: 800; color: var(--success); line-height: 1;" id="calcTotalRevenue">₹0</div>
+                            <!-- Revenue -->
+                            <div class="stat-card stat-success">
+                                <div class="stat-icon">
+                                    <i class="fa-solid fa-sack-dollar"></i>
                                 </div>
+                                <div class="stat-label">Total Revenue</div>
+                                <div class="stat-value" id="calcTotalRevenue">₹0</div>
                             </div>
                             
-                            <!-- Billing Days Card -->
-                            <div style="background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 20px rgba(59, 130, 246, 0.08); border: 2px solid rgba(59, 130, 246, 0.1); position: relative; overflow: hidden;">
-                                <div style="position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: linear-gradient(90deg, var(--info), #60a5fa);"></div>
-                                <div style="text-align: center;">
-                                    <div style="width: 56px; height: 56px; background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(59, 130, 246, 0.05)); border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 28px; color: var(--info); margin: 0 auto 12px;">
-                                        <i class="fa-regular fa-calendar-days"></i>
-                                    </div>
-                                    <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 8px;">Billing Days</div>
-                                    <div style="font-size: 42px; font-weight: 800; color: var(--info); line-height: 1;" id="calcBillingDays">0</div>
-                                    <!-- Enhanced Proration Display -->
-                                    <div id="prorationInfo" style="margin-top: 12px; padding: 12px; background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(59, 130, 246, 0.08)); border-radius: 12px; border: 1px solid rgba(99, 102, 241, 0.2); display: none;"></div>
+                            <!-- Billing Days -->
+                            <div class="stat-card stat-info">
+                                <div class="stat-icon">
+                                    <i class="fa-regular fa-calendar-days"></i>
+                                </div>
+                                <div class="stat-label">Billing Days</div>
+                                <div class="stat-value" id="calcBillingDays">0</div>
+                                <!-- Proration badge appears here for flat plans -->
+                                <div id="prorationBadge" class="proration-badge" style="display: none;">
+                                    <i class="fa-solid fa-scissors"></i> Prorated
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Amount Breakdown - Modern Card -->
-                    <div style="background: white; border-radius: 16px; padding: 24px; margin-bottom: 24px; box-shadow: 0 4px 20px rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.1);">
-                        <div style="font-size: 14px; font-weight: 800; color: var(--text-primary); margin-bottom: 20px; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px; padding-bottom: 16px; border-bottom: 2px solid var(--border-light);">
-                            <i class="fa-solid fa-calculator" style="color: var(--primary); font-size: 18px;"></i>
-                            Amount Breakdown
-                            <span style="flex: 1;"></span>
-                            <span id="planTypeBadge" style="font-size: 11px; padding: 6px 12px; background: var(--primary-bg); color: var(--primary); border-radius: 20px; font-weight: 700; text-transform: uppercase;"></span>
+                    <!-- 3B: Plan-Specific Calculation -->
+                    <div class="billing-section">
+                        <div class="section-title">
+                            <i class="fa-solid fa-calculator"></i>
+                            <span>Calculation Breakdown</span>
+                            <span class="plan-badge" id="planTypeBadge">Flat Plan</span>
                         </div>
                         
-                        <!-- Dynamic Amount Grid - Changes based on plan type -->
-                        <div id="amountBreakdownGrid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 20px;">
-                            <!-- Base Amount (Flat Plans) -->
-                            <div id="baseAmountCard" style="padding: 20px; background: linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(99, 102, 241, 0.02)); border-radius: 14px; border: 2px solid rgba(99, 102, 241, 0.15); transition: all 0.3s;">
-                                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-                                    <div style="width: 32px; height: 32px; background: var(--primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 14px;">
-                                        <i class="fa-solid fa-coins"></i>
+                        <!-- Main calculation area -->
+                        <div class="calculation-card">
+                            
+                            <!-- Row 1: Plan Charges (dynamic based on plan type) -->
+                            <div class="calc-row calc-row-main">
+                                <div class="calc-label-with-icon">
+                                    <i class="fa-solid fa-coins"></i>
+                                    <div>
+                                        <span>Plan Charges</span>
+                                        <div class="calc-sublabel" id="planChargesSublabel">Base amount</div>
                                     </div>
-                                    <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Base Amount</div>
                                 </div>
-                                <div style="font-size: 28px; font-weight: 800; color: var(--primary);" id="calcBaseAmount">₹0</div>
-                                <div id="prorationDetail" style="font-size: 11px; color: var(--text-muted); margin-top: 8px; min-height: 16px;"></div>
+                                <div class="calc-value-group">
+                                    <div class="calc-value" id="calcMainCharge">₹0</div>
+                                    <div class="calc-original-price" id="calcOriginalPrice" style="display: none;">
+                                        <span class="original-label">Original:</span>
+                                        <span class="original-amount">₹0</span>
+                                    </div>
+                                </div>
+                                <div class="calc-detail" id="calcMainChargeDetail">Base amount</div>
                             </div>
                             
-                            <!-- Per Appointment Amount -->
-                            <div id="perAppointmentCard" style="padding: 20px; background: linear-gradient(135deg, rgba(16, 185, 129, 0.05), rgba(16, 185, 129, 0.02)); border-radius: 14px; border: 2px solid rgba(16, 185, 129, 0.15); transition: all 0.3s;">
-                                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-                                    <div style="width: 32px; height: 32px; background: var(--success); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 14px;">
-                                        <i class="fa-solid fa-users"></i>
-                                    </div>
-                                    <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Per Appointment</div>
+                            <!-- Row 2: Additional Charges (if any) -->
+                            <div class="calc-row calc-row-secondary" id="additionalChargesRow" style="display: none;">
+                                <div class="calc-label-with-icon">
+                                    <i class="fa-solid fa-plus"></i>
+                                    <span>Additional Charges</span>
                                 </div>
-                                <div style="font-size: 28px; font-weight: 800; color: var(--success);" id="calcPerAppointmentAmount">₹0</div>
-                                <div style="font-size: 11px; color: var(--text-muted); margin-top: 8px;" id="perAppointmentDetail"></div>
+                                <div class="calc-value" id="calcAdditionalCharges">₹0</div>
+                                <div class="calc-detail" id="calcAdditionalChargesDetail"></div>
                             </div>
                             
-                            <!-- Percentage Amount -->
-                            <div id="percentageCard" style="padding: 20px; background: linear-gradient(135deg, rgba(245, 158, 11, 0.05), rgba(245, 158, 11, 0.02)); border-radius: 14px; border: 2px solid rgba(245, 158, 11, 0.15); transition: all 0.3s;">
-                                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-                                    <div style="width: 32px; height: 32px; background: var(--warning); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 14px;">
-                                        <i class="fa-solid fa-percent"></i>
-                                    </div>
-                                    <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Percentage</div>
+                            <!-- Row 3: Subtotal -->
+                            <div class="calc-row calc-row-subtotal">
+                                <div class="calc-label-with-icon">
+                                    <i class="fa-solid fa-layer-group"></i>
+                                    <span>Subtotal</span>
                                 </div>
-                                <div style="font-size: 28px; font-weight: 800; color: var(--warning);" id="calcPercentageAmount">₹0</div>
-                                <div style="font-size: 11px; color: var(--text-muted); margin-top: 8px;" id="percentageDetail"></div>
+                                <div class="calc-value" id="calcSubtotal">₹0</div>
+                                <div class="calc-detail">Before tax</div>
                             </div>
-                        </div>
-                        
-                        <!-- Subtotal -->
-                        <div style="padding: 16px; background: linear-gradient(135deg, rgba(59, 130, 246, 0.05), rgba(99, 102, 241, 0.05)); border-radius: 14px; border: 2px dashed rgba(59, 130, 246, 0.3); margin-bottom: 16px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <div style="display: flex; align-items: center; gap: 8px;">
-                                    <i class="fa-solid fa-layer-group" style="color: var(--info); font-size: 16px;"></i>
-                                    <span style="font-size: 13px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;">Subtotal</span>
+                            
+                            <!-- Row 4: Tax -->
+                            <div class="calc-row calc-row-tax">
+                                <div class="calc-label-with-icon">
+                                    <i class="fa-solid fa-file-invoice-dollar"></i>
+                                    <span>GST Tax <span class="tax-rate" id="taxRateDisplay">(18%)</span></span>
                                 </div>
-                                <div style="font-size: 24px; font-weight: 800; color: var(--info);" id="calcSubtotal">₹0</div>
+                                <div class="calc-value calc-value-tax" id="calcTaxAmount">₹0</div>
+                                <div class="calc-detail">Government tax</div>
                             </div>
-                        </div>
-                        
-                        <!-- Tax -->
-                        <div style="padding: 16px; background: linear-gradient(135deg, rgba(239, 68, 68, 0.05), rgba(239, 68, 68, 0.02)); border-radius: 14px; border: 2px solid rgba(239, 68, 68, 0.15); margin-bottom: 20px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <div style="display: flex; align-items: center; gap: 8px;">
-                                    <div style="width: 28px; height: 28px; background: var(--danger); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px;">
-                                        <i class="fa-solid fa-file-invoice-dollar"></i>
-                                    </div>
+                            
+                            <!-- Divider -->
+                            <div class="calc-divider"></div>
+                            
+                            <!-- Row 5: Total -->
+                            <div class="calc-row calc-row-total">
+                                <div class="calc-label-total">
+                                    <i class="fa-solid fa-circle-check"></i>
                                     <div>
-                                        <div style="font-size: 12px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;">GST Tax</div>
-                                        <div style="font-size: 10px; color: var(--text-muted);" id="taxRateDisplay">18%</div>
+                                        <div>Total Invoice Amount</div>
+                                        <div class="total-subtitle">Including all taxes</div>
                                     </div>
                                 </div>
-                                <div style="font-size: 24px; font-weight: 700; color: var(--danger);" id="calcTaxAmount">₹0</div>
+                                <div class="calc-value-total" id="calcTotalAmount">₹0</div>
                             </div>
                         </div>
                         
-                        <!-- Total Amount - Grand Total Card -->
-                        <div style="padding: 24px; background: linear-gradient(135deg, var(--primary) 0%, #7c3aed 100%); border-radius: 16px; box-shadow: 0 8px 30px rgba(99, 102, 241, 0.3); position: relative; overflow: hidden;">
-                            <div style="position: absolute; top: -50%; right: -50px; width: 200px; height: 200px; background: rgba(255,255,255,0.1); border-radius: 50%;"></div>
-                            <div style="position: absolute; bottom: -30%; left: -30px; width: 150px; height: 150px; background: rgba(255,255,255,0.08); border-radius: 50%;"></div>
-                            <div style="position: relative; z-index: 1;">
-                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                                    <div>
-                                        <div style="font-size: 13px; color: rgba(255,255,255,0.9); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">
-                                            <i class="fa-solid fa-circle-check" style="margin-right: 8px;"></i>Total Invoice Amount
-                                        </div>
-                                        <div style="font-size: 11px; color: rgba(255,255,255,0.7); margin-top: 4px;">Including all taxes and fees</div>
-                                    </div>
-                                    <div style="text-align: right;">
-                                        <div style="font-size: 48px; font-weight: 900; color: white; text-shadow: 0 2px 10px rgba(0,0,0,0.2);" id="calcTotalAmount">₹0</div>
-                                    </div>
+                        <!-- Proration Details (shown only for flat plans with proration) -->
+                        <div id="prorationDetails" class="proration-details" style="display: none;">
+                            <div class="proration-header">
+                                <i class="fa-solid fa-circle-info"></i>
+                                <strong>Proration Applied (Flat Plan)</strong>
+                            </div>
+                            <div class="proration-grid">
+                                <div class="proration-item">
+                                    <div class="proration-label">Days Billed</div>
+                                    <div class="proration-value" id="prorationDays">0/0 days</div>
                                 </div>
-                                <div style="position: relative; z-index: 1; padding-top: 16px; margin-top: 16px; border-top: 2px solid rgba(255,255,255,0.2);">
-                                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: rgba(255,255,255,0.8);">
-                                        <span><i class="fa-solid fa-shield-check"></i> GST Compliant</span>
-                                        <span><i class="fa-solid fa-clock"></i> Due in 7 days</span>
-                                        <span><i class="fa-solid fa-file-shield"></i> Audit Ready</span>
-                                    </div>
+                                <div class="proration-item">
+                                    <div class="proration-label">Original Price</div>
+                                    <div class="proration-value proration-original" id="prorationOriginal">₹0</div>
+                                </div>
+                                <div class="proration-item">
+                                    <div class="proration-label">Prorated Price</div>
+                                    <div class="proration-value proration-final" id="prorationFinal">₹0</div>
+                                </div>
+                                <div class="proration-item">
+                                    <div class="proration-label">You Save</div>
+                                    <div class="proration-value proration-save" id="prorationSave">₹0</div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Loading State - Enhanced -->
-                <div id="billingLoadingState" style="display: none; text-align: center; padding: 60px 40px; background: white; border-radius: 16px;">
-                    <div style="position: relative; display: inline-block;">
-                        <div style="width: 80px; height: 80px; border: 4px solid rgba(99, 102, 241, 0.1); border-radius: 50%;"></div>
-                        <div style="position: absolute; top: 0; left: 0; width: 80px; height: 80px; border: 4px solid var(--primary); border-radius: 50%; border-top-color: transparent; animation: spin 1s linear infinite;"></div>
-                        <i class="fa-solid fa-calculator" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 32px; color: var(--primary);"></i>
+                <!-- Loading State -->
+                <div id="billingLoadingState" class="loading-state" style="display: none;">
+                    <div class="loading-spinner">
+                        <i class="fa-solid fa-circle-notch"></i>
                     </div>
-                    <div style="font-size: 16px; font-weight: 700; color: var(--text-primary); margin-top: 24px; margin-bottom: 8px;">Calculating Billing...</div>
-                    <div style="font-size: 13px; color: var(--text-secondary);">Analyzing appointments and applying proration rules</div>
+                    <div class="loading-text">Calculating billing...</div>
+                    <div class="loading-subtext">Analyzing appointments and applying proration</div>
                 </div>
 
-                <!-- Error State - Enhanced -->
-                <div id="billingErrorState" style="display: none; background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); border: 2px solid #ef4444; border-radius: 16px; padding: 24px; margin-top: 20px;">
-                    <div style="display: flex; align-items: center; gap: 16px;">
-                        <div style="width: 56px; height: 56px; background: white; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 28px; color: #ef4444; flex-shrink: 0;">
-                            <i class="fa-solid fa-circle-exclamation"></i>
-                        </div>
-                        <div style="flex: 1;">
-                            <div style="font-size: 16px; font-weight: 800; color: #991b1b; margin-bottom: 4px;">Calculation Error</div>
-                            <div style="font-size: 13px; color: #7f1d1d;" id="billingErrorMessage">Failed to calculate billing. Please try again.</div>
-                        </div>
-                        <button type="button" class="btn" onclick="calculateBillingForMonth()" style="background: white; color: #ef4444; border: 2px solid #ef4444; font-weight: 700; padding: 12px 24px; border-radius: 12px; transition: all 0.3s;">
-                            <i class="fa-solid fa-rotate-right"></i> Retry
-                        </button>
+                <!-- Error State -->
+                <div id="billingErrorState" class="error-state" style="display: none;">
+                    <div class="error-icon">
+                        <i class="fa-solid fa-circle-exclamation"></i>
                     </div>
+                    <div class="error-content">
+                        <div class="error-title">Calculation Error</div>
+                        <div class="error-text" id="billingErrorMessage">Failed to calculate billing</div>
+                    </div>
+                    <button type="button" class="btn btn-error" onclick="calculateBillingForMonth()">
+                        <i class="fa-solid fa-rotate-right"></i> Retry
+                    </button>
                 </div>
             </div>
             
-            <div class="modal-footer" style="background: white; border-top: 2px solid var(--border-light); padding: 20px 24px; border-radius: 0 0 16px 16px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                    <button type="button" class="btn btn-secondary" onclick="closeBillingCalculationModal()" style="padding: 12px 24px; border-radius: 12px; font-weight: 600;">
-                        <i class="fa-solid fa-xmark"></i> Cancel
-                    </button>
-                    <div style="display: flex; gap: 12px; align-items: center;">
-                        <button type="button" class="btn btn-outline" onclick="calculateBillingForMonth()" id="recalculateBillingBtn" style="display: none; padding: 12px 24px; border-radius: 12px; font-weight: 600;">
-                            <i class="fa-solid fa-rotate-right"></i> Recalculate
-                        </button>
-                        <button type="button" class="btn btn-primary" onclick="generateInvoiceFromCalculationModal()" id="generateInvoiceFromCalcBtn" disabled style="padding: 12px 32px; border-radius: 12px; font-weight: 700; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3); transition: all 0.3s;">
-                            <i class="fa-solid fa-file-invoice"></i> Generate Invoice
-                        </button>
-                    </div>
-                </div>
+            <!-- Footer: Actions -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeBillingCalculationModal()">
+                    <i class="fa-solid fa-xmark"></i> Cancel
+                </button>
+                <button type="button" class="btn btn-outline" onclick="calculateBillingForMonth()" id="recalculateBillingBtn" style="display: none;">
+                    <i class="fa-solid fa-rotate-right"></i> Recalculate
+                </button>
+                <button type="button" class="btn btn-primary" onclick="generateInvoiceFromCalculationModal()" id="generateInvoiceFromCalcBtn" disabled>
+                    <i class="fa-solid fa-file-invoice"></i> Generate Invoice
+                </button>
             </div>
         </div>
     </div>

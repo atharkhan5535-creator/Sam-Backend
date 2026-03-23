@@ -290,7 +290,7 @@ body { background-color: #ffffff; padding-top: 135px; }
     .summary-grid {
         grid-template-columns: 1fr;
     }
-    
+
     .usage-grid {
         grid-template-columns: 1fr;
     }
@@ -298,13 +298,624 @@ body { background-color: #ffffff; padding-top: 135px; }
 
 @media (max-width: 768px) {
     .billing-month-selector {
-        flex-direction: column;
-        align-items: stretch;
-        margin-bottom: 16px;
+        grid-template-columns: 1fr;
     }
-    
-    .calculation-table td {
-        padding: 8px;
-        font-size: 13px;
+}
+
+/* ============================================
+   BILLING CALCULATOR MODAL - NEW DESIGN
+   ============================================ */
+
+/* Section Structure */
+.billing-section {
+    margin-bottom: 28px;
+}
+
+.billing-section:last-child {
+    margin-bottom: 0;
+}
+
+.section-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--border-light);
+}
+
+.section-title i {
+    color: var(--primary);
+    font-size: 16px;
+}
+
+/* Info Grid (4 columns) */
+.info-grid-4 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+}
+
+.info-item {
+    padding: 14px;
+    background: var(--bg-hover);
+    border-radius: var(--radius-md);
+    border-left: 3px solid var(--primary);
+}
+
+.info-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.info-label i {
+    font-size: 12px;
+}
+
+.info-value {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+/* Month Selector */
+.month-selector-wrapper {
+    background: white;
+    padding: 20px;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-light);
+}
+
+.month-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+}
+
+.month-select {
+    width: 100%;
+    max-width: 320px;
+    padding: 12px 16px;
+    font-size: 14px;
+    border: 2px solid var(--border-light);
+    border-radius: var(--radius-md);
+    background: white;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.month-select:hover {
+    border-color: var(--primary);
+}
+
+.month-select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-bg);
+}
+
+.month-helper {
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.month-helper i {
+    color: var(--primary);
+}
+
+/* Stats Grid (3 columns) */
+.stats-grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+}
+
+.stat-card {
+    padding: 24px;
+    background: white;
+    border-radius: var(--radius-lg);
+    border: 2px solid var(--border-light);
+    text-align: center;
+    transition: all 0.3s;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+}
+
+.stat-icon {
+    width: 56px;
+    height: 56px;
+    margin: 0 auto 12px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+}
+
+.stat-primary .stat-icon {
+    background: var(--primary-bg);
+    color: var(--primary);
+}
+
+.stat-success .stat-icon {
+    background: var(--success-bg);
+    color: var(--success);
+}
+
+.stat-info .stat-icon {
+    background: var(--info-bg);
+    color: var(--info);
+}
+
+.stat-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+}
+
+.stat-value {
+    font-size: 36px;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.stat-primary .stat-value {
+    color: var(--primary);
+}
+
+.stat-success .stat-value {
+    color: var(--success);
+}
+
+.stat-info .stat-value {
+    color: var(--info);
+}
+
+/* Proration Badge */
+.proration-badge {
+    margin-top: 12px;
+    padding: 8px 12px;
+    background: linear-gradient(135deg, var(--warning-bg), var(--warning-bg));
+    border: 1px solid var(--warning);
+    border-radius: var(--radius-sm);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--warning);
+    display: inline-block;
+}
+
+.proration-badge i {
+    margin-right: 4px;
+}
+
+/* Calculation Card */
+.calculation-card {
+    background: white;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-light);
+    padding: 20px;
+}
+
+/* Calculation Rows */
+.calc-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    border-radius: var(--radius-md);
+    margin-bottom: 8px;
+}
+
+.calc-row:hover {
+    background: var(--bg-hover);
+}
+
+.calc-label-with-icon {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    flex: 1;
+}
+
+.calc-label-with-icon i {
+    font-size: 14px;
+    color: var(--text-muted);
+    width: 20px;
+}
+
+.calc-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+    min-width: 120px;
+    text-align: right;
+}
+
+.calc-detail {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-align: right;
+    margin-left: 16px;
+    min-width: 100px;
+}
+
+/* Row Variants */
+.calc-row-main {
+    background: linear-gradient(135deg, var(--primary-bg), rgba(99, 102, 241, 0.05));
+    border: 2px solid var(--primary);
+}
+
+.calc-row-main .calc-label-with-icon i {
+    color: var(--primary);
+}
+
+.calc-row-main .calc-value {
+    color: var(--primary);
+}
+
+.calc-row-secondary {
+    background: var(--bg-hover);
+    border: 1px dashed var(--border-light);
+}
+
+.calc-row-subtotal {
+    background: var(--bg-hover);
+    border-top: 2px dashed var(--border-light);
+    border-bottom: 2px dashed var(--border-light);
+    margin-top: 12px;
+    margin-bottom: 12px;
+}
+
+.calc-row-tax {
+    background: linear-gradient(135deg, var(--danger-bg), rgba(239, 68, 68, 0.05));
+    border: 1px solid var(--danger-bg);
+}
+
+.calc-row-tax .calc-label-with-icon i {
+    color: var(--danger);
+}
+
+.calc-row-tax .calc-value {
+    color: var(--danger);
+}
+
+.tax-rate {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: normal;
+}
+
+.calc-divider {
+    height: 2px;
+    background: linear-gradient(90deg, var(--border-light), var(--primary), var(--border-light));
+    margin: 16px 0;
+    border-radius: 2px;
+}
+
+.calc-row-total {
+    background: linear-gradient(135deg, var(--primary), #7c3aed);
+    padding: 20px;
+    border-radius: var(--radius-lg);
+    margin-top: 8px;
+}
+
+.calc-label-total {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: white;
+}
+
+.calc-label-total i {
+    font-size: 20px;
+    color: rgba(255,255,255,0.9);
+}
+
+.calc-label-total > div {
+    display: flex;
+    flex-direction: column;
+}
+
+.total-subtitle {
+    font-size: 11px;
+    color: rgba(255,255,255,0.7);
+    font-weight: normal;
+    margin-top: 2px;
+}
+
+.calc-value-total {
+    font-size: 36px;
+    font-weight: 900;
+    color: white;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
+
+/* Proration Details Box */
+.proration-details {
+    margin-top: 20px;
+    padding: 20px;
+    background: linear-gradient(135deg, var(--primary-bg), rgba(99, 102, 241, 0.05));
+    border: 2px solid var(--primary);
+    border-radius: var(--radius-lg);
+}
+
+.proration-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--primary);
+    margin-bottom: 16px;
+    font-weight: 700;
+}
+
+.proration-header i {
+    font-size: 16px;
+}
+
+.proration-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+}
+
+.proration-item {
+    text-align: center;
+    padding: 12px;
+    background: white;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-light);
+}
+
+.proration-label {
+    font-size: 10px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+
+.proration-value {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.proration-original {
+    color: var(--danger);
+    text-decoration: line-through;
+    font-size: 12px;
+}
+
+.proration-final {
+    color: var(--success);
+    font-size: 16px;
+}
+
+.proration-save {
+    color: var(--success);
+}
+
+/* Plan Badge */
+.plan-badge {
+    margin-left: auto;
+    padding: 6px 12px;
+    background: var(--primary-bg);
+    color: var(--primary);
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+/* Warning Box */
+.warning-box {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px;
+    background: var(--warning-bg);
+    border: 2px solid var(--warning);
+    border-radius: var(--radius-lg);
+    margin-bottom: 24px;
+}
+
+.warning-icon {
+    width: 48px;
+    height: 48px;
+    background: white;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: var(--warning);
+    flex-shrink: 0;
+}
+
+.warning-content {
+    flex: 1;
+}
+
+.warning-title {
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--warning);
+    margin-bottom: 4px;
+}
+
+.warning-text {
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.btn-warning {
+    background: white;
+    color: var(--warning);
+    border: 2px solid var(--warning);
+    font-weight: 700;
+    padding: 10px 20px;
+    border-radius: var(--radius-md);
+    white-space: nowrap;
+}
+
+.btn-warning:hover {
+    background: var(--warning);
+    color: white;
+}
+
+/* Loading State */
+.loading-state {
+    text-align: center;
+    padding: 60px 40px;
+}
+
+.loading-spinner {
+    display: inline-block;
+    position: relative;
+    width: 80px;
+    height: 80px;
+}
+
+.loading-spinner i {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 32px;
+    color: var(--primary);
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: translate(-50%, -50%) rotate(0deg); }
+    to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+.loading-text {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-top: 24px;
+    margin-bottom: 8px;
+}
+
+.loading-subtext {
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+/* Error State */
+.error-state {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px;
+    background: var(--danger-bg);
+    border: 2px solid var(--danger);
+    border-radius: var(--radius-lg);
+    margin-top: 20px;
+}
+
+.error-icon {
+    width: 48px;
+    height: 48px;
+    background: white;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: var(--danger);
+    flex-shrink: 0;
+}
+
+.error-content {
+    flex: 1;
+}
+
+.error-title {
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--danger);
+    margin-bottom: 4px;
+}
+
+.error-text {
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.btn-error {
+    background: white;
+    color: var(--danger);
+    border: 2px solid var(--danger);
+    font-weight: 700;
+    padding: 10px 20px;
+    border-radius: var(--radius-md);
+    white-space: nowrap;
+}
+
+.btn-error:hover {
+    background: var(--danger);
+    color: white;
+}
+
+/* Responsive for billing modal */
+@media (max-width: 1024px) {
+    .info-grid-4,
+    .stats-grid-3,
+    .proration-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .info-grid-4,
+    .stats-grid-3,
+    .proration-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .calc-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .calc-value {
+        text-align: left;
+    }
+
+    .calc-detail {
+        text-align: left;
+        margin-left: 0;
     }
 }
