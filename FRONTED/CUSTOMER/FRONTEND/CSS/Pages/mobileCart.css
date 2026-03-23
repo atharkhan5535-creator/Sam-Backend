@@ -152,11 +152,27 @@
       font-size: 0.7rem;
       color: var(--sp-text-muted);
       font-weight: 300;
+      flex-wrap: wrap;
     }
     .cart-item-meta i {
       color: var(--color-accent2);
       font-size: 0.75rem;
       opacity: 0.8;
+    }
+    .cart-item-staff {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      color: var(--sp-text-soft);
+      font-weight: 400;
+    }
+    .cart-item-staff i {
+      color: var(--color-accent);
+      font-size: 0.7rem;
+    }
+    .meta-divider {
+      color: var(--sp-border);
+      font-size: 0.6rem;
     }
 
     /* price (right side of card) */

@@ -153,6 +153,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const initials = getInitials(user.username || 'Super Admin');
             if (userAvatar) userAvatar.textContent = initials;
             if (userName) userName.textContent = user.username || 'Super Admin';
+            const userRoleEl = document.querySelector('.user-role');
+            if (userRoleEl) {
+                userRoleEl.textContent = user.role || 'SUPER_ADMIN';
+            }
         }
     }
 

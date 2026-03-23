@@ -5,15 +5,10 @@
 document.addEventListener("DOMContentLoaded", initCartPage);
 
 function initCartPage() {
-
-  fetchSalonInfo();
-  renderCart();
-  document
-    .getElementById("cartBackBtn")
-    .addEventListener("click", goBack);
-  document
-    .getElementById("cartBookBtn")
-    .addEventListener("click", proceedToBooking);
+    fetchSalonInfo();
+    renderCart();
+    document.getElementById("cartBackBtn").addEventListener("click", goBack);
+    document.getElementById("cartBookBtn").addEventListener("click", proceedToBooking);
 }
 
 // ===============================
@@ -23,102 +18,91 @@ async function fetchSalonInfo() {
     try {
         const res  = await fetch(`${API_BASE_URL}/salon/info?salon_id=${salonId}`);
         const data = await res.json();
- 
+
         if (data.status !== "success") return;
- 
+
         populateSalonInfo(data.data);
- 
+
     } catch (err) {
         showError("Could not load salon info");
     }
 }
+
 function populateSalonInfo(salon) {
-            /* ── Page / browser title ── */
-        if (salon.salon_name) {
-            document.title = `${salon.salon_name} | Services Cart`;
-        }
+    /* ── Page / browser title ── */
+    if (salon.salon_name) {
+        document.title = `${salon.salon_name} | Services Cart`;
+    }
 }
+
 // ===============================
 // FORMAT PRICE
 // ===============================
 function formatPrice(n) {
-
-  return "₹" + Number(n).toLocaleString("en-IN");
-
+    return "₹" + Number(n).toLocaleString("en-IN");
 }
 
 // ===============================
 // REMOVE ITEM
 // ===============================
 function removeItem(serviceId) {
-
-      CartManager.removeService(serviceId);
+    CartManager.removeService(serviceId);
     renderCart(); // re-render list + totals
-
 }
 
 // ===============================
 // RENDER CART
 // ===============================
 function renderCart() {
+    const cart = CartManager.getCart();
 
-  const cart = CartManager.getCart();
+    const list = document.getElementById("cartItemsList");
+    const badge = document.getElementById("cartCountBadge");
+    const empty = document.getElementById("cartEmptyState");
 
-  const list = document.getElementById("cartItemsList");
-  const badge = document.getElementById("cartCountBadge");
-  const empty = document.getElementById("cartEmptyState");
+    list.innerHTML = "";
 
-  list.innerHTML = "";
+    if (!cart.length) {
+        empty.style.display = "flex";
+        badge.textContent = "0 items";
+        return;
+    }
 
-  if (!cart.length) {
+    empty.style.display = "none";
+    badge.textContent = cart.length + (cart.length === 1 ? " item" : " items");
 
-    empty.style.display = "flex";
-    badge.textContent = "0 items";
+    cart.forEach(service => {
+        const card = document.createElement("div");
+        card.className = "cart-item-card";
 
-    return;
+        const duration = service.duration || 0;
+        const staffInfo = service.staff_name ? `<span class="cart-item-staff"><i class="ri-user-line"></i> ${service.staff_name}</span>` : '';
 
-  }
+        card.innerHTML = `
+            <div class="cart-item-info">
+                <div class="cart-item-name">${service.service_name || service.package_name}</div>
+                <div class="cart-item-meta">
+                    <i class="ri-time-line"></i>
+                    ${duration} min
+                    ${staffInfo ? `<span class="meta-divider">•</span>${staffInfo}` : ''}
+                </div>
+            </div>
 
-  empty.style.display = "none";
+            <div class="cart-item-right">
+                <span class="cart-item-price">
+                    ${formatPrice(service.price)}
+                </span>
 
-  badge.textContent =
-    cart.length + (cart.length === 1 ? " item" : " items");
+                <button
+                    class="cart-item-remove"
+                    onclick="removeItem('${service.service_id || service.package_id}')">
+                    <i class="ri-delete-bin-6-line"></i>
+                </button>
+            </div>
+        `;
 
-  cart.forEach(service => {
-
-    const card = document.createElement("div");
-
-    card.className = "cart-item-card";
-
-    card.innerHTML = `
-      <div class="cart-item-info">
-        <div class="cart-item-name">${service.service_name}</div>
-        <div class="cart-item-meta">
-          <i class="ri-time-line"></i>
-          ${service.duration} min
-        </div>
-      </div>
-
-      <div class="cart-item-right">
-
-        <span class="cart-item-price">
-          ${formatPrice(service.price)}
-        </span>
-
-        <button
-          class="cart-item-remove"
-          onclick="removeItem('${service.service_id}')">
-
-          <i class="ri-delete-bin-6-line"></i>
-
-        </button>
-
-      </div>
-    `;
-
-    list.appendChild(card);
-
-  });
+        list.appendChild(card);
+    });
 
     updateSummary(cart);
     updateDesktopSync();
@@ -128,46 +112,31 @@ function renderCart() {
 // SUMMARY
 // ===============================
 function updateSummary(cart) {
-
-  const subtotal = cart.reduce(
-    (sum, s) => sum + Number(s.price),
-    0
-  );
-
-  document.getElementById(
-    "summarySubtotal"
-  ).textContent = formatPrice(subtotal);
-
-  document.getElementById(
-    "summaryTotal"
-  ).textContent = formatPrice(subtotal);
-
+    const total = cart.reduce((sum, s) => sum + Number(s.price), 0);
+    document.getElementById("summaryTotal").textContent = formatPrice(total);
 }
 
 // ===============================
 // BACK
 // ===============================
 function goBack() {
-  CartManager.clearAll();
-  window.location.href = "./services.html";
+    CartManager.clearAll();
+    window.location.href = "./services.html";
 }
 
 // ===============================
 // BOOKING
 // ===============================
 function proceedToBooking() {
+    const cart = CartManager.getCart();
 
-  const cart = CartManager.getCart();
+    if (!cart.length) return;
 
-  if (!cart.length) return;
-
-  CartManager.sendToBooking();
-
-  window.location.href = "./booking.html";
+    CartManager.sendToBooking();
+    window.location.href = "./booking.html";
 }
-function updateDesktopSync(){
 
+function updateDesktopSync() {
     // optional but useful
     window.dispatchEvent(new Event("cartUpdated"));
-
 }

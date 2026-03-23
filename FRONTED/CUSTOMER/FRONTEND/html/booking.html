@@ -3,114 +3,200 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title></title>
+    <title>Book Appointment</title>
 
- <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Italiana&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&family=Poetsen+One&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Italiana&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&family=Poetsen+One&display=swap" rel="stylesheet">
 
-  <link href="https://cdn.jsdelivr.net/npm/remixicon@4.9.0/fonts/remixicon.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.9.0/fonts/remixicon.css" rel="stylesheet" />
 
-  <!-- Global CSS -->
-   <link rel="stylesheet" href="../CSS/Base/main.css"> 
+    <!-- Global CSS -->
+    <link rel="stylesheet" href="../CSS/Base/main.css">
 </head>
 <body>
 
-  <!-- Page Title -->
-  <div class="page-title">
-    <button class="back-btn"><i class="ri-arrow-left-s-line"></i></button>
-    <h1>Book Appointment</h1>
-  </div>
-
-<div class="bookingPage-sections">
-  <!-- Select Staff -->
-  <div class="select-staff-section">
-    <div class="staff-label">Select staff</div>
-    <div class="staff-card" id="staffList">
-      <!-- staff list -->
-    </div>
-  </div>
-  <!-- select date -->
-  <div class="select-date-section">
-    <div class="date-label">Select Date</div>
-    <div class="month-nav">
-      <span class="month-name" id="monthLabel">Feb 2026</span>
-    </div>
-    <div class="days-row" id="daysRow">
-       <!-- date will render here only current 7 -->
-    </div>
-  </div>
-  <!-- select time -->
-  <div class="select-time-section">
-    <div class="time-display">
-      <div class="time-label">Select Time</div>
-      <div class="time-badge">10:30 AM</div>
-    </div>
-    <div class="clock-wrap">
-      <canvas id="clockCanvas" width="120" height="120"></canvas>
-      <div class="am-pm-toggle">
-        <button class="am-pm-btn active" id="amBtn">AM</button>
-        <button class="am-pm-btn" id="pmBtn">PM</button>
-      </div>
-    </div>
-  </div>
-  <div class="book-bottom-section">
-      <!-- Summary -->
-       <div class="summary-items">
-        <span id="summaryItem"></span>
-        <span id="summaryItems"></span>
-       </div>
-      <div class="summary-row">
-        <span id="summaryDate"></span>
-        <span id="summaryTime"></span>
-      </div>
-
-      <!-- Book Button -->
-      <button class="book-btn" id="bookBtn">
-        Book Appointment
-        <div class="arrow"><i class="ri-arrow-right-s-line"></i></div>
-      </button>
-   </div>
-</div> 
-
-<!-- Success Modal -->
-<div class="modal-overlay" id="successModal">
-  <div class="modal-sheet">
-    <h3>Booking Request Submitted!</h3>
-
-  <div class= "border-box">
-     <div class="services-row">
-      <p class="s-label"><span class="counter-ser"></span> <span class="serviceOrPackage" style="padding-left: 5px;"></span> </p>
-      <div class="model-services" id="modalServices"> 
-         <!--selected services--> 
-      </div>
-     </div>
-     <div class="price-card">
-        <span class="total-label">Total</span>
-        <span class="total-value" id="modTotalValue">₹0</span>
-     </div>
-  </div>
-
-    <p class="payment-note">payment method cash!</p>
-    <div class="services-row">
-      <span class="s-label">Selected Staff</span>
-      <span class="s-value" id="modalStaff">Not selected</span>
-    </div>
-    <div class="confirm-row">
-      <span class="c-date" id="modalDate"></span>
-      <span class="c-time" id="modalTime"></span>
+    <!-- Page Title -->
+    <div class="page-title">
+        <button class="back-btn"><i class="ri-arrow-left-s-line"></i></button>
+        <h1>Book Appointment</h1>
     </div>
 
-    <a href="#"><button class="back-home-btn" id="backHomeBtn">Back to home <i class="ri-arrow-right-s-line arrow"></i></button></a>
-  </div>
-</div>
-</div>
+    <div class="bookingPage-sections">
+        <!-- Assigned Staff Info (Read-only) -->
+        <div class="assigned-staff-section">
+            <div class="section-header">
+                <div class="staff-label">
+                    <i class="ri-user-star-line"></i>
+                    <span>Your Professionals</span>
+                </div>
+                <div class="info-tooltip" title="Staff are automatically assigned based on your selected services">
+                    <i class="ri-information-line"></i>
+                </div>
+            </div>
+            <div class="staff-info-container" id="assignedStaffInfo">
+                <!-- Staff info cards will be auto-generated based on selected services -->
+            </div>
+            <small class="info-text">
+                <i class="ri-error-warning-line"></i>
+                Our team will confirm staff availability and notify you
+            </small>
+        </div>
 
-     <!-- Include SweetAlert2 JS -->
+        <!-- Select Date Section -->
+        <div class="select-date-section">
+            <div class="date-label">Select Date</div>
+            <div class="month-nav">
+                <button class="month-nav-btn prev-btn" id="prevMonthBtn" title="Previous Month">
+                    <i class="ri-arrow-left-s-line"></i>
+                </button>
+                <select class="month-selector" id="monthSelector">
+                    <option value="0">January</option>
+                    <option value="1">February</option>
+                    <option value="2">March</option>
+                    <option value="3">April</option>
+                    <option value="4">May</option>
+                    <option value="5">June</option>
+                    <option value="6">July</option>
+                    <option value="7">August</option>
+                    <option value="8">September</option>
+                    <option value="9">October</option>
+                    <option value="10">November</option>
+                    <option value="11">December</option>
+                </select>
+                <select class="year-selector" id="yearSelector"></select>
+                <button class="month-nav-btn next-btn" id="nextMonthBtn" title="Next Month">
+                    <i class="ri-arrow-right-s-line"></i>
+                </button>
+            </div>
+            <div class="week-nav">
+                <button class="week-nav-btn" id="prevWeekBtn" title="Previous Week">
+                    <i class="ri-arrow-left-s-line"></i>
+                    <span>Prev Week</span>
+                </button>
+                <span class="week-label" id="weekLabel">Week 1</span>
+                <button class="week-nav-btn" id="nextWeekBtn" title="Next Week">
+                    <span>Next Week</span>
+                    <i class="ri-arrow-right-s-line"></i>
+                </button>
+            </div>
+            <div class="days-row" id="daysRow">
+                <!-- Dates will render here (7 days at a time) -->
+            </div>
+            <div class="date-hint">
+                <i class="ri-calendar-event-line"></i>
+                <span>Select your preferred appointment date</span>
+            </div>
+        </div>
+
+        <!-- Select Time Section -->
+        <div class="select-time-section">
+            <div class="time-header">
+                <div class="time-label">Select Time</div>
+                <div class="duration-badge" id="durationBadge">
+                    <i class="ri-time-line"></i>
+                    <span id="totalDurationDisplay">0 min</span>
+                </div>
+            </div>
+            <div class="time-slots-container">
+                <div class="time-slots-grid" id="timeSlotsContainer">
+                    <!-- Time slots will be generated here -->
+                </div>
+            </div>
+            <div class="time-hint" id="timeHint">
+                <i class="ri-arrow-up-down-line"></i>
+                <span>Select a date first to see available times</span>
+            </div>
+        </div>
+
+        <!-- Bottom Section: Summary + Book Button -->
+        <div class="book-bottom-section">
+            <!-- Summary Card -->
+            <div class="summary-card">
+                <div class="summary-header">
+                    <i class="ri-receipt-line"></i>
+                    <span>Booking Summary</span>
+                </div>
+                <div class="summary-content">
+                    <div class="summary-row">
+                        <span class="summary-label">Service Type</span>
+                        <span class="summary-value" id="summaryItem">-</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">Selected</span>
+                        <span class="summary-value services-list" id="summaryItems">-</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">Date</span>
+                        <span class="summary-value" id="summaryDate">Not selected</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">Time</span>
+                        <span class="summary-value" id="summaryTime">Not selected</span>
+                    </div>
+                    <div class="summary-row total-row">
+                        <span class="summary-label">Total Amount</span>
+                        <span class="summary-value amount" id="summaryTotal">₹0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Book Button -->
+            <button class="book-btn" id="bookBtn" disabled>
+                <span>Confirm Booking</span>
+                <div class="arrow"><i class="ri-arrow-right-s-line"></i></div>
+            </button>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div class="modal-overlay" id="successModal">
+        <div class="modal-sheet">
+            <div class="success-icon">
+                <i class="ri-checkbox-circle-line"></i>
+            </div>
+            <h3>Booking Request Submitted!</h3>
+
+            <div class="border-box">
+                <div class="services-row">
+                    <p class="s-label">
+                        <span class="counter-ser"></span>
+                        <span class="serviceOrPackage" style="padding-left: 5px;"></span>
+                    </p>
+                    <div class="model-services" id="modalServices">
+                        <!-- Selected services will render here -->
+                    </div>
+                </div>
+                <div class="price-card">
+                    <span class="total-label">Total</span>
+                    <span class="total-value" id="modTotalValue">₹0</span>
+                </div>
+            </div>
+
+            <p class="payment-note">Payment method: Cash</p>
+
+            <div class="services-row">
+                <span class="s-label">Assigned Professional</span>
+                <span class="s-value" id="modalStaff">Will be confirmed</span>
+            </div>
+
+            <div class="confirm-row">
+                <span class="c-date" id="modalDate"></span>
+                <span class="c-time" id="modalTime"></span>
+            </div>
+
+            <a href="#"><button class="back-home-btn" id="backHomeBtn">
+                Back to Home
+                <i class="ri-arrow-right-s-line arrow"></i>
+            </button></a>
+        </div>
+    </div>
+
+    <!-- Include SweetAlert2 JS -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="../Js/Core/alert.js"></script>
-<script src="../Js/Core/config.js"></script>
-<script src="../Js/Core/CartManager.js"></script>
-<script src="../Js/pages/booking.js"></script>
+    <script src="../Js/Core/config.js"></script>
+    <script src="../Js/Core/CartManager.js"></script>
+    <script src="../Js/pages/booking.js"></script>
 </body>
 </html>

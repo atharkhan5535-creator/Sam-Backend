@@ -8,6 +8,20 @@ $controller = new ServiceController();
 
 /*
 |--------------------------------------------------------------------------
+| ADMIN ONLY - Upload Service Image
+|--------------------------------------------------------------------------
+*/
+$router->register(
+    'POST',
+    '/api/admin/services/upload-image',
+    function() use ($controller) {
+        authorize(['ADMIN']);
+        $controller->uploadImage();
+    }
+);
+
+/*
+|--------------------------------------------------------------------------
 | ADMIN ONLY - Create Service
 |--------------------------------------------------------------------------
 */

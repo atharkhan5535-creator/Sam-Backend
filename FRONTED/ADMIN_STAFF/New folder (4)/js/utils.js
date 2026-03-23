@@ -660,14 +660,21 @@ const ValidationUtils = {
 
     /**
      * Validate URL format
+     * Accepts both full URLs (http://...) and relative paths (/uploads/...)
      */
     validateUrl: (value) => {
         if (!value || value.trim() === '') {
             return { valid: true, message: '' }; // Empty is OK (optional field)
         }
-        const urlRegex = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
         const url = value.trim();
-
+        
+        // Accept relative paths like /uploads/services/image.jpg or /uploads/packages/image.jpg
+        if (/^\/uploads\/[a-z]+\/[^\/]+\.[a-z]+$/i.test(url)) {
+            return { valid: true, message: '' };
+        }
+        
+        // Also accept full URLs
+        const urlRegex = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
         if (!urlRegex.test(url)) {
             return {
                 valid: false,

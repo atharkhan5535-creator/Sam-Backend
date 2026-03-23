@@ -638,8 +638,31 @@
 
     <script src="../../Js/Core/config.js"></script>
     <script src="../../Js/Core/api.js"></script>
-    <script src="../../Js/pages/sa-salon-profile.js"></script>
     <script>
+        // Load user info into sidebar
+        function loadUserInfo() {
+            const user = TokenManager.getUser();
+            if (user) {
+                const userNameEl = document.querySelector('.user-name');
+                const userRoleEl = document.querySelector('.user-role');
+                const userAvatarEl = document.querySelector('.user-avatar');
+
+                if (userNameEl) {
+                    userNameEl.textContent = user.username || user.email || 'Super Admin';
+                }
+                if (userRoleEl) {
+                    userRoleEl.textContent = user.role || 'SUPER_ADMIN';
+                }
+                if (userAvatarEl && user.username) {
+                    const initials = (user.username || 'SA').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+                    userAvatarEl.textContent = initials;
+                }
+            }
+        }
+
+        // Call loadUserInfo when page loads
+        loadUserInfo();
+
         // Get salon ID from URL
         const urlParams = new URLSearchParams(window.location.search);
         const salonId = urlParams.get('id');
@@ -658,7 +681,7 @@
                     }
                 });
                 const result = await response.json();
-                
+
                 if (result.status === 'success' && result.data) {
                     const salon = result.data;
                     displaySalonData(salon);

@@ -204,7 +204,7 @@
                     <div class="form-group"><label class="form-label">Duration (min) *</label><input type="number" id="fDuration" class="form-input" placeholder="30" min="5" required></div>
                     <div class="form-group"><label class="form-label">Price (₹) *</label><input type="number" id="fPrice" class="form-input" placeholder="500" min="0" step="0.01" required></div>
                     <div class="form-group full"><label class="form-label">Assigned Staff *</label><select id="fStaff" class="form-select" required><option value="">Select Staff</option></select><small style="color:var(--text-muted);font-size:0.65rem;">Staff member who provides this service</small></div>
-                    <div class="form-group full"><label class="form-label">Image URL</label><input type="text" id="fImage" class="form-input" placeholder="uploads/services/image.jpg"></div>
+                    <div class="form-group full"><label class="form-label">Service Image</label><div style="border:2px dashed var(--card-border);border-radius:4px;padding:0.75rem;text-align:center;background:var(--primary-dark);"><input type="file" id="fImageFile" class="form-input" accept="image/*" style="display:none;" onchange="previewServiceImage(this)"><button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('fImageFile').click()"><i class="fas fa-upload"></i> Choose Image</button><div id="imagePreview" style="margin-top:0.5rem;max-width:100%;display:none;"><img id="previewImg" src="" alt="Preview" style="max-width:100%;max-height:150px;border-radius:4px;"></div><div id="imageName" style="font-size:0.65rem;color:var(--text-secondary);margin-top:0.5rem;"></div></div></div>
                     <div class="form-group"><label class="form-label">Status</label><select id="modalStatus" class="form-select"><option value="ACTIVE">Active</option><option value="INACTIVE">Inactive</option></select></div>
                 </div>
             </div>
@@ -229,6 +229,175 @@
         let services = [];
         let staff = [];
         let editId = null;
+        let currentImageFile = null;
+        let uploadedImageUrl = null;
+
+        // Preview image when file is selected
+        function previewServiceImage(input) {
+            const file = input.files[0];
+            if (file) {
+                currentImageFile = file;
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('previewImg').src = e.target.result;
+                    document.getElementById('imagePreview').style.display = 'block';
+                    document.getElementById('imageName').textContent = file.name + ' (' + (file.size / 1024).toFixed(1) + ' KB)';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Compress image using canvas
+        async function compressServiceImage(file, maxWidth = 1920, maxHeight = 1920, quality = 0.8) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        let width = img.width;
+                        let height = img.height;
+
+                        // Calculate new dimensions while maintaining aspect ratio
+                        if (width > maxWidth) {
+                            height = (height * maxWidth) / width;
+                            width = maxWidth;
+                        }
+                        if (height > maxHeight) {
+                            width = (width * maxHeight) / height;
+                            height = maxHeight;
+                        }
+
+                        canvas.width = width;
+                        canvas.height = height;
+
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        // Convert to blob with compression
+                        canvas.toBlob(
+                            (blob) => {
+                                if (blob) {
+                                    // Change extension to .jpg for JPEG files
+                                    const originalName = file.name.replace(/\.[^/.]+$/, '');
+                                    const compressedFile = new File([blob], originalName + '.jpg', {
+                                        type: 'image/jpeg',
+                                        lastModified: Date.now()
+                                    });
+                                    console.log(`🗜️ Service image compressed: ${(file.size / 1024).toFixed(1)} KB → ${(compressedFile.size / 1024).toFixed(1)} KB (${((1 - compressedFile.size / file.size) * 100).toFixed(1)}% reduction)`);
+                                    console.log(`🗜️ File type: ${file.type} → ${compressedFile.type}`);
+                                    console.log(`🗜️ File name: ${file.name} → ${compressedFile.name}`);
+                                    resolve(compressedFile);
+                                } else {
+                                    reject(new Error('Compression failed'));
+                                }
+                            },
+                            'image/jpeg',
+                            quality
+                        );
+                    };
+                    img.onerror = (error) => reject(error);
+                };
+                reader.onerror = (error) => reject(error);
+            });
+        }
+
+        // Upload image to server
+        async function uploadServiceImage() {
+            if (!currentImageFile) {
+                console.warn('⚠️ No file selected for upload');
+                return null;
+            }
+
+            let fileToUpload = currentImageFile;
+
+            // Compress image if it's larger than 500KB
+            if (currentImageFile.size > 500 * 1024) {
+                try {
+                    showLoading('Compressing image...');
+                    fileToUpload = await compressServiceImage(currentImageFile, 1920, 1920, 0.8);
+                    Swal.close();
+                    
+                    // Verify compressed file is valid
+                    if (!fileToUpload || fileToUpload.size === 0) {
+                        console.error('❌ Compressed file is empty or invalid');
+                        showError('Compression failed', 'Compressed file is invalid');
+                        return null;
+                    }
+                } catch (error) {
+                    Swal.close();
+                    console.error('❌ Compression error:', error);
+                    showError('Compression failed', 'Could not compress image');
+                    return null;
+                }
+            }
+
+            // Debug: Log file details before upload
+            console.log('📦 Service file to upload:', {
+                name: fileToUpload.name,
+                size: fileToUpload.size,
+                type: fileToUpload.type,
+                lastModified: new Date(fileToUpload.lastModified).toISOString()
+            });
+
+            const formData = new FormData();
+            formData.append('image', fileToUpload);
+
+            // Debug: Log FormData contents
+            console.log('📦 FormData entries:');
+            for (let [key, value] of formData.entries()) {
+                if (value instanceof File) {
+                    console.log(`  ${key}: File(${value.name}, ${value.size} bytes, ${value.type})`);
+                } else {
+                    console.log(`  ${key}: ${value}`);
+                }
+            }
+
+            try {
+                const token = TokenManager.getToken();
+                console.log('🔑 Token:', token ? token.substring(0, 50) + '...' : 'NOT FOUND');
+                console.log('📤 Uploading service image:', currentImageFile.name, currentImageFile.size, 'bytes');
+                console.log('🌐 API URL:', API_BASE_URL + '/admin/services/upload-image');
+
+                const response = await fetch(API_BASE_URL + '/admin/services/upload-image', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Accept': 'application/json'
+                    },
+                    body: formData
+                });
+
+                console.log('📥 Response status:', response.status);
+                const responseText = await response.text();
+                console.log('📥 Response text:', responseText);
+                
+                let result;
+                try {
+                    result = JSON.parse(responseText);
+                } catch (e) {
+                    console.error('❌ Failed to parse response as JSON');
+                    showError('Upload failed', 'Server returned invalid response');
+                    return null;
+                }
+
+                console.log('📥 Parsed response:', result);
+
+                if (result.status === 'success') {
+                    console.log('✅ Service image upload successful:', result.data.image_url);
+                    return result.data.image_url;
+                } else {
+                    showError('Upload failed', result.message || 'Failed to upload image');
+                    return null;
+                }
+            } catch (error) {
+                console.error('❌ Upload error:', error);
+                showError('Upload error', error.message);
+                return null;
+            }
+        }
 
         function handleLogout() {
             if (confirm('Are you sure you want to logout?')) {
@@ -321,26 +490,48 @@
 
         function openAddModal() {
             editId = null;
+            currentImageFile = null;
+            uploadedImageUrl = null;
             document.getElementById('svcModalTitle').innerHTML = '<i class="fas fa-plus"></i> Add Service';
-            ['fName','fDesc','fImage'].forEach(id => document.getElementById(id).value = '');
-            ['fDuration','fPrice'].forEach(id => document.getElementById(id).value = '');
+            document.getElementById('fName').value = '';
+            document.getElementById('fDesc').value = '';
+            document.getElementById('fDuration').value = '';
+            document.getElementById('fPrice').value = '';
             document.getElementById('fStaff').value = '';
             document.getElementById('modalStatus').value = 'ACTIVE';
+            document.getElementById('fImageFile').value = '';
+            document.getElementById('imagePreview').style.display = 'none';
+            document.getElementById('imageName').textContent = '';
             document.getElementById('svcModal').classList.add('open');
         }
 
         function openEdit(id) {
             editId = id;
+            currentImageFile = null;
+            uploadedImageUrl = null;
             const s = services.find(x => x.service_id === id);
             if (!s) return;
+            
             document.getElementById('svcModalTitle').innerHTML = '<i class="fas fa-edit"></i> Edit Service';
             document.getElementById('fName').value = s.service_name || '';
             document.getElementById('fDesc').value = s.description || '';
             document.getElementById('fDuration').value = s.duration || 30;
             document.getElementById('fPrice').value = s.price || 0;
-            document.getElementById('fImage').value = s.image_url || '';
             document.getElementById('fStaff').value = s.staff_id || '';
             document.getElementById('modalStatus').value = s.status || 'ACTIVE';
+            document.getElementById('fImageFile').value = '';
+            
+            // Show existing image if available
+            if (s.image_url) {
+                document.getElementById('imagePreview').style.display = 'block';
+                // Construct image URL - remove leading slash from image_url to avoid double slashes
+                document.getElementById('previewImg').src = API_BASE_URL.replace('/api', '') + s.image_url.replace(/^\/+/, '');
+                document.getElementById('imageName').textContent = 'Current: ' + s.image_url;
+            } else {
+                document.getElementById('imagePreview').style.display = 'none';
+                document.getElementById('imageName').textContent = '';
+            }
+            
             document.getElementById('svcModal').classList.add('open');
         }
 
@@ -349,9 +540,22 @@
             const description = document.getElementById('fDesc').value.trim();
             const duration = parseInt(document.getElementById('fDuration').value) || 30;
             const price = parseFloat(document.getElementById('fPrice').value) || 0;
-            const image_url = document.getElementById('fImage').value.trim();
             const staff_id = document.getElementById('fStaff').value ? parseInt(document.getElementById('fStaff').value) : null;
             const status = document.getElementById('modalStatus').value;
+
+            // Start with null image URL
+            let image_url = null;
+
+            // Upload image first if a file is selected
+            if (currentImageFile) {
+                showLoading('Uploading image...');
+                const uploadedUrl = await uploadServiceImage();
+                Swal.close();
+                if (uploadedUrl) {
+                    image_url = uploadedUrl;
+                    console.log('✅ Service image uploaded:', image_url);
+                }
+            }
 
             // Build service data object
             const serviceData = {
@@ -359,7 +563,7 @@
                 description: description || null,
                 duration: duration,
                 price: price,
-                image_url: image_url || null,
+                image_url: image_url,
                 staff_id: staff_id,
                 status: status
             };

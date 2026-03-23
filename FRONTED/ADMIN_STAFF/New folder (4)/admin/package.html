@@ -197,7 +197,7 @@
                     <div class="form-group full"><label class="form-label">Description</label><textarea id="fPDesc" class="form-textarea" rows="3" placeholder="Describe this package…"></textarea></div>
                     <div class="form-group"><label class="form-label">Total Price (₹) *</label><input type="number" id="fTotalPrice" class="form-input" placeholder="5000" min="0" step="0.01" onchange="manualPriceOverride=true"></div>
                     <div class="form-group"><label class="form-label">Validity (days)</label><input type="number" id="fValidity" class="form-input" value="30" min="1"></div>
-                    <div class="form-group"><label class="form-label">Image URL</label><input type="url" id="fImageUrl" class="form-input" placeholder="https://example.com/image.jpg"></div>
+                    <div class="form-group full"><label class="form-label">Package Image</label><div style="border:2px dashed var(--card-border);border-radius:4px;padding:0.75rem;text-align:center;background:var(--primary-dark);"><input type="file" id="fImageFile" class="form-input" accept="image/*" style="display:none;" onchange="previewImage(this)"><button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('fImageFile').click()"><i class="fas fa-upload"></i> Choose Image</button><div id="imagePreview" style="margin-top:0.5rem;max-width:100%;display:none;"><img id="previewImg" src="" alt="Preview" style="max-width:100%;max-height:150px;border-radius:4px;"></div><div id="imageName" style="font-size:0.65rem;color:var(--text-secondary);margin-top:0.5rem;"></div></div></div>
                     <div class="form-group"><label class="form-label">Status</label><select id="fPStatus" class="form-select"><option value="ACTIVE">Active</option><option value="INACTIVE">Inactive</option></select></div>
                     <div class="form-group full"><label class="form-label">Services *</label><div id="serviceSelector" style="max-height:200px;overflow-y:auto;border:1px solid var(--card-border);padding:0.65rem;border-radius:var(--radius-lg);"></div><small id="servicesError" style="color:var(--danger);display:none;">Please select at least one service</small></div>
                 </div>
@@ -216,6 +216,192 @@
         let selectedServiceIds = [];
         let editId = null;
         let manualPriceOverride = false;
+        let uploadedImageUrl = null;
+        let currentFile = null;
+
+        // Calculate total price from selected services
+        function calculateAutoPrice() {
+            if (manualPriceOverride) return;
+            
+            let total = 0;
+            services.forEach(service => {
+                if (selectedServiceIds.includes(service.service_id)) {
+                    total += parseFloat(service.price) || 0;
+                }
+            });
+            
+            document.getElementById('fTotalPrice').value = total.toFixed(2);
+            console.log('💰 Auto-calculated package price:', total, 'from', selectedServiceIds.length, 'services');
+        }
+
+        // Preview image when file is selected
+        function previewImage(input) {
+            const file = input.files[0];
+            if (file) {
+                currentFile = file;
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('previewImg').src = e.target.result;
+                    document.getElementById('imagePreview').style.display = 'block';
+                    document.getElementById('imageName').textContent = file.name + ' (' + (file.size / 1024).toFixed(1) + ' KB)';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Compress image using canvas
+        async function compressImage(file, maxWidth = 1920, maxHeight = 1920, quality = 0.8) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        let width = img.width;
+                        let height = img.height;
+
+                        // Calculate new dimensions while maintaining aspect ratio
+                        if (width > maxWidth) {
+                            height = (height * maxWidth) / width;
+                            width = maxWidth;
+                        }
+                        if (height > maxHeight) {
+                            width = (width * maxHeight) / height;
+                            height = maxHeight;
+                        }
+
+                        canvas.width = width;
+                        canvas.height = height;
+
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        // Convert to blob with compression
+                        canvas.toBlob(
+                            (blob) => {
+                                if (blob) {
+                                    // Change extension to .jpg for JPEG files
+                                    const originalName = file.name.replace(/\.[^/.]+$/, '');
+                                    const compressedFile = new File([blob], originalName + '.jpg', {
+                                        type: 'image/jpeg',
+                                        lastModified: Date.now()
+                                    });
+                                    console.log(`🗜️ Image compressed: ${(file.size / 1024).toFixed(1)} KB → ${(compressedFile.size / 1024).toFixed(1)} KB (${((1 - compressedFile.size / file.size) * 100).toFixed(1)}% reduction)`);
+                                    console.log(`🗜️ File type: ${file.type} → ${compressedFile.type}`);
+                                    console.log(`🗜️ File name: ${file.name} → ${compressedFile.name}`);
+                                    resolve(compressedFile);
+                                } else {
+                                    reject(new Error('Compression failed'));
+                                }
+                            },
+                            'image/jpeg',
+                            quality
+                        );
+                    };
+                    img.onerror = (error) => reject(error);
+                };
+                reader.onerror = (error) => reject(error);
+            });
+        }
+
+        // Upload image to server
+        async function uploadImage() {
+            if (!currentFile) {
+                console.warn('⚠️ No file selected for upload');
+                return null;
+            }
+
+            let fileToUpload = currentFile;
+
+            // Compress image if it's larger than 500KB
+            if (currentFile.size > 500 * 1024) {
+                try {
+                    showLoading('Compressing image...');
+                    fileToUpload = await compressImage(currentFile, 1920, 1920, 0.8);
+                    Swal.close();
+                    
+                    // Verify compressed file is valid
+                    if (!fileToUpload || fileToUpload.size === 0) {
+                        console.error('❌ Compressed file is empty or invalid');
+                        showError('Compression failed', 'Compressed file is invalid');
+                        return null;
+                    }
+                } catch (error) {
+                    Swal.close();
+                    console.error('❌ Compression error:', error);
+                    showError('Compression failed', 'Could not compress image');
+                    return null;
+                }
+            }
+
+            // Debug: Log file details before upload
+            console.log('📦 File to upload:', {
+                name: fileToUpload.name,
+                size: fileToUpload.size,
+                type: fileToUpload.type,
+                lastModified: new Date(fileToUpload.lastModified).toISOString()
+            });
+
+            const formData = new FormData();
+            formData.append('image', fileToUpload);
+
+            // Debug: Log FormData contents
+            console.log('📦 FormData entries:');
+            for (let [key, value] of formData.entries()) {
+                if (value instanceof File) {
+                    console.log(`  ${key}: File(${value.name}, ${value.size} bytes, ${value.type})`);
+                } else {
+                    console.log(`  ${key}: ${value}`);
+                }
+            }
+
+            try {
+                const token = TokenManager.getToken();
+                console.log('🔑 Token:', token ? token.substring(0, 50) + '...' : 'NOT FOUND');
+                console.log('📤 Uploading file:', currentFile.name, currentFile.size, 'bytes');
+                console.log('🌐 API URL:', API_BASE_URL + '/admin/packages/upload-image');
+
+                // NOTE: Don't set Content-Type header - browser sets it automatically for FormData
+                const response = await fetch(API_BASE_URL + '/admin/packages/upload-image', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Accept': 'application/json'
+                        // Content-Type is automatically set by browser with boundary
+                    },
+                    body: formData
+                });
+
+                console.log('📥 Response status:', response.status);
+                const responseText = await response.text();
+                console.log('📥 Response text:', responseText);
+                
+                let result;
+                try {
+                    result = JSON.parse(responseText);
+                } catch (e) {
+                    console.error('❌ Failed to parse response as JSON');
+                    showError('Upload failed', 'Server returned invalid response');
+                    return null;
+                }
+
+                console.log('📥 Parsed response:', result);
+
+                if (result.status === 'success') {
+                    console.log('✅ Upload successful:', result.data.image_url);
+                    return result.data.image_url;
+                } else {
+                    showError('Upload failed', result.message || 'Failed to upload image');
+                    return null;
+                }
+            } catch (error) {
+                console.error('❌ Upload error:', error);
+                showError('Upload error', error.message);
+                return null;
+            }
+        }
 
         function handleLogout() {
             if (confirm('Are you sure you want to logout?')) {
@@ -276,7 +462,8 @@
                         return `<label style="display:flex;align-items:center;gap:0.65rem;padding:0.45rem;cursor:pointer;border-radius:var(--radius-md);transition:background 0.2s;${isSelected ? 'background:rgba(212, 175, 55, 0.1);' : ''}"><input type="checkbox" value="${s.service_id}" onchange="toggleService(this)" ${isSelected ? 'checked' : ''} style="cursor:pointer;"><div style="flex:1;"><div style="color:var(--text-secondary);font-size:0.8rem;">${s.service_name}</div><div style="font-size:0.7rem;color:var(--text-muted);">${staffName}</div></div><span style="color:var(--accent-gold);font-weight:600;font-size:0.8rem;">₹${s.price}</span></label>`;
                     }).join('');
 
-                    // ✅ Phase 2: calculateAutoPrice() call removed
+                    // Auto-calculate price after loading services
+                    calculateAutoPrice();
                 }
             } catch (error) { console.error('Failed to load services:', error); }
         }
@@ -290,7 +477,8 @@
                 selectedServiceIds = selectedServiceIds.filter(id => id !== serviceId);
                 checkbox.parentElement.style.background = '';
             }
-            // ✅ Phase 2: calculateAutoPrice() call removed
+            // Auto-calculate price when services are toggled
+            calculateAutoPrice();
         }
 
         function render() {
@@ -341,9 +529,15 @@
             editId = null;
             selectedServiceIds = [];
             manualPriceOverride = false;
+            currentFile = null;
             document.getElementById('pkgModalTitle').innerHTML = '<i class="fas fa-plus"></i> Create Package';
-            ['fPName','fPDesc','fImageUrl'].forEach(id => document.getElementById(id).value = '');
-            ['fTotalPrice','fValidity'].forEach(id => document.getElementById(id).value = '');
+            document.getElementById('fPName').value = '';
+            document.getElementById('fPDesc').value = '';
+            document.getElementById('fTotalPrice').value = '';
+            document.getElementById('fValidity').value = '30';
+            document.getElementById('fImageFile').value = '';
+            document.getElementById('imagePreview').style.display = 'none';
+            document.getElementById('imageName').textContent = '';
             document.getElementById('fPStatus').value = 'ACTIVE';
             loadServicesForSelector();
             document.getElementById('pkgModal').classList.add('open');
@@ -363,13 +557,25 @@
             console.log('📦 Services type:', Array.isArray(p.services));
 
             manualPriceOverride = false;
+            currentFile = null;
             document.getElementById('pkgModalTitle').innerHTML = '<i class="fas fa-edit"></i> Edit Package';
             document.getElementById('fPName').value = p.package_name || '';
             document.getElementById('fPDesc').value = p.description || '';
             document.getElementById('fTotalPrice').value = p.total_price || 0;
             document.getElementById('fValidity').value = p.validity_days || 30;
-            document.getElementById('fImageUrl').value = p.image_url || '';
+            document.getElementById('fImageFile').value = '';
             document.getElementById('fPStatus').value = p.status || 'ACTIVE';
+            
+            // Show existing image if available
+            if (p.image_url) {
+                document.getElementById('imagePreview').style.display = 'block';
+                // Construct image URL - remove leading slash from image_url to avoid double slashes
+                document.getElementById('previewImg').src = API_BASE_URL.replace('/api', '') + p.image_url.replace(/^\/+/, '');
+                document.getElementById('imageName').textContent = 'Current: ' + p.image_url;
+            } else {
+                document.getElementById('imagePreview').style.display = 'none';
+                document.getElementById('imageName').textContent = '';
+            }
 
             // Get existing service IDs from package - handle different data structures
             let existingServiceIds = [];
@@ -395,7 +601,6 @@
             const description = document.getElementById('fPDesc').value.trim();
             const total_price = parseFloat(document.getElementById('fTotalPrice').value) || 0;
             const validity_days = parseInt(document.getElementById('fValidity').value) || 30;
-            const image_url = document.getElementById('fImageUrl').value.trim();
             const status = document.getElementById('fPStatus').value;
             const service_ids = selectedServiceIds;
 
@@ -411,13 +616,27 @@
             }
             document.getElementById('servicesError').style.display = 'none';
 
+            // Start with null image URL
+            let image_url = null;
+
+            // Upload image first if a file is selected
+            if (currentFile) {
+                showLoading('Uploading image...');
+                const uploadedUrl = await uploadImage();
+                Swal.close();
+                if (uploadedUrl) {
+                    image_url = uploadedUrl;
+                    console.log('✅ Image uploaded:', image_url);
+                }
+            }
+
             // Build package data object
             const packageData = {
                 package_name: package_name || null,
                 description: description || null,
                 total_price: total_price,
                 validity_days: validity_days,
-                image_url: image_url || null,
+                image_url: image_url,
                 status: status,
                 service_ids: service_ids
             };

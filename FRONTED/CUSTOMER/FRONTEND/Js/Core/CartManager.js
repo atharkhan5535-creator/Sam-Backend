@@ -7,7 +7,8 @@ Works for:
 - booking page
 ========================================= */
 
-const CART_KEY = "bookingItems";
+const CART_KEY = "serviceCart";
+const BOOKING_KEY = "bookingItems";
 
 const CartManager = {
 
@@ -101,13 +102,14 @@ const CartManager = {
     );
 
     localStorage.setItem(
-      "bookingItems",
+      BOOKING_KEY,
       JSON.stringify(cart)
     );
   },
 
   clearAll(){
-    localStorage.removeItem("bookingItems");
-    localStorage.removeItem("bookingSource"); 
+    localStorage.removeItem(CART_KEY);
+    localStorage.removeItem(BOOKING_KEY);
+    localStorage.removeItem("bookingSource");
   }
 };

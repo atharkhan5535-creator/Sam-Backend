@@ -5,6 +5,9 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
     }
 
+    // Load user info into sidebar
+    loadUserInfo();
+
     // 1. SELECT ALL ELEMENTS (Using the classes/IDs from your HTML)
     const modal = document.getElementById('addCustomerModal');
     const addBtn = document.querySelector('.btn-add');
@@ -76,5 +79,26 @@ function closeModal() {
     const modal = document.getElementById('addCustomerModal');
     if (modal) {
         modal.style.display = 'none';
+    }
+}
+
+// Load user info into sidebar
+function loadUserInfo() {
+    const user = TokenManager.getUser();
+    if (user) {
+        const userNameEl = document.querySelector('.user-name');
+        const userRoleEl = document.querySelector('.user-role');
+        const userAvatarEl = document.querySelector('.user-avatar');
+
+        if (userNameEl) {
+            userNameEl.textContent = user.username || user.email || 'Super Admin';
+        }
+        if (userRoleEl) {
+            userRoleEl.textContent = user.role || 'SUPER_ADMIN';
+        }
+        if (userAvatarEl && user.username) {
+            const initials = (user.username || 'SA').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+            userAvatarEl.textContent = initials;
+        }
     }
 }

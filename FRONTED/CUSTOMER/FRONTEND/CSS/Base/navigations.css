@@ -34,10 +34,12 @@
       letter-spacing: 2.5px;
       color: var(--color-white);
       white-space: nowrap;
+      text-shadow: 0 0 10px rgba(255,255,255,0.3);
     }
 
     .logo-text span {
       color: var(--color-accent2);
+      text-shadow: 0 0 10px rgba(232,130,154,0.5);
     }
 
     /* ─── NAV LINKS ─── */
@@ -59,33 +61,38 @@
       padding: 0.45rem 0.9rem;
       font-family: var(--primary-font);
       font-size: 0.82rem;
-      font-weight: 400;
+      font-weight: 500;
       letter-spacing: 0.06em;
       color: var(--highLight);
       text-decoration: none;
       border-radius: 3px;
-      transition: color 0.25s ease, background 0.25s ease;
+      transition: color 0.25s ease, background 0.25s ease, text-shadow 0.25s ease;
       white-space: nowrap;
+      text-shadow: 0 0 5px rgba(255,255,255,0.1);
     }
 
     .nav-i {
       font-size: 0.95rem;
-      opacity: 0.75;
+      opacity: 0.85;
       transition: opacity 0.25s ease, transform 0.25s ease;
+      filter: drop-shadow(0 0 3px rgba(255,255,255,0.2));
     }
 
     .nav-a:hover {
       color: var(--color-white);
-      background: rgba(255,255,255,0.06);
+      background: rgba(255,255,255,0.08);
+      text-shadow: 0 0 8px rgba(255,255,255,0.4);
     }
     .nav-a:hover .nav-i {
       opacity: 1;
       transform: translateY(-1px);
+      filter: drop-shadow(0 0 5px rgba(255,255,255,0.5));
     }
 
     /* Active link */
     .nav-a.active-nav {
       color: var(--color-white);
+      text-shadow: 0 0 10px rgba(255,255,255,0.5);
     }
 
     /* Animated underline */
@@ -138,16 +145,28 @@
 
     .nav-btn-log {
       background: transparent;
-      border: 1px solid rgba(255,255,255,0.2);
-      color: rgba(255,255,255,0.75);
+      border: 1px solid rgba(255,255,255,0.3);
+      color: rgba(255,255,255,0.9);
+      text-shadow: 0 0 5px rgba(255,255,255,0.2);
     }
     .nav-btn-log:hover {
-      border-color: rgba(255,255,255,0.5);
+      border-color: rgba(255,255,255,0.6);
       color: #fff;
       transform: translateY(-2px);
+      box-shadow: 0 0 15px rgba(255,255,255,0.3);
     }
 
     .nav-btn-sign {
+      background: linear-gradient(135deg, var(--color-accent), var(--color-accent2));
+      border: none;
+      color: #fff;
+      text-shadow: 0 0 5px rgba(255,255,255,0.3);
+    }
+    .nav-btn-sign:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(201,53,107,0.5);
+      filter: brightness(1.15);
+    }
       background: var(--bg-radial);
       color: #fff;
       box-shadow: 0 2px 14px rgba(201,53,107,0.25);

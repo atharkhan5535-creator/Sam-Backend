@@ -136,15 +136,10 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        // Otherwise check if authenticated
+        // Otherwise check if authenticated and is SUPER_ADMIN
         const user = TokenManager.getUser();
-        if (user && TokenManager.isAuthenticated()) {
-            if (user.role === 'SUPER_ADMIN') {
-                window.location.href = 'sa-dashboard.html';
-            } else {
-                // Wrong role, redirect to appropriate dashboard
-                window.location.href = AuthAPI.getRedirectUrl(user);
-            }
+        if (user && TokenManager.isAuthenticated() && user.role === 'SUPER_ADMIN') {
+            window.location.href = 'sa-dashboard.html';
         }
     }, 300);
 });

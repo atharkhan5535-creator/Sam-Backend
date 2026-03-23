@@ -1,10 +1,23 @@
 // SALONS PAGE - API Integration - Redesigned to match ADMIN module
 document.addEventListener("DOMContentLoaded", () => {
+    // Debug: Check user info
+    const user = TokenManager.getUser();
+    console.log('=== Salons Page - User Info ===');
+    console.log('User from localStorage:', user);
+    console.log('User role:', user?.role);
+    console.log('User user_type:', user?.user_type);
+    console.log('User role_name:', user?.role_name);
+    console.log('isAuthenticated:', TokenManager.isAuthenticated());
+    console.log('hasRole SUPER_ADMIN:', TokenManager.hasRole('SUPER_ADMIN'));
+    
     // Check authentication using AuthAPI.requireAuth
     if (!AuthAPI || !AuthAPI.requireAuth(['SUPER_ADMIN'])) {
         window.location.href = 'sa-login.html';
         return;
     }
+
+    // Load user info into sidebar
+    loadUserInfo();
 
     // DOM Elements
     const modal = document.getElementById('salonModal');
@@ -264,6 +277,12 @@ document.addEventListener("DOMContentLoaded", () => {
         salonForm.reset();
         document.getElementById('salonStatus').value = "1";
         document.getElementById('logoPreview').classList.remove('show');
+        // Clear admin credentials fields
+        document.getElementById('adminUsername').value = '';
+        document.getElementById('adminEmail').value = '';
+        document.getElementById('adminPassword').value = '';
+        // Show password required indicator
+        document.getElementById('passwordRequired').style.display = 'inline';
         modal.style.display = 'block';
     }
 
@@ -273,7 +292,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         editingSalonId = salonId;
         document.getElementById('modalTitle').innerText = "Edit Salon";
-        
+
         document.getElementById('salonName').value = salon.salon_name || '';
         document.getElementById('salonOwnername').value = salon.salon_ownername || '';
         document.getElementById('salonEmail').value = salon.email || '';
@@ -284,14 +303,21 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById('salonState').value = salon.state || '';
         document.getElementById('salonCountry').value = salon.country || '';
         document.getElementById('salonStatus').value = salon.status || '1';
-        
+
+        // Clear admin credentials fields for edit (optional)
+        document.getElementById('adminUsername').value = '';
+        document.getElementById('adminEmail').value = '';
+        document.getElementById('adminPassword').value = '';
+        // Hide password required indicator for edit
+        document.getElementById('passwordRequired').style.display = 'none';
+
         if (salon.salon_logo) {
             document.getElementById('logoPreviewImg').src = salon.salon_logo;
             document.getElementById('logoPreview').classList.add('show');
         } else {
             document.getElementById('logoPreview').classList.remove('show');
         }
-        
+
         modal.style.display = 'block';
     }
 
@@ -336,6 +362,13 @@ document.addEventListener("DOMContentLoaded", () => {
     salonForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
+        // Validate password is required for new salons only
+        const passwordValue = document.getElementById('adminPassword').value;
+        if (!editingSalonId && !passwordValue) {
+            showToast('Admin password is required for new salons', 'error');
+            return;
+        }
+
         const salonData = {
             salon_name: document.getElementById('salonName').value.trim(),
             salon_ownername: document.getElementById('salonOwnername').value.trim(),
@@ -349,11 +382,43 @@ document.addEventListener("DOMContentLoaded", () => {
             status: parseInt(document.getElementById('salonStatus').value)
         };
 
-        // Handle logo upload (in real implementation, this would upload to server)
+        // Add admin credentials if provided
+        const adminUsername = document.getElementById('adminUsername').value.trim();
+        const adminEmail = document.getElementById('adminEmail').value.trim();
+
+        if (adminUsername) salonData.admin_username = adminUsername;
+        if (adminEmail) salonData.admin_email = adminEmail;
+        if (passwordValue) salonData.admin_password = passwordValue;
+
+        // Handle logo upload
         const logoFile = document.getElementById('salonLogo').files[0];
         if (logoFile) {
-            // For now, we'll skip logo upload - implement file upload API separately
-            console.log('Logo file selected:', logoFile.name);
+            try {
+                // Upload logo first
+                const formData = new FormData();
+                formData.append('image', logoFile);
+
+                const uploadResponse = await fetch(API_BASE_URL + '/admin/upload/logo', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + TokenManager.getToken()
+                    },
+                    body: formData
+                });
+
+                const uploadResult = await uploadResponse.json();
+
+                if (uploadResult.status === 'success' && uploadResult.data?.image_url) {
+                    salonData.salon_logo = uploadResult.data.image_url;
+                    console.log('✅ Logo uploaded:', uploadResult.data.image_url);
+                } else {
+                    console.warn('⚠️ Logo upload failed, continuing without logo:', uploadResult.message);
+                    showToast('Logo upload failed, salon created without logo', 'warning');
+                }
+            } catch (error) {
+                console.error('❌ Logo upload error:', error);
+                showToast('Logo upload failed, continuing with salon creation', 'warning');
+            }
         }
 
         let success;
@@ -468,3 +533,24 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 });
+
+// Load user info into sidebar
+function loadUserInfo() {
+    const user = TokenManager.getUser();
+    if (user) {
+        const userNameEl = document.querySelector('.user-name');
+        const userRoleEl = document.querySelector('.user-role');
+        const userAvatarEl = document.querySelector('.user-avatar');
+
+        if (userNameEl) {
+            userNameEl.textContent = user.username || user.email || 'Super Admin';
+        }
+        if (userRoleEl) {
+            userRoleEl.textContent = user.role || 'SUPER_ADMIN';
+        }
+        if (userAvatarEl && user.username) {
+            const initials = (user.username || 'SA').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+            userAvatarEl.textContent = initials;
+        }
+    }
+}

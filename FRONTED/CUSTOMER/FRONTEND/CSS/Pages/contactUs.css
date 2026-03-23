@@ -18,6 +18,7 @@
   font-weight: 400;
   letter-spacing: 4px;
   color: var(--sp-text);
+  text-shadow: 0 0 15px rgba(255,255,255,0.3);
   margin-bottom: var(--margin-lg);
   position: relative;
   padding-bottom: 0.6rem;
@@ -29,6 +30,7 @@
   width: 42px; height: 1.5px;
   background: linear-gradient(90deg, var(--color-accent), var(--color-accent2));
   border-radius: 2px;
+  box-shadow: 0 0 10px rgba(201,53,107,0.5);
 }
 
 /* ════════════════════════════════
@@ -101,14 +103,16 @@
   font-weight: 500;
   letter-spacing: 1px;
   color: var(--sp-text);
+  text-shadow: 0 0 10px rgba(255,255,255,0.2);
   margin-bottom: 0.35rem;
 }
 .address-text p {
   font-size: 0.8rem;
-  color: var(--sp-text-muted);
+  color: var(--sp-text-soft);
   font-weight: 300;
   line-height: 1.65;
   letter-spacing: 0.03em;
+  text-shadow: 0 0 5px rgba(255,255,255,0.1);
 }
 
 /* social icons */
@@ -223,6 +227,7 @@
   font-size: 0.95rem;
   color: var(--color-accent2);
   flex-shrink: 0;
+  filter: drop-shadow(0 0 5px rgba(232,130,154,0.4));
 }
 .contact-cart-title h3 {
   font-family: var(--primary-font);
@@ -230,6 +235,7 @@
   font-weight: 500;
   letter-spacing: 1px;
   color: var(--sp-text);
+  text-shadow: 0 0 10px rgba(255,255,255,0.2);
 }
 
 /* card info row */
@@ -240,9 +246,10 @@
 }
 .contact-cart-info p {
   font-size: 0.82rem;
-  color: var(--sp-text-muted);
+  color: var(--sp-text-soft);
   font-weight: 300;
   letter-spacing: 0.04em;
+  text-shadow: 0 0 5px rgba(255,255,255,0.1);
 }
 
 /* CTA link button */
@@ -254,23 +261,25 @@
   padding: 0 1.2rem;
   border: 1.5px solid var(--color-accent);
   border-radius: 6px;
-  background: transparent;
-  color: var(--color-accent2);
+  background: linear-gradient(135deg, var(--color-accent), var(--color-accent2));
+  color: #fff;
   font-family: var(--primary-font);
   font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.07em;
   text-decoration: none;
   align-self: flex-start;
-  transition: background var(--sp-transition), color var(--sp-transition),
-              transform var(--sp-transition), box-shadow var(--sp-transition);
+  transition: all 0.3s;
+  text-shadow: 0 0 5px rgba(255,255,255,0.3);
 }
 .contact-btn:hover {
   background: linear-gradient(135deg, var(--color-accent) 0%, #8b1a43 100%);
   color: #fff;
   border-color: transparent;
   transform: translateY(-2px);
-  box-shadow: 0 5px 16px var(--sp-accent-glow);
+  box-shadow: 0 5px 16px var(--sp-accent-glow), 0 0 15px rgba(255,255,255,0.4);
+  filter: brightness(1.15);
+}
 }
 
 /* ════════════════════════════════

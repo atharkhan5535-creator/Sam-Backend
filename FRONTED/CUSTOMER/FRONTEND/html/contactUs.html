@@ -112,11 +112,6 @@
          <h2 id="salon-name">Our Address</h2>
          <p id="salon-address"></p>
        </div>
-       <div class="social-row">
-           <a href="#" class="facebook"><i class="ri-facebook-circle-fill"></i></a>
-           <a href="#" class="instagram"><i class="ri-instagram-fill"></i></a>
-           <a href="#" class="x"><i class="ri-twitter-x-line"></i></a>
-       </div>
     </div>
     <!-- Map -->
     <div class="map-container">
@@ -139,7 +134,7 @@
       </div>
       <div class="contact-cart-info">
          <p id="salon-phone-display"></p>
-        <a href=`tel:${salon.phone}`  id="salon-phone-link" class="contact-btn">Call Now</a>
+        <a href="#" id="salon-phone-link" class="contact-btn">Call Now</a>
       </div>
     </div>
 
@@ -150,7 +145,7 @@
       </div>
       <div class="contact-cart-info">
         <p id="salon-email-display"></p>
-        <a href=`mailto:${salon.email}` id="salon-email-link" class="contact-btn">Send Email</a>
+        <a href="#" id="salon-email-link" class="contact-btn">Send Email</a>
       </div>
     </div>
   </div>
@@ -158,6 +153,11 @@
   <!-- Feedback -->
   <div class="feedback-card">
     <h3>How would you rate your experience?</h3>
+
+    <!-- Appointment selector (only shown when logged in) -->
+    <select id="appointment-select" class="appointment-select" style="display:none;">
+      <option value="">Select Appointment</option>
+    </select>
 
     <div class="stars" id="stars">
       <span class="star" data-i="1"><i class="ri-star-line"></i></span>
@@ -167,8 +167,14 @@
       <span class="star" data-i="5"><i class="ri-star-line"></i></span>
     </div>
 
-    <textarea class="comment-box" placeholder="write your comments…"></textarea>
-    <button class="submit-btn" onclick="submitFeedback()">Submit Feedback</button>
+    <textarea class="comment-box" id="feedback-comment" placeholder="Write your comments…" maxlength="500"></textarea>
+    <div class="feedback-actions">
+      <label class="anonymous-checkbox">
+        <input type="checkbox" id="feedback-anonymous">
+        <span>Submit anonymously</span>
+      </label>
+      <button class="submit-btn" id="submit-feedback-btn">Submit Feedback</button>
+    </div>
   </div>
 </div>
 

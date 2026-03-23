@@ -1,4 +1,3 @@
-const TAX_PERCENT = 5;
 // sessionStorage key shared with mobileCart.html
 const MOBILE_CART_KEY = "mobileCart";
 
@@ -10,6 +9,7 @@ const MAX_CHIPS = 3;
 // ===============================
 let cart = [];
 let servicesData = [];
+let staffData = [];
 let DOM = {};
 
 // ===============================
@@ -18,14 +18,17 @@ let DOM = {};
 document.addEventListener("DOMContentLoaded", initApp);
 
 function initApp() {
-    if(!localStorage.getItem("bookingSource")){
-     CartManager.clearCart();
-   }
     cacheDOM();
     checkAuth();
     attachGlobalEvents();
-    fetchSalonInfo()
+    fetchSalonInfo();
+    fetchStaff();
+    
+    // Always get fresh cart from localStorage
     cart = CartManager.getCart();
+    
+    console.log('🛒 Cart loaded:', cart);
+    
     fetchServices();
     renderCart();
 }
@@ -84,11 +87,11 @@ async function fetchSalonInfo() {
     try {
         const res  = await fetch(`${API_BASE_URL}/salon/info?salon_id=${salonId}`);
         const data = await res.json();
- 
+
         if (data.status !== "success") return;
- 
+
         populateSalonInfo(data.data);
- 
+
     } catch (err) {
         showError("Could not load salon info");
     }
@@ -113,6 +116,36 @@ function populateSalonInfo(salon) {
     if (salon.salon_name) {
         document.title = `${salon.salon_name} | Services`;
     }
+}
+
+// ===============================
+// FETCH STAFF
+// ===============================
+async function fetchStaff() {
+    try {
+        const res = await fetch(`${API_BASE_URL}/staff?salon_id=${salonId}`);
+        const data = await res.json();
+
+        if (data.status !== "success") return;
+
+        staffData = data.data.items || [];
+
+    } catch (error) {
+        console.error("Staff fetch error:", error);
+    }
+}
+
+// ===============================
+// GET STAFF NAME BY ID
+// ===============================
+function getStaffNameById(staffId) {
+    const staff = staffData.find(s => String(s.staff_id) === String(staffId));
+    return staff ? staff.name : null;
+}
+
+function getStaffSpecialization(staffId) {
+    const staff = staffData.find(s => String(s.staff_id) === String(staffId));
+    return staff ? staff.specialization : "Professional";
 }
 
 // ===============================
@@ -148,50 +181,70 @@ function renderServices(services) {
     const placeholderImage = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='200' viewBox='0 0 300 200'%3E%3Crect fill='%23f0f0f0' width='300' height='200'/%3E%3Ctext fill='%23999' font-family='Arial' font-size='16' x='50%25' y='50%25' text-anchor='middle' dominant-baseline='middle'%3ENo Image Available%3C/text%3E%3C/svg%3E";
 
     const html = services.map(service => {
-        // Check if image_url exists and is not null/empty
-        const imageUrl = service.image_url ? IMAGE_BASE + service.image_url : placeholderImage;
-        
-        return `
+        // Check if image_url exists, is not null/empty, and build proper URL
+        let imageUrl = placeholderImage;
+        if (service.image_url && service.image_url.trim() !== '') {
+            // Remove leading slash from image_url to avoid double slashes
+            const cleanPath = service.image_url.replace(/^\/+/, '');
+            imageUrl = IMAGE_BASE + cleanPath;
+        }
 
+        // Get staff info
+        const staffName = service.staff_id ? getStaffNameById(service.staff_id) : null;
+        const specialization = service.staff_id ? getStaffSpecialization(service.staff_id) : "Professional";
+
+        return `
         <div class="servicePage-service-card"
             data-id="${service.service_id}"
             data-name="${service.service_name}"
             data-price="${service.price}"
             data-duration="${service.duration}"
             data-category="${service.category || "general"}"
+            data-staff-id="${service.staff_id || ''}"
+            data-staff-name="${staffName || ''}"
+            data-specialization="${specialization}"
         >
             <h4 class="servicePage-service-name">
                 ${service.service_name}
             </h4>
-            <img src="${imageUrl}" alt="${service.service_name}" class="servicePage-service-img" 
-                onerror="this.src='${placeholderImage}'; this.alt='Image not found';" />
+            <img src="${imageUrl}" alt="${service.service_name}" class="servicePage-service-img"
+                onerror="this.src=this.dataset.placeholder; this.alt='Image not found';"
+                data-placeholder="${placeholderImage}" />
             <div class="service-card-content">
-                <span class="service-disc">${service.description}</span>
+                <span class="service-disc">${service.description || ''}</span>
                 <small class="service-duration">
                     <i class="ri-time-line"></i> ${service.duration} min
                 </small>
                 <span class="service-price">₹${service.price}</span>
                 <button class="service-add-btn"><i class="ri-add-fill"></i></button>
             </div>
+            ${staffName ? `
+                <div class="staff-badge">
+                    <i class="ri-user-star-line"></i>
+                    <span>${staffName}</span>
+                </div>
+            ` : ''}
         </div>
-
     `}).join("");
 
-    restoreSelectedServices();
     DOM.servicesContainer.innerHTML = html;
+    restoreSelectedServices();
 }
 
 function restoreSelectedServices() {
     const cart = CartManager.getCart();
 
     if (!cart.length) return;
+    
     cart.forEach(service => {
         const card = document.querySelector(
             `.servicePage-service-card[data-id="${service.service_id}"]`
         );
         if (!card) return;
         const btn = card.querySelector(".service-add-btn");
-        btn.classList.add("service-added-highLight");
+        if (btn) {
+            btn.classList.add("service-added-highLight");
+        }
     });
 
 }
@@ -276,13 +329,22 @@ function handleAddService(e) {
     const button = e.target.closest(".service-add-btn");
     const card   = button.closest(".servicePage-service-card");
 
+    console.log('🎯 Card datasets:', card.dataset);
+    console.log('🎯 Staff ID from dataset:', card.dataset.staffId);
+    console.log('🎯 Staff Name from dataset:', card.dataset.staffName);
+
     const service = {
         service_id: card.dataset.id,
         service_name: card.dataset.name,
         price: parseFloat(card.dataset.price),
-        duration: card.dataset.duration,
-        category: card.dataset.category
+        duration: parseInt(card.dataset.duration),
+        category: card.dataset.category,
+        staff_id: card.dataset.staffId || null,
+        staff_name: card.dataset.staffName || null,
+        specialization: card.dataset.specialization || "Professional"
     };
+
+    console.log('🛒 Service being added:', service);
 
     cart = CartManager.toggleService(service);
     const exists = cart.find(s => String(s.service_id) === String(service.service_id));
@@ -292,6 +354,8 @@ function handleAddService(e) {
     } else {
         button.classList.remove("service-added-highLight");
     }
+    
+    console.log('🛒 Updated cart:', cart);
     renderCart();
 }
 
@@ -308,7 +372,7 @@ function renderCart() {
         DOM.cartOverlayText.style.display = "block";
         DOM.selectStaffBtn.style.display  = "none";
 
-        updateTotals(0);
+        updateTotal(0);
         hideMobileCartPreview();
 
         return;
@@ -317,11 +381,10 @@ function renderCart() {
     DOM.cartOverlayText.style.display = "none";
     DOM.selectStaffBtn.style.display  = "block";
 
-    let subTotal = 0;
+    let total = 0;
 
     cart.forEach(service => {
-
-        subTotal += service.price;
+        total += service.price;
 
         const mini = document.createElement("div");
         mini.className = "mini-serviceCard";
@@ -335,31 +398,19 @@ function renderCart() {
         `;
 
         DOM.cartContainer.appendChild(mini);
-
     });
 
-    updateTotals(subTotal);
+    updateTotal(total);
     showMobileCartPreview();
 
 }
 
 // ===============================
-// UPDATE TOTALS  (desktop)
+// UPDATE TOTAL
 // ===============================
-function updateTotals(subTotal) {
-
-    const tax        = (subTotal * TAX_PERCENT) / 100;
-    const finalTotal = subTotal + tax;
-
-    document.querySelector(".sub-total-amount").textContent =
-        `₹${subTotal.toFixed(2)}`;
-
-    document.querySelector(".tax-amount").textContent =
-        `₹${tax.toFixed(2)}`;
-
+function updateTotal(total) {
     document.querySelector(".final-total-amount").textContent =
-        `₹${finalTotal.toFixed(2)}`;
-
+        `₹${total.toFixed(2)}`;
 }
 
 // ===============================

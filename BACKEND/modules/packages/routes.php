@@ -8,6 +8,20 @@ $controller = new PackageController();
 
 /*
 |--------------------------------------------------------------------------
+| ADMIN ONLY - Upload Package Image
+|--------------------------------------------------------------------------
+*/
+$router->register(
+    'POST',
+    '/api/admin/packages/upload-image',
+    function() use ($controller) {
+        authorize(['ADMIN']);
+        $controller->uploadImage();
+    }
+);
+
+/*
+|--------------------------------------------------------------------------
 | ADMIN ONLY - Create Package
 |--------------------------------------------------------------------------
 */

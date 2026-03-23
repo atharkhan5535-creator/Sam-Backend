@@ -8,10 +8,120 @@ require_once __DIR__ . '/../../helpers/PasswordHelper.php';
 class SalonController
 {
     private $db;
+    private $uploadDir;
 
     public function __construct()
     {
         $this->db = Database::getInstance()->getConnection();
+        // Set upload directory for salon logos
+        $this->uploadDir = __DIR__ . '/../../public/uploads/salons/';
+
+        // Create upload directory if it doesn't exist
+        if (!is_dir($this->uploadDir)) {
+            mkdir($this->uploadDir, 0777, true);
+        }
+    }
+
+    /**
+     * Handle file upload for salon logos
+     */
+    public function uploadLogo()
+    {
+        $auth = $GLOBALS['auth_user'] ?? null;
+        $userRole = $auth['role'] ?? null;
+
+        // Only SUPER_ADMIN can upload salon logos
+        if ($userRole !== 'SUPER_ADMIN') {
+            Response::json(["status" => "error", "message" => "Unauthorized"], 403);
+        }
+
+        // Check if file was uploaded
+        if (!isset($_FILES['image']) || $_FILES['image']['error'] === UPLOAD_ERR_NO_FILE) {
+            Response::json(["status" => "error", "message" => "No image file provided"], 400);
+        }
+
+        $file = $_FILES['image'];
+
+        // Validate upload error
+        if ($file['error'] !== UPLOAD_ERR_OK) {
+            Response::json(["status" => "error", "message" => "File upload error: " . $this->getUploadErrorMessage($file['error'])], 400);
+        }
+
+        // Validate file size (max 2MB)
+        $maxSize = 2 * 1024 * 1024; // 2MB
+        if ($file['size'] > $maxSize) {
+            Response::json(["status" => "error", "message" => "File size exceeds 2MB limit"], 400);
+        }
+
+        // Validate file type using multiple methods
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $mimeType = finfo_file($finfo, $file['tmp_name']);
+        finfo_close($finfo);
+
+        // Get file extension
+        $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+
+        // Allowed MIME types
+        $allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
+
+        // Allowed extensions
+        $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
+
+        // Validate using both MIME type and extension
+        $isValidMimeType = in_array($mimeType, $allowedMimeTypes);
+        $isValidExtension = in_array($extension, $allowedExtensions);
+
+        if (!$isValidMimeType && !$isValidExtension) {
+            Response::json([
+                "status" => "error",
+                "message" => "Invalid file type. Only JPG, PNG, GIF, WEBP, and SVG are allowed. Detected: {$mimeType}"
+            ], 400);
+        }
+
+        try {
+            // Generate unique filename
+            $filename = 'salon_logo_' . uniqid() . '_' . time() . '.' . $extension;
+            $filepath = $this->uploadDir . $filename;
+
+            // Move uploaded file
+            if (!move_uploaded_file($file['tmp_name'], $filepath)) {
+                Response::json(["status" => "error", "message" => "Failed to save uploaded file. Check server permissions."], 500);
+            }
+
+            // Return the URL path (relative to public folder)
+            $imageUrl = '/uploads/salons/' . $filename;
+
+            Response::json([
+                "status" => "success",
+                "message" => "Logo uploaded successfully",
+                "data" => [
+                    "image_url" => $imageUrl,
+                    "file_name" => $filename,
+                    "file_size" => $file['size'],
+                    "mime_type" => $mimeType
+                ]
+            ]);
+
+        } catch (Exception $e) {
+            Response::json(["status" => "error", "message" => "Upload failed: " . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Get user-friendly upload error message
+     */
+    private function getUploadErrorMessage($errorCode)
+    {
+        $messages = [
+            UPLOAD_ERR_INI_SIZE => 'File exceeds server limit',
+            UPLOAD_ERR_FORM_SIZE => 'File exceeds form limit',
+            UPLOAD_ERR_PARTIAL => 'File was only partially uploaded',
+            UPLOAD_ERR_NO_FILE => 'No file was uploaded',
+            UPLOAD_ERR_NO_TMP_DIR => 'Server temporary folder missing',
+            UPLOAD_ERR_CANT_WRITE => 'Failed to write file to disk',
+            UPLOAD_ERR_EXTENSION => 'Upload stopped by extension'
+        ];
+        return $messages[$errorCode] ?? 'Unknown upload error';
     }
 
     /*

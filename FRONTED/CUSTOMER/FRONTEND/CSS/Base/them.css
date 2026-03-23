@@ -5,8 +5,8 @@
   --bg-light: #f5f5f5;
   --bg-dark:#1E1E1E;
   --wordMark: #FF4BED;
-  --danger: red;
-  --dark-red: #700319; 
+  --danger: #ff4444;
+  --dark-red: #700319;
   --color-light: rgba(255,255,255,0.75);
   --color-accent: #c9356b;
   --color-accent2: #e8829a;
@@ -20,18 +20,19 @@
    --sp-surface2:     rgba(255,255,255,0.07);
   --sp-border:       rgba(255,255,255,0.09);
   --sp-border-hover: rgba(201, 53, 107, 0.45);
-  --sp-text:         #f5f0f2;
-  --sp-text-muted:   rgba(245,240,242,0.5);
+  --sp-text:         #ffffff;
+  --sp-text-muted:   rgba(255,255,255,0.5);
   --sp-radius-card:  14px;
   --sp-transition:   0.3s cubic-bezier(0.22,1,0.36,1);
-   --sp-text-soft:    rgba(245,240,242,0.65);
+   --sp-text-soft:    rgba(255,255,255,0.65);
 
   /*TEXT COLORS*/
-  --text-light: #676565;
-  --color-white: #ffff;
-  --highLight: #acaaaa;
-  --box-shadow: 0 4px 10px rgba(0, 0, 0, 0.151);
-  
+  --text-dark: #ffffff;
+  --text-light: #b0b0b0;
+  --color-white: #ffffff;
+  --highLight: #d0d0d0;
+  --box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+
   /*BG RADIAL*/
   --linear-gradient: linear-gradient(to right,rgba(0,0,0,0.4),rgba(0,0,0,0.1));
   --bg-radial: radial-gradient(circle,rgb(252, 43, 88) 0%, rgba(192, 29, 63, 1) 100%, rgba(225, 62, 96, 1) 100%);
@@ -60,7 +61,7 @@
   --border-radius-2xl: 0.8rem;
   --border-radius-3xl: 1rem;
   --border-rounded: 50%;
-  
+
   /* PADDING */
   --padding-sm: 0.5rem;
   --padding-md: 1rem;
@@ -82,4 +83,11 @@
   --gutter-lg: 1.5rem;
   --gutter-xl: 2rem;
   --gutter-2xl: 3rem;
+  
+  /* ACCENT COLORS */
+  --accent-gold: #D4AF37;
+  --accent-bronze: #CD7F32;
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --info: #3b82f6;
 }

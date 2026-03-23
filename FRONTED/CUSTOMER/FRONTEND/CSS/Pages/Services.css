@@ -216,6 +216,33 @@
   z-index: 9;
 }
 
+/* Staff Badge on Service Card */
+.staff-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(201, 53, 107, 0.9);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(201, 53, 107, 0.5);
+  border-radius: 100px;
+  padding: 4px 10px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: #fff;
+  letter-spacing: 0.03em;
+  z-index: 10;
+  box-shadow: 0 2px 8px rgba(201, 53, 107, 0.4);
+}
+
+.staff-badge i {
+  font-size: 0.85rem;
+  color: #fff;
+}
+
 .service-card-content {
   display: flex;
   flex-direction: column;

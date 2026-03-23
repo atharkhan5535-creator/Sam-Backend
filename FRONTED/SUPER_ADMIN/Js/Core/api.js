@@ -382,8 +382,10 @@ const AuthAPI = {
                         iat: payload.iat,
                         exp: payload.exp
                     };
-                    
+
                     console.log('Extracted user info:', userInfo);
+                    console.log('Role field check - payload.role:', payload.role, '| payload.user_type:', payload.user_type, '| payload.role_name:', payload.role_name);
+                    console.log('Final userInfo.role:', userInfo.role);
                 } catch (e) {
                     console.error('Failed to decode JWT:', e);
                     // Fallback user info
@@ -399,7 +401,8 @@ const AuthAPI = {
                 }
 
                 TokenManager.setUser(userInfo);
-                console.log('User info stored:', userInfo);
+                console.log('User info stored in localStorage:', userInfo);
+                console.log('Stored user.role:', userInfo.role);
 
                 return { success: true, data: data.data, user: userInfo };
             }
@@ -521,15 +524,15 @@ const AuthAPI = {
      * @returns {string} Redirect URL based on role
      */
     getRedirectUrl: (user) => {
-        if (!user) return '../index.html';
+        if (!user) return '../../index.html';
 
         // SUPER_ADMIN login - only handles SUPER_ADMIN role
         if (user.role === USER_ROLES.SUPER_ADMIN) {
             return 'sa-dashboard.html';
         }
-        
+
         // Unknown role or other roles - redirect to main index
-        return '../index.html';
+        return '../../index.html';
     }
 };
 

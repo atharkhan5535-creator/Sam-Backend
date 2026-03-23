@@ -28,6 +28,16 @@ $router->register(
 |--------------------------------------------------------------------------
 */
 
+// 0️⃣ Upload Salon Logo
+$router->register(
+    'POST',
+    '/api/admin/upload/logo',
+    function() use ($controller) {
+        authorize(['SUPER_ADMIN']);
+        $controller->uploadLogo();
+    }
+);
+
 // 1️⃣ Create Salon
 $router->register(
     'POST',

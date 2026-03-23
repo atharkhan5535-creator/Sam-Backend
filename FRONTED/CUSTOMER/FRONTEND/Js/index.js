@@ -147,13 +147,13 @@ async function loadLandingData() {
 // ===============================
 async function fetchSalonInfo() {
     try {
-        const res  = await fetch(`${API_BASE_URL}/salon/info`);
+        const res  = await fetch(`${API_BASE_URL}/salon/info?salon_id=${salonId}`);
         const data = await res.json();
- 
+
         if (data.status !== "success") return;
- 
+
         populateSalonInfo(data.data);
- 
+
     } catch (err) {
         showError("Could not load salon info");
     }
@@ -249,7 +249,19 @@ function renderServices(services) {
 
     container.innerHTML = "";
 
-    const html = services.map(service => `
+    // Placeholder image for missing service images
+    const placeholderImage = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='200' viewBox='0 0 300 200'%3E%3Crect fill='%23f0f0f0' width='300' height='200'/%3E%3Ctext fill='%23999' font-family='Arial' font-size='16' x='50%25' y='50%25' text-anchor='middle' dominant-baseline='middle'%3ENo Image Available%3C/text%3E%3C/svg%3E";
+
+    const html = services.map(service => {
+        // Check if image_url exists, is not null/empty, and build proper URL
+        let imageUrl = placeholderImage;
+        if (service.image_url && service.image_url.trim() !== '') {
+            // Remove leading slash from image_url to avoid double slashes
+            const cleanPath = service.image_url.replace(/^\/+/, '');
+            imageUrl = IMAGE_BASE + cleanPath;
+        }
+
+        return `
 
         <div class="hero-display-service-card"
             data-id="${service.service_id}"
@@ -261,8 +273,10 @@ function renderServices(services) {
             <span class="price">₹${service.price}</span>
             <img
                 class="service-img"
-                src="${IMAGE_BASE + service.image_url}"
+                src="${imageUrl}"
                 alt="${service.service_name}"
+                onerror="this.src=this.dataset.placeholder; this.alt='Image not found';"
+                data-placeholder="${placeholderImage}"
             >
             <div class="display-card-content">
                 <h4>${service.service_name}</h4>
@@ -273,7 +287,8 @@ function renderServices(services) {
             </div>
         </div>
 
-    `).join("");
+    `;
+    }).join("");
 
     container.innerHTML = html;
 }
@@ -310,7 +325,19 @@ function renderPackages(packages) {
 
     container.innerHTML = "";
 
-    const html = packages.map(pkg => `
+    // Placeholder image for missing package images
+    const placeholderImage = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='200' viewBox='0 0 300 200'%3E%3Crect fill='%23f0f0f0' width='300' height='200'/%3E%3Ctext fill='%23999' font-family='Arial' font-size='16' x='50%25' y='50%25' text-anchor='middle' dominant-baseline='middle'%3ENo Image Available%3C/text%3E%3C/svg%3E";
+
+    const html = packages.map(pkg => {
+        // Check if image_url exists, is not null/empty, and build proper URL
+        let imageUrl = placeholderImage;
+        if (pkg.image_url && pkg.image_url.trim() !== '') {
+            // Remove leading slash from image_url to avoid double slashes
+            const cleanPath = pkg.image_url.replace(/^\/+/, '');
+            imageUrl = IMAGE_BASE + cleanPath;
+        }
+
+        return `
 
         <div class="hero-display-package-card"
             data-id="${pkg.package_id}"
@@ -322,8 +349,10 @@ function renderPackages(packages) {
             </span>
             <span class="active-badge">Active</span>
             <img
-                src="${IMAGE_BASE + pkg.image_url}"
+                src="${imageUrl}"
                 alt="${pkg.package_name}"
+                onerror="this.src=this.dataset.placeholder; this.alt='Image not found';"
+                data-placeholder="${placeholderImage}"
             >
             <div class="display-card-content">
                 <h4>${pkg.package_name}</h4>
@@ -333,7 +362,8 @@ function renderPackages(packages) {
             </div>
         </div>
 
-    `).join("");
+    `;
+    }).join("");
 
     container.innerHTML = html;
 }

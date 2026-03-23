@@ -7,10 +7,136 @@ require_once __DIR__ . '/../../core/Response.php';
 class ServiceController
 {
     private $db;
+    private $uploadDir;
 
     public function __construct()
     {
         $this->db = Database::getInstance()->getConnection();
+        // Set upload directory for service images
+        // __DIR__ = BACKEND/modules/services/
+        // ../../public/uploads/services/ = BACKEND/public/uploads/services/
+        $this->uploadDir = __DIR__ . '/../../public/uploads/services/';
+
+        // Create upload directory if it doesn't exist
+        if (!is_dir($this->uploadDir)) {
+            mkdir($this->uploadDir, 0777, true);
+        }
+    }
+
+    /**
+     * Handle file upload for service images
+     */
+    public function uploadImage()
+    {
+        $auth = $GLOBALS['auth_user'] ?? null;
+        $salonId = $auth['salon_id'] ?? null;
+
+        if (!$salonId) {
+            Response::json(["status" => "error", "message" => "Invalid salon context"], 400);
+        }
+
+        // Check if file was uploaded
+        if (!isset($_FILES['image']) || $_FILES['image']['error'] === UPLOAD_ERR_NO_FILE) {
+            Response::json(["status" => "error", "message" => "No image file provided"], 400);
+        }
+
+        $file = $_FILES['image'];
+
+        // Validate upload error
+        if ($file['error'] !== UPLOAD_ERR_OK) {
+            Response::json(["status" => "error", "message" => "File upload error: " . $this->getUploadErrorMessage($file['error'])], 400);
+        }
+
+        // Validate file size (max 5MB)
+        $maxSize = 5 * 1024 * 1024; // 5MB
+        if ($file['size'] > $maxSize) {
+            Response::json(["status" => "error", "message" => "File size exceeds 5MB limit"], 400);
+        }
+
+        // Validate file type using multiple methods
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $mimeType = finfo_file($finfo, $file['tmp_name']);
+        finfo_close($finfo);
+
+        // Get file extension
+        $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+
+        // Log for debugging (check error_log)
+        error_log("Service upload - MIME: {$mimeType}, Extension: {$extension}, Original name: {$file['name']}");
+
+        // Allowed MIME types
+        $allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+
+        // Allowed extensions
+        $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+
+        // Validate using both MIME type and extension
+        $isValidMimeType = in_array($mimeType, $allowedMimeTypes);
+        $isValidExtension = in_array($extension, $allowedExtensions);
+
+        // Accept if either MIME type OR extension is valid (be lenient)
+        if (!$isValidMimeType && !$isValidExtension) {
+            Response::json([
+                "status" => "error",
+                "message" => "Invalid file type. Only JPG, PNG, GIF, and WEBP are allowed. Detected: {$mimeType}"
+            ], 400);
+        }
+
+        try {
+            // Generate unique filename
+            $filename = uniqid('svc_') . '_' . time() . '.' . $extension;
+            $filepath = $this->uploadDir . $filename;
+
+            // Debug: Log upload directory and filepath
+            error_log("Service upload - Upload dir: {$this->uploadDir}");
+            error_log("Service upload - Filename: {$filename}");
+            error_log("Service upload - Full path: {$filepath}");
+            error_log("Service upload - Directory writable: " . (is_writable($this->uploadDir) ? 'YES' : 'NO'));
+            error_log("Service upload - Temp file exists: " . (file_exists($file['tmp_name']) ? 'YES' : 'NO'));
+
+            // Move uploaded file
+            if (!move_uploaded_file($file['tmp_name'], $filepath)) {
+                error_log("Service upload - move_uploaded_file FAILED");
+                Response::json(["status" => "error", "message" => "Failed to save uploaded file. Check server permissions."], 500);
+            }
+
+            error_log("Service upload - File saved successfully: {$filepath}");
+
+            // Return the URL path (relative to public folder)
+            $imageUrl = '/uploads/services/' . $filename;
+
+            Response::json([
+                "status" => "success",
+                "message" => "Image uploaded successfully",
+                "data" => [
+                    "image_url" => $imageUrl,
+                    "file_name" => $filename,
+                    "file_size" => $file['size'],
+                    "mime_type" => $mimeType
+                ]
+            ]);
+
+        } catch (Exception $e) {
+            error_log("Service upload - Exception: " . $e->getMessage());
+            Response::json(["status" => "error", "message" => "Upload failed: " . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Get user-friendly upload error message
+     */
+    private function getUploadErrorMessage($errorCode)
+    {
+        $messages = [
+            UPLOAD_ERR_INI_SIZE => 'File exceeds server limit',
+            UPLOAD_ERR_FORM_SIZE => 'File exceeds form limit',
+            UPLOAD_ERR_PARTIAL => 'File was only partially uploaded',
+            UPLOAD_ERR_NO_FILE => 'No file was uploaded',
+            UPLOAD_ERR_NO_TMP_DIR => 'Server temporary folder missing',
+            UPLOAD_ERR_CANT_WRITE => 'Failed to write file to disk',
+            UPLOAD_ERR_EXTENSION => 'Upload stopped by extension'
+        ];
+        return $messages[$errorCode] ?? 'Unknown upload error';
     }
 
     /*
@@ -58,7 +184,8 @@ class ServiceController
         }
 
         // 5️⃣ Image URL Format Validation (if provided)
-        if ($imageUrl && !filter_var($imageUrl, FILTER_VALIDATE_URL)) {
+        // Accept both full URLs and relative paths (e.g., /uploads/services/image.jpg)
+        if ($imageUrl && !filter_var($imageUrl, FILTER_VALIDATE_URL) && !preg_match('#^/uploads/[a-z]+/[^/]+\.[a-z]+$#i', $imageUrl)) {
             Response::json(["status" => "error", "message" => "Invalid image URL format"], 400);
         }
 

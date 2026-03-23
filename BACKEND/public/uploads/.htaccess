@@ -1,0 +1,6 @@
+# Allow access to uploaded files
+Order Allow,Deny
+Allow from all
+
+# Enable CORS for images
+Header set Access-Control-Allow-Origin "*"
