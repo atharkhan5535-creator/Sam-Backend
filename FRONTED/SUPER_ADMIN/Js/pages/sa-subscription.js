@@ -100,6 +100,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const filterStatus = document.getElementById('filterStatus');
     const subscriptionSummary = document.getElementById('subscriptionSummary');
     const endDateDisplay = document.getElementById('endDateDisplay');
+    const startDateDisplay = document.getElementById('startDateDisplay');
 
     // View/Edit modals
     const viewModal = document.getElementById('viewModal');
@@ -763,6 +764,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (cancelPlanBtn) cancelPlanBtn.addEventListener('click', closePlanModalFunc);
         if (planType) planType.addEventListener('change', updatePriceFields);
         if (planForm) planForm.addEventListener('submit', handlePlanSubmit);
+        
+        // Add input listeners for price summary update
+        const flatPriceInput = document.getElementById('flatPrice');
+        const perAppointmentPriceInput = document.getElementById('perAppointmentPrice');
+        const percentagePerAppointmentInput = document.getElementById('percentagePerAppointment');
+        
+        if (flatPriceInput) flatPriceInput.addEventListener('input', updatePriceSummary);
+        if (perAppointmentPriceInput) perAppointmentPriceInput.addEventListener('input', updatePriceSummary);
+        if (percentagePerAppointmentInput) percentagePerAppointmentInput.addEventListener('input', updatePriceSummary);
 
         // Assign modal
         if (assignSubscriptionBtn) assignSubscriptionBtn.addEventListener('click', openAssignModal);
@@ -809,26 +819,40 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
 
         const planTypeValue = document.getElementById('planType').value;
-        
-        // Validate price fields based on plan type
+
+        // Validate price fields based on plan type with minimum values
         if (planTypeValue === 'flat') {
             const flatPrice = parseFloat(document.getElementById('flatPrice').value);
-            if (isNaN(flatPrice) || flatPrice <= 0) {
-                showErrorToast('Please enter a valid flat price (must be greater than 0)');
+            if (isNaN(flatPrice) || flatPrice < 100) {
+                showErrorToast('Please enter a valid flat price (minimum ₹100)');
                 return;
             }
         } else if (planTypeValue === 'per-appointments') {
             const perAppointmentPrice = parseFloat(document.getElementById('perAppointmentPrice').value);
-            if (isNaN(perAppointmentPrice) || perAppointmentPrice <= 0) {
-                showErrorToast('Please enter a valid price per appointment (must be greater than 0)');
+            if (isNaN(perAppointmentPrice) || perAppointmentPrice < 10) {
+                showErrorToast('Please enter a valid price per appointment (minimum ₹10)');
                 return;
             }
         } else if (planTypeValue === 'Percentage-per-appointments') {
             const percentage = parseFloat(document.getElementById('percentagePerAppointment').value);
-            if (isNaN(percentage) || percentage <= 0 || percentage > 100) {
-                showErrorToast('Please enter a valid percentage (1-100)');
+            if (isNaN(percentage) || percentage < 1 || percentage > 100) {
+                showErrorToast('Please enter a valid percentage (1-100%)');
                 return;
             }
+        }
+        
+        // Validate plan name length
+        const planName = document.getElementById('planName').value.trim();
+        if (planName.length < 3 || planName.length > 100) {
+            showErrorToast('Plan name must be between 3 and 100 characters');
+            return;
+        }
+        
+        // Validate duration
+        const duration = parseInt(document.getElementById('planDuration').value);
+        if (isNaN(duration) || duration < 1 || duration > 3650) {
+            showErrorToast('Duration must be between 1 and 3650 days');
+            return;
         }
 
         const planData = {
@@ -960,18 +984,71 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updatePriceFields() {
         const planTypeValue = planType.value;
-
+        
+        // Hide all fields first
         flatPriceField.style.display = 'none';
         perAppointmentPriceField.style.display = 'none';
         percentagePerAppointmentField.style.display = 'none';
-
+        
+        // Remove required from all fields
+        const flatPriceInput = document.getElementById('flatPrice');
+        const perAppointmentPriceInput = document.getElementById('perAppointmentPrice');
+        const percentagePerAppointmentInput = document.getElementById('percentagePerAppointment');
+        
+        flatPriceInput.removeAttribute('required');
+        perAppointmentPriceInput.removeAttribute('required');
+        percentagePerAppointmentInput.removeAttribute('required');
+        
+        // Get help text element
+        const planTypeHelpText = document.getElementById('planTypeHelpText');
+        const priceSummaryDisplay = document.getElementById('priceSummaryDisplay');
+        
+        // Show and set required based on plan type
         if (planTypeValue === 'flat') {
             flatPriceField.style.display = 'block';
+            flatPriceInput.setAttribute('required', 'required');
+            planTypeHelpText.style.display = 'block';
+            planTypeHelpText.innerHTML = '<i class="fa-solid fa-circle-info"></i> <strong>Flat Price:</strong> A fixed monthly amount regardless of how many appointments the salon completes. Best for salons with consistent monthly revenue.';
+            priceSummaryDisplay.style.display = 'block';
         } else if (planTypeValue === 'per-appointments') {
             perAppointmentPriceField.style.display = 'block';
+            perAppointmentPriceInput.setAttribute('required', 'required');
+            planTypeHelpText.style.display = 'block';
+            planTypeHelpText.innerHTML = '<i class="fa-solid fa-circle-info"></i> <strong>Per Appointment:</strong> A fixed rate charged for each completed appointment. Best for salons with variable monthly appointment counts.';
+            priceSummaryDisplay.style.display = 'block';
         } else if (planTypeValue === 'Percentage-per-appointments') {
             percentagePerAppointmentField.style.display = 'block';
+            percentagePerAppointmentInput.setAttribute('required', 'required');
+            planTypeHelpText.style.display = 'block';
+            planTypeHelpText.innerHTML = '<i class="fa-solid fa-circle-info"></i> <strong>Percentage Based:</strong> A percentage of the salon\'s appointment revenue. Best for high-revenue salons where you want to share in their success.';
+            priceSummaryDisplay.style.display = 'block';
+        } else {
+            planTypeHelpText.style.display = 'none';
+            priceSummaryDisplay.style.display = 'none';
         }
+        
+        // Update summary display
+        updatePriceSummary();
+    }
+    
+    function updatePriceSummary() {
+        const planTypeValue = planType.value;
+        const summaryFlatPrice = document.getElementById('summaryFlatPrice');
+        const summaryPerAppointment = document.getElementById('summaryPerAppointment');
+        const summaryPercentage = document.getElementById('summaryPercentage');
+        
+        const flatPrice = parseFloat(document.getElementById('flatPrice').value) || 0;
+        const perAppointmentPrice = parseFloat(document.getElementById('perAppointmentPrice').value) || 0;
+        const percentagePerAppointment = parseFloat(document.getElementById('percentagePerAppointment').value) || 0;
+        
+        summaryFlatPrice.textContent = '₹' + flatPrice.toLocaleString('en-IN', { minimumFractionDigits: 2 });
+        summaryPerAppointment.textContent = '₹' + perAppointmentPrice.toLocaleString('en-IN', { minimumFractionDigits: 2 });
+        summaryPercentage.textContent = percentagePerAppointment.toFixed(2) + '%';
+        
+        // Highlight active field
+        summaryFlatPrice.style.opacity = planTypeValue === 'flat' ? '1' : '0.4';
+        summaryPerAppointment.style.opacity = planTypeValue === 'per-appointments' ? '1' : '0.4';
+        summaryPercentage.style.opacity = planTypeValue === 'Percentage-per-appointments' ? '1' : '0.4';
     }
 
     function updateSubscriptionSummary() {
@@ -982,12 +1059,157 @@ document.addEventListener('DOMContentLoaded', () => {
             const plan = state.plans.find(p => p.plan_id == planId);
             if (plan) {
                 const start = new Date(startDate);
-                start.setDate(start.getDate() + plan.duration_days);
-                endDateDisplay.textContent = formatDate(start);
+                const end = new Date(startDate);
+                end.setDate(end.getDate() + plan.duration_days);
+                
+                // Update summary display
+                if (startDateDisplay) startDateDisplay.textContent = formatDate(startDate);
+                endDateDisplay.textContent = formatDate(end);
+                
+                // Calculate total days display
+                const totalDaysDisplay = document.getElementById('totalDaysDisplay');
+                if (totalDaysDisplay) {
+                    totalDaysDisplay.textContent = plan.duration_days + ' days';
+                }
+                
                 subscriptionSummary.style.display = 'block';
             }
         } else {
             subscriptionSummary.style.display = 'none';
+        }
+    }
+    
+    /**
+     * Check if salon already has an active subscription
+     */
+    async function checkExistingSubscription() {
+        const salonId = document.getElementById('assignSalon').value;
+        const salonSubscriptionStatus = document.getElementById('salonSubscriptionStatus');
+        
+        if (!salonId) {
+            salonSubscriptionStatus.style.display = 'none';
+            return;
+        }
+        
+        try {
+            // Check existing subscriptions in state
+            const existingSubscription = state.subscriptions.find(
+                s => s.salon_id == salonId && s.status === 'ACTIVE' && new Date(s.end_date) >= new Date()
+            );
+            
+            if (existingSubscription) {
+                salonSubscriptionStatus.style.display = 'block';
+                salonSubscriptionStatus.innerHTML = '<i class="fa-solid fa-circle-exclamation" style="color: var(--warning);"></i> This salon already has an active subscription until ' + formatDate(existingSubscription.end_date);
+                salonSubscriptionStatus.style.color = 'var(--warning)';
+                
+                // Disable submit button
+                const saveAssignBtn = document.getElementById('saveAssignBtn');
+                if (saveAssignBtn) {
+                    saveAssignBtn.disabled = true;
+                    saveAssignBtn.innerHTML = '<i class="fa-solid fa-ban"></i> Subscription Exists';
+                }
+            } else {
+                salonSubscriptionStatus.style.display = 'none';
+                
+                // Enable submit button
+                const saveAssignBtn = document.getElementById('saveAssignBtn');
+                if (saveAssignBtn) {
+                    saveAssignBtn.disabled = false;
+                    saveAssignBtn.innerHTML = '<i class="fa-solid fa-check"></i> Assign Subscription';
+                }
+            }
+        } catch (error) {
+            console.error('Error checking existing subscription:', error);
+        }
+    }
+    
+    /**
+     * Update plan summary when plan is selected
+     */
+    function updatePlanSummary() {
+        const planId = document.getElementById('assignPlan').value;
+        const planSummaryBox = document.getElementById('planSummaryBox');
+        
+        if (!planId) {
+            planSummaryBox.style.display = 'none';
+            return;
+        }
+        
+        const plan = state.plans.find(p => p.plan_id == planId);
+        if (!plan) {
+            planSummaryBox.style.display = 'none';
+            return;
+        }
+        
+        // Get display elements
+        const summaryPlanType = document.getElementById('summaryPlanType');
+        const summaryDuration = document.getElementById('summaryDuration');
+        const summaryPrice = document.getElementById('summaryPrice');
+        const summaryBilling = document.getElementById('summaryBilling');
+        
+        if (summaryPlanType) summaryPlanType.textContent = getPlanTypeLabel(plan.plan_type);
+        if (summaryDuration) summaryDuration.textContent = plan.duration_days + ' days';
+        
+        // Get price display
+        const priceDisplay = getPriceDisplay(plan);
+        if (summaryPrice) summaryPrice.textContent = priceDisplay.price;
+        
+        // Billing frequency
+        if (summaryBilling) {
+            if (plan.plan_type === 'flat') {
+                summaryBilling.textContent = 'Monthly';
+            } else {
+                summaryBilling.textContent = 'Per Appointment';
+            }
+        }
+        
+        planSummaryBox.style.display = 'block';
+    }
+    
+    /**
+     * Check if start date is in the past or too far in future
+     */
+    function checkPastDate() {
+        const startDate = document.getElementById('assignStartDate').value;
+        const pastDateWarning = document.getElementById('pastDateWarning');
+        const futureDateWarning = document.getElementById('futureDateWarning');
+        
+        if (!startDate) {
+            pastDateWarning.style.display = 'none';
+            futureDateWarning.style.display = 'none';
+            return;
+        }
+        
+        const today = new Date();
+        const start = new Date(startDate);
+        const maxFutureDate = new Date(today);
+        maxFutureDate.setDate(maxFutureDate.getDate() + 30);
+        
+        // Check if date is in the past
+        if (start < today) {
+            pastDateWarning.style.display = 'block';
+            futureDateWarning.style.display = 'none';
+        } 
+        // Check if date is more than 30 days in future
+        else if (start > maxFutureDate) {
+            pastDateWarning.style.display = 'none';
+            futureDateWarning.style.display = 'block';
+            
+            // Disable submit button
+            const saveAssignBtn = document.getElementById('saveAssignBtn');
+            if (saveAssignBtn) {
+                saveAssignBtn.disabled = true;
+            }
+        } else {
+            pastDateWarning.style.display = 'none';
+            futureDateWarning.style.display = 'none';
+            
+            // Enable submit button
+            const saveAssignBtn = document.getElementById('saveAssignBtn');
+            if (saveAssignBtn) {
+                saveAssignBtn.disabled = false;
+                saveAssignBtn.innerHTML = '<i class="fa-solid fa-check"></i> Assign Subscription';
+            }
         }
     }
 

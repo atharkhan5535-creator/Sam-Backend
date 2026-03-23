@@ -1581,14 +1581,15 @@
                 <form id="planForm">
                     <div class="form-group">
                         <label class="form-label" for="planName">Plan Name <span style="color: var(--danger);">*</span></label>
-                        <input type="text" id="planName" class="form-input" placeholder="e.g. Premium Plan" required>
+                        <input type="text" id="planName" class="form-input" placeholder="e.g. Premium Plan" required minlength="3" maxlength="100">
+                        <div class="help-text">Enter a descriptive name for the subscription plan (3-100 characters)</div>
                     </div>
 
                     <div class="form-row">
                         <div class="form-group">
                             <label class="form-label" for="planDuration">Duration (Days) <span style="color: var(--danger);">*</span></label>
-                            <input type="number" id="planDuration" class="form-input" placeholder="e.g. 365" min="1" required>
-                            <div class="help-text">Number of days the subscription is valid</div>
+                            <input type="number" id="planDuration" class="form-input" placeholder="e.g. 30" min="1" max="3650" required>
+                            <div class="help-text">Number of days the subscription is valid (1-3650 days)</div>
                         </div>
                         <div class="form-group">
                             <label class="form-label" for="planStatus">Status</label>
@@ -1596,32 +1597,76 @@
                                 <option value="1">Active</option>
                                 <option value="0">Inactive</option>
                             </select>
+                            <div class="help-text">Inactive plans cannot be assigned to salons</div>
                         </div>
                     </div>
 
                     <div class="form-group">
                         <label class="form-label" for="planType">Plan Type <span style="color: var(--danger);">*</span></label>
-                        <select id="planType" class="form-select" required>
+                        <select id="planType" class="form-select" required onchange="updatePriceFields()">
                             <option value="">Select plan type...</option>
-                            <option value="flat">Flat Price</option>
-                            <option value="per-appointments">Per Appointment Price</option>
-                            <option value="Percentage-per-appointments">Percentage Per Appointment</option>
+                            <option value="flat">Flat Price (Fixed Monthly Amount)</option>
+                            <option value="per-appointments">Per Appointment (Fixed Rate per Appointment)</option>
+                            <option value="Percentage-per-appointments">Percentage (Revenue Share per Appointment)</option>
                         </select>
+                        <div class="help-text" id="planTypeHelpText" style="display: none; margin-top: 8px; padding: 10px; background: var(--info-bg); border-radius: var(--radius-md); color: var(--info);">
+                            <!-- Dynamic help text based on selection -->
+                        </div>
                     </div>
 
+                    <!-- Flat Price Field -->
                     <div id="flatPriceField" class="form-group" style="display: none;">
-                        <label class="form-label" for="flatPrice">Flat Price (₹) <span style="color: var(--danger);">*</span></label>
-                        <input type="number" id="flatPrice" class="form-input" placeholder="e.g. 50000" min="0" step="0.01">
+                        <label class="form-label" for="flatPrice">
+                            Flat Price (₹) <span style="color: var(--danger);">*</span>
+                            <span class="active-field-indicator" style="float: right; color: var(--success); font-size: 12px;">
+                                <i class="fa-solid fa-circle-check"></i> Active Field
+                            </span>
+                        </label>
+                        <input type="number" id="flatPrice" class="form-input" placeholder="e.g. 50000" min="100" step="0.01">
+                        <div class="help-text">Fixed amount charged every month regardless of appointments. Minimum: ₹100</div>
                     </div>
 
+                    <!-- Per Appointment Price Field -->
                     <div id="perAppointmentPriceField" class="form-group" style="display: none;">
-                        <label class="form-label" for="perAppointmentPrice">Price Per Appointment (₹) <span style="color: var(--danger);">*</span></label>
-                        <input type="number" id="perAppointmentPrice" class="form-input" placeholder="e.g. 50" min="0" step="0.01">
+                        <label class="form-label" for="perAppointmentPrice">
+                            Price Per Appointment (₹) <span style="color: var(--danger);">*</span>
+                            <span class="active-field-indicator" style="float: right; color: var(--success); font-size: 12px;">
+                                <i class="fa-solid fa-circle-check"></i> Active Field
+                            </span>
+                        </label>
+                        <input type="number" id="perAppointmentPrice" class="form-input" placeholder="e.g. 50" min="10" step="0.01">
+                        <div class="help-text">Fixed amount charged for each completed appointment. Minimum: ₹10</div>
                     </div>
 
+                    <!-- Percentage Per Appointment Field -->
                     <div id="percentagePerAppointmentField" class="form-group" style="display: none;">
-                        <label class="form-label" for="percentagePerAppointment">Percentage Per Appointment (%) <span style="color: var(--danger);">*</span></label>
-                        <input type="number" id="percentagePerAppointment" class="form-input" placeholder="e.g. 5" min="0" step="0.01" max="100">
+                        <label class="form-label" for="percentagePerAppointment">
+                            Percentage Per Appointment (%) <span style="color: var(--danger);">*</span>
+                            <span class="active-field-indicator" style="float: right; color: var(--success); font-size: 12px;">
+                                <i class="fa-solid fa-circle-check"></i> Active Field
+                            </span>
+                        </label>
+                        <input type="number" id="percentagePerAppointment" class="form-input" placeholder="e.g. 10" min="1" max="100" step="0.01">
+                        <div class="help-text">Percentage of salon revenue charged for each appointment. Range: 1-100%</div>
+                    </div>
+
+                    <!-- Price Summary Display -->
+                    <div id="priceSummaryDisplay" class="price-summary" style="display: none; margin-top: 20px;">
+                        <div style="font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px;">PRICING SUMMARY</div>
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
+                            <div style="background: var(--bg-hover); padding: 12px; border-radius: var(--radius-md); text-align: center;">
+                                <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Flat Price</div>
+                                <div style="font-size: 18px; font-weight: 700; color: var(--primary);" id="summaryFlatPrice">₹0</div>
+                            </div>
+                            <div style="background: var(--bg-hover); padding: 12px; border-radius: var(--radius-md); text-align: center;">
+                                <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Per Appointment</div>
+                                <div style="font-size: 18px; font-weight: 700; color: var(--success);" id="summaryPerAppointment">₹0</div>
+                            </div>
+                            <div style="background: var(--bg-hover); padding: 12px; border-radius: var(--radius-md); text-align: center;">
+                                <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Percentage</div>
+                                <div style="font-size: 18px; font-weight: 700; color: var(--warning);" id="summaryPercentage">0%</div>
+                            </div>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -1645,21 +1690,52 @@
                 <form id="assignForm">
                     <div class="form-group">
                         <label class="form-label" for="assignSalon">Select Salon <span style="color: var(--danger);">*</span></label>
-                        <select id="assignSalon" class="form-select" required>
+                        <select id="assignSalon" class="form-select" required onchange="checkExistingSubscription()">
                             <option value="">Choose a salon...</option>
                         </select>
+                        <div class="help-text" id="salonSubscriptionStatus" style="display: none;"></div>
                     </div>
 
                     <div class="form-group">
                         <label class="form-label" for="assignPlan">Select Plan <span style="color: var(--danger);">*</span></label>
-                        <select id="assignPlan" class="form-select" required>
+                        <select id="assignPlan" class="form-select" required onchange="updatePlanSummary()">
                             <option value="">Choose a plan...</option>
                         </select>
+                        <div class="help-text">Only active plans are shown</div>
+                    </div>
+
+                    <!-- Plan Summary Box -->
+                    <div id="planSummaryBox" class="price-summary" style="display: none; margin-bottom: 16px;">
+                        <div style="font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px;">PLAN SUMMARY</div>
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+                            <div style="background: var(--bg-hover); padding: 12px; border-radius: var(--radius-md);">
+                                <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Plan Type</div>
+                                <div style="font-size: 14px; font-weight: 700; color: var(--primary);" id="summaryPlanType">-</div>
+                            </div>
+                            <div style="background: var(--bg-hover); padding: 12px; border-radius: var(--radius-md);">
+                                <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Duration</div>
+                                <div style="font-size: 14px; font-weight: 700; color: var(--success);" id="summaryDuration">-</div>
+                            </div>
+                            <div style="background: var(--bg-hover); padding: 12px; border-radius: var(--radius-md);">
+                                <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Price</div>
+                                <div style="font-size: 14px; font-weight: 700; color: var(--warning);" id="summaryPrice">-</div>
+                            </div>
+                            <div style="background: var(--bg-hover); padding: 12px; border-radius: var(--radius-md);">
+                                <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Billing</div>
+                                <div style="font-size: 14px; font-weight: 700; color: var(--info);" id="summaryBilling">-</div>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="form-group">
                         <label class="form-label" for="assignStartDate">Start Date <span style="color: var(--danger);">*</span></label>
-                        <input type="date" id="assignStartDate" class="form-input" required>
+                        <input type="date" id="assignStartDate" class="form-input" required onchange="updateSubscriptionSummary(); checkPastDate()">
+                        <div class="help-text" id="pastDateWarning" style="display: none; color: var(--warning);">
+                            <i class="fa-solid fa-triangle-exclamation"></i> Warning: Start date is in the past
+                        </div>
+                        <div class="help-text" id="futureDateWarning" style="display: none; color: var(--danger);">
+                            <i class="fa-solid fa-triangle-exclamation"></i> Error: Start date cannot be more than 30 days in the future
+                        </div>
                     </div>
 
                     <div class="form-group">
@@ -1669,12 +1745,32 @@
                             <option value="EXPIRED">Expired</option>
                             <option value="CANCELLED">Cancelled</option>
                         </select>
+                        <div class="help-text">Active subscriptions will be billed immediately</div>
                     </div>
 
-                    <div class="price-summary" id="subscriptionSummary" style="display: none;">
+                    <!-- Create Invoice Checkbox -->
+                    <div class="form-group" style="margin-top: 16px; padding: 12px; background: var(--bg-hover); border-radius: var(--radius-md);">
+                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                            <input type="checkbox" id="createInvoiceNow" checked style="width: 18px; height: 18px; cursor: pointer;">
+                            <div>
+                                <div style="font-weight: 600; font-size: 14px;">Create Initial Invoice</div>
+                                <div style="font-size: 12px; color: var(--text-muted);">Generate the first invoice for this subscription immediately</div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <div class="price-summary" id="subscriptionSummary" style="display: none; margin-top: 16px;">
                         <div class="price-summary-row">
-                            <span class="price-summary-label">Subscription End Date</span>
+                            <span class="price-summary-label">Start Date:</span>
+                            <span class="price-summary-value" id="startDateDisplay" style="font-size: 14px;">-</span>
+                        </div>
+                        <div class="price-summary-row">
+                            <span class="price-summary-label">End Date:</span>
                             <span class="price-summary-value" id="endDateDisplay">-</span>
+                        </div>
+                        <div class="price-summary-row" style="padding-top: 12px; border-top: 1px solid var(--border-light);">
+                            <span class="price-summary-label">Total Duration:</span>
+                            <span class="price-summary-value" id="totalDaysDisplay" style="font-size: 14px; color: var(--primary);">-</span>
                         </div>
                     </div>
                 </form>

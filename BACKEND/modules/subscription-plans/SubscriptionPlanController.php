@@ -76,13 +76,14 @@ class SubscriptionPlanController
         $status = $data['status'] ?? 1;
         $planType = $data['plan_type'];
         $flatPrice = (float) $data['flat_price'];
+        // Map API field names to database column names
         $perAppointmentsPrice = isset($data['per_appointments_price']) ? (float) $data['per_appointments_price'] : null;
-        $percentagePerAppointments = isset($data['percentage_per_appointments']) ? (float) $data['percentage_per_appointments'] : null;
+        $percentagePerAppointments = isset($data['percentage_per_appointment']) ? (float) $data['percentage_per_appointment'] : null;
 
         try {
             $stmt = $this->db->prepare("
                 INSERT INTO subscription_plans
-                (plan_name, duration_days, status, plan_type, flat_price, per_appointments_price, percentage_per_appointments)
+                (plan_name, duration_days, status, plan_type, flat_price, rate_per_appointment, percentage_rate)
                 VALUES (?, ?, ?, ?, ?, ?, ?)
             ");
 
@@ -138,15 +139,27 @@ class SubscriptionPlanController
             Response::json(["status" => "error", "message" => $error], 400);
         }
 
-        $allowedFields = ['plan_name', 'duration_days', 'status', 'plan_type', 'flat_price',
-                          'per_appointments_price', 'percentage_per_appointments'];
+        // Map API field names to database column names
+        $allowedFields = [
+            'plan_name', 
+            'duration_days', 
+            'status', 
+            'plan_type', 
+            'flat_price',
+            'per_appointments_price' => 'rate_per_appointment', 
+            'percentage_per_appointment' => 'percentage_rate'
+        ];
         $updates = [];
         $values = [];
 
-        foreach ($allowedFields as $field) {
-            if (isset($data[$field])) {
-                $updates[] = "$field = ?";
-                $values[] = $data[$field];
+        foreach ($allowedFields as $apiField => $dbField) {
+            // Handle mapped field names
+            $actualDbField = is_string($apiField) ? $dbField : $apiField;
+            $actualApiField = is_string($apiField) ? $apiField : $apiField;
+            
+            if (isset($data[$actualApiField])) {
+                $updates[] = "$actualDbField = ?";
+                $values[] = $data[$actualApiField];
             }
         }
 
@@ -189,6 +202,15 @@ class SubscriptionPlanController
         $stmt = $this->db->prepare($sql);
         $stmt->execute($params);
         $plans = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        // Map database column names to API field names for frontend compatibility
+        $plans = array_map(function($plan) {
+            $plan['per_appointments_price'] = $plan['rate_per_appointment'];
+            $plan['percentage_per_appointment'] = $plan['percentage_rate'];
+            // Remove old column names to avoid confusion
+            unset($plan['rate_per_appointment'], $plan['percentage_rate']);
+            return $plan;
+        }, $plans);
 
         Response::json([
             "status" => "success",
@@ -212,6 +234,11 @@ class SubscriptionPlanController
         if (!$plan) {
             Response::json(["status" => "error", "message" => "Plan not found"], 404);
         }
+        
+        // Map database column names to API field names
+        $plan['per_appointments_price'] = $plan['rate_per_appointment'];
+        $plan['percentage_per_appointment'] = $plan['percentage_rate'];
+        unset($plan['rate_per_appointment'], $plan['percentage_rate']);
 
         Response::json([
             "status" => "success",
