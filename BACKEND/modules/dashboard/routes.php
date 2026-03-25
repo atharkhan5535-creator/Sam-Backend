@@ -4,26 +4,26 @@
  */
 
 require_once __DIR__ . '/../../middlewares/authenticate.php';
+require_once __DIR__ . '/DashboardController.php';
+
+$dashboardController = new DashboardController();
 
 $basePath = '/api/dashboard';
 
 // GET /api/dashboard/stats - Get dashboard statistics (total + period)
-$router->get("$basePath/stats", function() {
+$router->register('GET', "$basePath/stats", function() use ($dashboardController) {
     authenticate();
-    $controller = new DashboardController();
-    return $controller->getStats();
+    $dashboardController->getStats();
 });
 
 // GET /api/dashboard/revenue-chart - Get revenue chart data
-$router->get("$basePath/revenue-chart", function() {
+$router->register('GET', "$basePath/revenue-chart", function() use ($dashboardController) {
     authenticate();
-    $controller = new DashboardController();
-    return $controller->getRevenueChart();
+    $dashboardController->getRevenueChart();
 });
 
 // GET /api/dashboard/appointment-trends - Get appointment trends
-$router->get("$basePath/appointment-trends", function() {
+$router->register('GET', "$basePath/appointment-trends", function() use ($dashboardController) {
     authenticate();
-    $controller = new DashboardController();
-    return $controller->getAppointmentTrends();
+    $dashboardController->getAppointmentTrends();
 });

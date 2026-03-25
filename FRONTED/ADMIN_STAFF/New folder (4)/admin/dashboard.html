@@ -3,18 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Elite Salon</title>
+    <title>Dashboard - Admin Panel | Elite Salon</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.min.css">
-    <!-- Toastify CSS - LOCAL FILE -->
     <link rel="stylesheet" href="../css/toastify.min.css">
     <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/admin.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: var(--primary-dark); color: var(--text-primary); }
+        body { font-family: 'Inter', sans-serif; background: var(--primary-dark); color: var(--text-primary); overflow-x: hidden; }
         .dashboard-wrapper { display: flex; min-height: 100vh; }
-        
+
         /* Sidebar */
         .sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 220px; background: linear-gradient(180deg, var(--primary-darker) 0%, var(--secondary-dark) 100%); border-right: 1px solid var(--card-border); display: flex; flex-direction: column; z-index: 1000; }
         .sidebar-header { padding: 1rem; border-bottom: 1px solid var(--card-border); }
@@ -35,62 +35,152 @@
         .sidebar-footer { padding: 0.75rem; border-top: 1px solid var(--card-border); }
         .logout-btn { display: flex; align-items: center; justify-content: center; gap: 0.5rem; width: 100%; padding: 0.65rem; background: linear-gradient(135deg, var(--danger), #dc2626); color: white; border: none; border-radius: 6px; font-weight: 600; font-size: 0.8rem; cursor: pointer; transition: all 0.2s; }
         .logout-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(239, 68, 68, 0.4); }
-        
-        /* Main Content */
-        .main-content { margin-left: 220px; flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
-        .dashboard-header { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 1rem; background: rgba(10, 14, 26, 0.95); border-bottom: 1px solid var(--card-border); height: 45px; flex-shrink: 0; }
+
+        /* Main Content - No double scroll */
+        .main-content { margin-left: 220px; flex: 1; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        .dashboard-header { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 1rem; background: rgba(10, 14, 26, 0.95); border-bottom: 1px solid var(--card-border); flex-shrink: 0; height: 45px; }
         .page-title-mini { display: flex; align-items: center; gap: 0.5rem; }
         .page-icon-mini { width: 28px; height: 28px; background: linear-gradient(135deg, var(--accent-gold), var(--accent-bronze)); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; color: var(--primary-dark); }
         .page-title-mini h1 { font-size: 0.9rem; font-weight: 700; }
         .page-title-mini p { font-size: 0.6rem; color: var(--text-secondary); }
         .date-filter-mini { display: flex; gap: 0.35rem; align-items: center; }
         .date-input-mini { padding: 0.25rem 0.4rem; background: var(--primary-dark); border: 1px solid var(--card-border); border-radius: 4px; color: var(--text-primary); font-size: 0.65rem; }
+        .period-select { padding: 0.25rem 0.5rem; background: var(--primary-dark); border: 1px solid var(--card-border); border-radius: 4px; color: var(--text-primary); font-size: 0.65rem; cursor: pointer; }
         .btn-refresh-mini { padding: 0.25rem 0.5rem; background: linear-gradient(135deg, var(--accent-gold), var(--accent-bronze)); color: var(--primary-dark); border: none; border-radius: 4px; font-weight: 600; font-size: 0.65rem; cursor: pointer; }
-        
-        /* Dashboard */
+        .btn-refresh-mini:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(212, 175, 55, 0.4); }
+        .btn-refresh-mini i { transition: transform 0.5s; }
+        .btn-refresh-mini:hover i { transform: rotate(180deg); }
+
+        /* Dashboard Content - Scrollable area */
         .dashboard-main { flex: 1; padding: 0.5rem; overflow-y: auto; display: flex; flex-direction: column; gap: 0.5rem; }
-        .stats-row-mini { display: grid; grid-template-columns: repeat(8, 1fr); gap: 0.4rem; }
-        .stat-card-mini { background: linear-gradient(135deg, var(--card-bg), var(--secondary-dark)); border: 1px solid var(--card-border); border-radius: 6px; padding: 0.5rem; position: relative; }
-        .stat-card-mini::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--accent-gold), var(--accent-bronze)); }
-        .stat-icon-mini { width: 22px; height: 22px; background: rgba(212, 175, 55, 0.1); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; color: var(--accent-gold); margin-bottom: 0.25rem; }
-        .stat-label-mini { font-size: 0.5rem; font-weight: 600; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 0.15rem; }
-        .stat-value-mini { font-size: 0.9rem; font-weight: 700; color: var(--text-primary); line-height: 1; }
-        .stat-sub-mini { font-size: 0.5rem; color: var(--text-muted); margin-top: 0.1rem; }
-        .center-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 0.5rem; }
-        .chart-card-mini { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 6px; padding: 0.5rem; display: flex; flex-direction: column; }
-        .chart-header-mini { display: flex; align-items: center; gap: 0.25rem; margin-bottom: 0.35rem; }
-        .chart-title-mini { display: flex; align-items: center; gap: 0.25rem; font-size: 0.65rem; font-weight: 600; color: var(--text-primary); }
-        .chart-title-mini i { color: var(--accent-gold); font-size: 0.7rem; }
-        .chart-body-mini { flex: 1; min-height: 0; position: relative; }
-        .chart-container-tiny { position: relative; height: 100%; width: 100%; }
-        .top-list-mini { display: flex; flex-direction: column; gap: 0.25rem; overflow-y: auto; }
-        .top-item-mini { display: flex; align-items: center; justify-content: space-between; padding: 0.3rem 0.35rem; background: rgba(255, 255, 255, 0.02); border-radius: 4px; }
-        .top-item-left-mini { display: flex; align-items: center; gap: 0.35rem; min-width: 0; }
-        .top-rank-mini { width: 14px; height: 14px; background: var(--accent-gold); color: var(--primary-dark); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.5rem; font-weight: 700; flex-shrink: 0; }
-        .top-name-mini { font-size: 0.6rem; color: var(--text-primary); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .top-value-mini { font-size: 0.6rem; font-weight: 600; color: var(--accent-gold); flex-shrink: 0; }
-        .top-section-title { font-size: 0.55rem; font-weight: 600; color: var(--text-secondary); margin: 0.35rem 0 0.15rem; text-transform: uppercase; }
-        .bottom-row-mini { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
-        .mini-chart-container { height: 90px; }
         
-        /* Loading */
-        .loading-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(10, 14, 26, 0.9); display: flex; align-items: center; justify-content: center; z-index: 9999; }
-        .loading-spinner { width: 30px; height: 30px; border: 2px solid var(--card-border); border-top-color: var(--accent-gold); border-radius: 50%; animation: spin 1s linear infinite; }
+        /* Stats Grid - Enhanced Cards */
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; flex-shrink: 0; }
+        
+        /* Enhanced Stat Card */
+        .stat-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 6px; padding: 0.6rem; position: relative; overflow: hidden; transition: all 0.2s; }
+        .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--accent-gold), var(--accent-bronze)); opacity: 0.5; }
+        .stat-card:hover { border-color: rgba(212, 175, 55, 0.3); transform: translateY(-2px); box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        .stat-card::after { content: ''; position: absolute; bottom: -20px; right: -20px; width: 60px; height: 60px; background: radial-gradient(circle, rgba(212,175,55,0.05) 0%, transparent 70%); border-radius: 50%; }
+        
+        .stat-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.4rem; position: relative; z-index: 1; }
+        .stat-card-icon { width: 28px; height: 28px; border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; flex-shrink: 0; position: relative; z-index: 1; }
+        .stat-card-icon.gold { background: linear-gradient(135deg, rgba(212, 175, 55, 0.2), rgba(212, 175, 55, 0.1)); color: #fbbf24; }
+        .stat-card-icon.green { background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.1)); color: #10b981; }
+        .stat-card-icon.blue { background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(59, 130, 246, 0.1)); color: #3b82f6; }
+        .stat-card-icon.purple { background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(139, 92, 246, 0.1)); color: #8b5cf6; }
+        .stat-card-icon.orange { background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(245, 158, 11, 0.1)); color: #f59e0b; }
+        .stat-card-icon.red { background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(239, 68, 68, 0.1)); color: #ef4444; }
+        .stat-card-icon.pink { background: linear-gradient(135deg, rgba(236, 72, 153, 0.2), rgba(236, 72, 153, 0.1)); color: #ec4899; }
+        .stat-card-icon.teal { background: linear-gradient(135deg, rgba(20, 184, 166, 0.2), rgba(20, 184, 166, 0.1)); color: #14b8a6; }
+        
+        /* Trend Badge - Meaningful Colors */
+        .trend-badge { display: flex; align-items: center; gap: 0.2rem; padding: 0.2rem 0.45rem; border-radius: 4px; font-size: 0.55rem; font-weight: 700; text-transform: uppercase; white-space: nowrap; transition: all 0.2s; }
+        .trend-badge.up { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
+        .trend-badge.down { background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
+        .trend-badge.stable { background: rgba(100, 116, 139, 0.15); color: #94a3b8; border: 1px solid rgba(100, 116, 139, 0.3); }
+        
+        /* Trend Badge Context Colors - Revenue & Positive Metrics */
+        .stat-card[data-card="revenue"] .trend-badge.up,
+        .stat-card[data-card="customers"] .trend-badge.up,
+        .stat-card[data-card="services"] .trend-badge.up,
+        .stat-card[data-card="packages"] .trend-badge.up,
+        .stat-card[data-card="completion"] .trend-badge.up {
+            background: rgba(16, 185, 129, 0.2); color: #10b981; border-color: rgba(16, 185, 129, 0.4);
+        }
+        
+        /* Trend Badge - Negative Metrics (down is bad for these) */
+        .stat-card[data-card="pending"] .trend-badge.up {
+            background: rgba(239, 68, 68, 0.2); color: #ef4444; border-color: rgba(239, 68, 68, 0.4);
+        }
+        
+        .stat-card-body { position: relative; z-index: 1; }
+        .stat-card-label { font-size: 0.5rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 0.2rem; }
+        .stat-card-value { font-size: 1rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.15rem; }
+        
+        /* Mini Stats Row */
+        .stat-card-mini-stats { display: flex; gap: 0.4rem; padding-top: 0.3rem; border-top: 1px solid rgba(255,255,255,0.05); }
+        .mini-stat { display: flex; flex-direction: column; }
+        .mini-stat-value { font-size: 0.6rem; font-weight: 600; color: var(--accent-gold); }
+        .mini-stat-label { font-size: 0.45rem; color: var(--text-muted); }
+
+        .stat-card-sub { font-size: 0.5rem; color: var(--text-muted); margin-top: 0.2rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        
+        /* Stat Card Footer */
+        .stat-card-footer { padding-top: 0.3rem; border-top: 1px solid rgba(255,255,255,0.05); margin-top: 0.3rem; }
+        .stat-card-footer-label { font-size: 0.45rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+
+        /* Main Content Grid */
+        .content-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 0.5rem; flex-shrink: 0; }
+        
+        /* Chart Card */
+        .chart-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 6px; padding: 0.6rem; }
+        .chart-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; }
+        .chart-card-title { display: flex; align-items: center; gap: 0.4rem; }
+        .chart-card-icon { width: 26px; height: 26px; background: rgba(212, 175, 55, 0.15); border-radius: 4px; display: flex; align-items: center; justify-content: center; color: var(--accent-gold); font-size: 0.75rem; }
+        .chart-card-text { font-size: 0.7rem; font-weight: 600; color: var(--text-primary); }
+        .chart-card-subtitle { font-size: 0.55rem; color: var(--text-secondary); margin-top: 0.1rem; }
+        .chart-card-body { position: relative; height: 220px; }
+        .chart-container { position: relative; height: 100%; width: 100%; }
+
+        /* Top Performers */
+        .top-performers-list { display: flex; flex-direction: column; gap: 0.4rem; max-height: 220px; overflow-y: auto; }
+        .top-performer-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem; background: var(--primary-dark); border-radius: 4px; border: 1px solid var(--card-border); transition: all 0.2s; }
+        .top-performer-item:hover { border-color: rgba(212, 175, 55, 0.3); transform: translateX(3px); }
+        .performer-rank { width: 20px; height: 20px; border-radius: 3px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.6rem; flex-shrink: 0; }
+        .performer-rank.gold { background: linear-gradient(135deg, var(--accent-gold), var(--accent-bronze)); color: var(--primary-dark); }
+        .performer-rank.silver { background: linear-gradient(135deg, #e5e4e2, #c0c0c0); color: var(--primary-dark); }
+        .performer-rank.bronze { background: linear-gradient(135deg, #cd7f32, #b87333); color: var(--primary-dark); }
+        .performer-rank.default { background: var(--card-bg); color: var(--text-muted); border: 1px solid var(--card-border); }
+        .performer-avatar { width: 28px; height: 28px; border-radius: 4px; background: linear-gradient(135deg, var(--accent-gold), var(--accent-bronze)); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.7rem; color: var(--primary-dark); flex-shrink: 0; }
+        .performer-info { flex: 1; min-width: 0; }
+        .performer-name { font-weight: 600; font-size: 0.7rem; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .performer-role { font-size: 0.5rem; color: var(--text-secondary); text-transform: uppercase; }
+        .performer-stats { text-align: right; }
+        .performer-value { font-weight: 700; font-size: 0.7rem; color: var(--accent-gold); }
+        .performer-sub { font-size: 0.45rem; color: var(--text-muted); }
+
+        /* Bottom Grid */
+        .bottom-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; flex-shrink: 0; }
+        .mini-chart-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 6px; padding: 0.6rem; }
+        .mini-chart-header { display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.4rem; }
+        .mini-chart-icon { width: 24px; height: 24px; background: rgba(212, 175, 55, 0.15); border-radius: 4px; display: flex; align-items: center; justify-content: center; color: var(--accent-gold); font-size: 0.7rem; }
+        .mini-chart-title { font-weight: 600; font-size: 0.7rem; color: var(--text-primary); }
+        .mini-chart-body { position: relative; height: 140px; }
+
+        /* Activity List */
+        .activity-list { display: flex; flex-direction: column; gap: 0.35rem; max-height: 140px; overflow-y: auto; }
+        .activity-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem; background: var(--primary-dark); border-radius: 4px; border-left: 2px solid var(--accent-gold); transition: all 0.2s; }
+        .activity-item:hover { background: var(--card-bg); transform: translateX(3px); }
+        .activity-time { font-size: 0.55rem; color: var(--text-muted); min-width: 40px; }
+        .activity-icon { width: 24px; height: 24px; border-radius: 3px; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; flex-shrink: 0; }
+        .activity-icon.completed { background: rgba(16, 185, 129, 0.15); color: var(--success); }
+        .activity-icon.pending { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
+        .activity-icon.confirmed { background: rgba(59, 130, 246, 0.15); color: var(--info); }
+        .activity-icon.cancelled { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
+        .activity-content { flex: 1; min-width: 0; }
+        .activity-title { font-weight: 600; font-size: 0.65rem; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .activity-desc { font-size: 0.5rem; color: var(--text-secondary); margin-top: 0.1rem; }
+        .activity-amount { font-weight: 700; font-size: 0.65rem; color: var(--accent-gold); flex-shrink: 0; }
+
+        /* Loading & Empty States */
+        .loading-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(10, 14, 26, 0.95); display: flex; align-items: center; justify-content: center; z-index: 999; }
+        .loading-spinner { width: 40px; height: 40px; border: 3px solid var(--card-border); border-top-color: var(--accent-gold); border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
-        
-        /* Scrollbar */
-        ::-webkit-scrollbar { width: 4px; height: 4px; }
-        ::-webkit-scrollbar-track { background: var(--primary-dark); }
-        ::-webkit-scrollbar-thumb { background: var(--card-border); border-radius: 2px; }
-        
+        .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1.5rem; text-align: center; }
+        .empty-icon { width: 40px; height: 40px; background: rgba(212, 175, 55, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; color: var(--accent-gold); margin-bottom: 0.5rem; }
+        .empty-title { font-weight: 600; font-size: 0.75rem; color: var(--text-primary); margin-bottom: 0.25rem; }
+        .empty-text { font-size: 0.65rem; color: var(--text-secondary); }
+
         /* Responsive */
-        @media (max-width: 1400px) { .stats-row-mini { grid-template-columns: repeat(4, 1fr); } .center-grid { grid-template-columns: 1fr; } .bottom-row-mini { grid-template-columns: repeat(2, 1fr); } }
-        @media (max-width: 900px) { .stats-row-mini { grid-template-columns: repeat(2, 1fr); } .bottom-row-mini { grid-template-columns: 1fr; } }
-        @media (max-width: 768px) { .sidebar { transform: translateX(-100%); transition: transform 0.3s; } .sidebar.open { transform: translateX(0); } .main-content { margin-left: 0; } }
+        @media (max-width: 1400px) { .stats-grid { grid-template-columns: repeat(4, 1fr); } .content-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 1024px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } .bottom-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 768px) { .sidebar { transform: translateX(-100%); } .sidebar.open { transform: translateX(0); } .main-content { margin-left: 0; } .stats-grid { grid-template-columns: repeat(2, 1fr); } .bottom-grid { grid-template-columns: 1fr; } .date-filter-mini { display: none; } }
     </style>
 </head>
 <body>
     <div class="dashboard-wrapper">
+        <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-header">
                 <div class="sidebar-logo">Elite Salon</div>
@@ -105,22 +195,26 @@
                 </div>
             </div>
             <nav class="sidebar-nav">
-                <div class="nav-section"><div class="nav-section-title">Main Menu</div>
+                <div class="nav-section">
+                    <div class="nav-section-title">Main Menu</div>
                     <a href="dashboard.html" class="nav-item active"><i class="fas fa-chart-line"></i><span>Dashboard</span></a>
                     <a href="appointments.html" class="nav-item"><i class="fas fa-calendar-check"></i><span>Appointments</span></a>
                     <a href="customers.html" class="nav-item"><i class="fas fa-users"></i><span>Customers</span></a>
                     <a href="staff.html" class="nav-item"><i class="fas fa-user-tie"></i><span>Staff</span></a>
                 </div>
-                <div class="nav-section"><div class="nav-section-title">Services</div>
+                <div class="nav-section">
+                    <div class="nav-section-title">Services</div>
                     <a href="services.html" class="nav-item"><i class="fas fa-cut"></i><span>Services</span></a>
                     <a href="package.html" class="nav-item"><i class="fas fa-gift"></i><span>Packages</span></a>
                     <a href="inventory.html" class="nav-item"><i class="fas fa-boxes"></i><span>Inventory</span></a>
                 </div>
-                <div class="nav-section"><div class="nav-section-title">Financial</div>
+                <div class="nav-section">
+                    <div class="nav-section-title">Financial</div>
                     <a href="payments.html" class="nav-item"><i class="fas fa-credit-card"></i><span>Payments</span></a>
                     <a href="schedules.html" class="nav-item"><i class="fas fa-calendar-alt"></i><span>Schedules</span></a>
                 </div>
-                <div class="nav-section"><div class="nav-section-title">System</div>
+                <div class="nav-section">
+                    <div class="nav-section-title">System</div>
                     <a href="settings.html" class="nav-item"><i class="fas fa-cog"></i><span>Settings</span></a>
                 </div>
             </nav>
@@ -129,13 +223,24 @@
             </div>
         </aside>
 
-        <div class="main-content">
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
             <header class="dashboard-header">
                 <div class="page-title-mini">
                     <div class="page-icon-mini"><i class="fas fa-chart-line"></i></div>
-                    <div><h1>Dashboard</h1><p>Business Overview</p></div>
+                    <div>
+                        <h1>Dashboard</h1>
+                        <p>Business Overview</p>
+                    </div>
                 </div>
                 <div class="date-filter-mini">
+                    <select id="periodSelect" class="period-select" onchange="changePeriod()">
+                        <option value="today">Today</option>
+                        <option value="week" selected>This Week</option>
+                        <option value="month">This Month</option>
+                        <option value="year">This Year</option>
+                    </select>
                     <input type="date" id="startDate" class="date-input-mini">
                     <span style="color:var(--text-secondary);font-size:0.6rem;">to</span>
                     <input type="date" id="endDate" class="date-input-mini">
@@ -143,205 +248,727 @@
                 </div>
             </header>
 
-            <div class="dashboard-main">
-                <div id="loadingState" class="loading-overlay"><div class="loading-spinner"></div></div>
+            <!-- Dashboard Content -->
+            <div class="dashboard-main" id="dashboardMain">
+                <!-- Loading -->
+                <div id="loadingState" class="loading-overlay">
+                    <div class="loading-spinner"></div>
+                </div>
+
+                <!-- Content -->
                 <div id="dashboardContent" style="display:none;flex-direction:column;gap:0.5rem;">
-                    <div class="stats-row-mini">
-                        <div class="stat-card-mini"><div class="stat-icon-mini"><i class="fas fa-dollar-sign"></i></div><div class="stat-label-mini">Revenue</div><div class="stat-value-mini" id="statRevenue">-</div><div class="stat-sub-mini">This period</div></div>
-                        <div class="stat-card-mini"><div class="stat-icon-mini"><i class="fas fa-calendar-check"></i></div><div class="stat-label-mini">Appointments</div><div class="stat-value-mini" id="statAppointments">-</div><div class="stat-sub-mini">Total</div></div>
-                        <div class="stat-card-mini"><div class="stat-icon-mini"><i class="fas fa-users"></i></div><div class="stat-label-mini">Customers</div><div class="stat-value-mini" id="statCustomers">-</div><div class="stat-sub-mini">Active</div></div>
-                        <div class="stat-card-mini"><div class="stat-icon-mini"><i class="fas fa-user-tie"></i></div><div class="stat-label-mini">Staff</div><div class="stat-value-mini" id="statStaff">-</div><div class="stat-sub-mini">Active</div></div>
-                        <div class="stat-card-mini"><div class="stat-icon-mini"><i class="fas fa-cut"></i></div><div class="stat-label-mini">Services</div><div class="stat-value-mini" id="statServices">-</div><div class="stat-sub-mini">Available</div></div>
-                        <div class="stat-card-mini"><div class="stat-icon-mini"><i class="fas fa-gift"></i></div><div class="stat-label-mini">Packages</div><div class="stat-value-mini" id="statPackages">-</div><div class="stat-sub-mini">Active</div></div>
-                        <div class="stat-card-mini"><div class="stat-icon-mini"><i class="fas fa-boxes"></i></div><div class="stat-label-mini">Inventory</div><div class="stat-value-mini" id="statInventory">-</div><div class="stat-sub-mini"><span id="statLowStock" style="color:var(--warning)">0</span> low</div></div>
-                        <div class="stat-card-mini"><div class="stat-icon-mini"><i class="fas fa-trophy"></i></div><div class="stat-label-mini">Incentives</div><div class="stat-value-mini" id="statIncentives">-</div><div class="stat-sub-mini">Paid</div></div>
+                    
+                    <!-- Stats Grid - 8 Modern KPI Cards with Trends -->
+                    <div class="stats-grid">
+                        <!-- 1. Revenue Card -->
+                        <div class="stat-card" data-card="revenue">
+                            <div class="stat-card-header">
+                                <div class="stat-card-icon gold"><i class="fas fa-rupee-sign"></i></div>
+                                <div class="trend-badge" id="revenueTrend"><i class="fas fa-arrow-up"></i><span>+0%</span></div>
+                            </div>
+                            <div class="stat-card-body">
+                                <div class="stat-card-label">Total Revenue</div>
+                                <div class="stat-card-value" id="revenueValue">₹0.00</div>
+                                <div class="stat-card-sub" id="revenueSublabel">Completed appointments</div>
+                            </div>
+                            <div class="stat-card-footer">
+                                <span class="stat-card-footer-label">This period</span>
+                            </div>
+                        </div>
+
+                        <!-- 2. Appointments Card -->
+                        <div class="stat-card" data-card="appointments">
+                            <div class="stat-card-header">
+                                <div class="stat-card-icon green"><i class="fas fa-calendar-check"></i></div>
+                                <div class="trend-badge" id="appointmentsTrend"><i class="fas fa-arrow-up"></i><span>+0%</span></div>
+                            </div>
+                            <div class="stat-card-body">
+                                <div class="stat-card-label">Appointments</div>
+                                <div class="stat-card-value" id="appointmentsValue">0</div>
+                                <div class="stat-card-sub" id="appointmentsSublabel">All set</div>
+                            </div>
+                            <div class="stat-card-footer">
+                                <span class="stat-card-footer-label" id="apptBreakdown">0 completed</span>
+                            </div>
+                        </div>
+
+                        <!-- 3. Customers Card -->
+                        <div class="stat-card" data-card="customers">
+                            <div class="stat-card-header">
+                                <div class="stat-card-icon blue"><i class="fas fa-users"></i></div>
+                                <div class="trend-badge" id="customersTrend"><i class="fas fa-arrow-up"></i><span>+0%</span></div>
+                            </div>
+                            <div class="stat-card-body">
+                                <div class="stat-card-label">Active Customers</div>
+                                <div class="stat-card-value" id="customersValue">0</div>
+                                <div class="stat-card-sub" id="customersSublabel">Last 90 days</div>
+                            </div>
+                            <div class="stat-card-footer">
+                                <span class="stat-card-footer-label" id="newCustomersLabel">+0 new this period</span>
+                            </div>
+                        </div>
+
+                        <!-- 4. Staff Card -->
+                        <div class="stat-card" data-card="staff">
+                            <div class="stat-card-header">
+                                <div class="stat-card-icon purple"><i class="fas fa-user-tie"></i></div>
+                                <div class="trend-badge" id="staffTrend"><i class="fas fa-arrow-up"></i><span>+0%</span></div>
+                            </div>
+                            <div class="stat-card-body">
+                                <div class="stat-card-label">Active Staff</div>
+                                <div class="stat-card-value" id="staffValue">0</div>
+                                <div class="stat-card-sub" id="staffSublabel">Available today</div>
+                            </div>
+                            <div class="stat-card-footer">
+                                <span class="stat-card-footer-label" id="staffBreakdown">0 on leave • 0 busy</span>
+                            </div>
+                        </div>
+
+                        <!-- 5. Services Card -->
+                        <div class="stat-card" data-card="services">
+                            <div class="stat-card-header">
+                                <div class="stat-card-icon orange"><i class="fas fa-cut"></i></div>
+                                <div class="trend-badge" id="servicesTrend"><i class="fas fa-arrow-up"></i><span>+0%</span></div>
+                            </div>
+                            <div class="stat-card-body">
+                                <div class="stat-card-label">Active Services</div>
+                                <div class="stat-card-value" id="servicesValue">0</div>
+                                <div class="stat-card-sub" id="servicesSublabel">Bookings this period</div>
+                            </div>
+                            <div class="stat-card-footer">
+                                <span class="stat-card-footer-label" id="servicesBreakdown">0 unique services</span>
+                            </div>
+                        </div>
+
+                        <!-- 6. Packages Card -->
+                        <div class="stat-card" data-card="packages">
+                            <div class="stat-card-header">
+                                <div class="stat-card-icon pink"><i class="fas fa-gift"></i></div>
+                                <div class="trend-badge" id="packagesTrend"><i class="fas fa-arrow-up"></i><span>+0%</span></div>
+                            </div>
+                            <div class="stat-card-body">
+                                <div class="stat-card-label">Active Packages</div>
+                                <div class="stat-card-value" id="packagesValue">0</div>
+                                <div class="stat-card-sub" id="packagesSublabel">Sold • Revenue</div>
+                            </div>
+                            <div class="stat-card-footer">
+                                <span class="stat-card-footer-label" id="packagesBreakdown">0 sold</span>
+                            </div>
+                        </div>
+
+                        <!-- 7. Completion Rate Card -->
+                        <div class="stat-card" data-card="completion">
+                            <div class="stat-card-header">
+                                <div class="stat-card-icon teal"><i class="fas fa-chart-pie"></i></div>
+                                <div class="trend-badge" id="completionTrend"><i class="fas fa-arrow-up"></i><span>+0%</span></div>
+                            </div>
+                            <div class="stat-card-body">
+                                <div class="stat-card-label">Completion Rate</div>
+                                <div class="stat-card-value" id="completionValue">0%</div>
+                                <div class="stat-card-sub" id="completionSublabel">Appointments completed</div>
+                            </div>
+                            <div class="stat-card-footer">
+                                <span class="stat-card-footer-label" id="completionBreakdown">0 cancelled • 0 no-show</span>
+                            </div>
+                        </div>
+
+                        <!-- 8. Pending Actions Card -->
+                        <div class="stat-card" data-card="pending">
+                            <div class="stat-card-header">
+                                <div class="stat-card-icon red"><i class="fas fa-bell"></i></div>
+                                <div class="trend-badge" id="pendingTrend"><i class="fas fa-arrow-up"></i><span>+0%</span></div>
+                            </div>
+                            <div class="stat-card-body">
+                                <div class="stat-card-label">Pending Actions</div>
+                                <div class="stat-card-value" id="pendingValue">0</div>
+                                <div class="stat-card-sub" id="pendingSublabel">Requires attention</div>
+                            </div>
+                            <div class="stat-card-footer">
+                                <span class="stat-card-footer-label" id="pendingBreakdown">0 appts • 0 incentives • 0 low stock</span>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="center-grid">
-                        <div class="chart-card-mini">
-                            <div class="chart-header-mini"><div class="chart-title-mini"><i class="fas fa-chart-line"></i><span>Revenue Trend</span></div></div>
-                            <div class="chart-body-mini"><div class="chart-container-tiny"><canvas id="revenueChart"></canvas></div></div>
+                    <!-- Main Content Grid -->
+                    <div class="content-grid">
+                        <!-- Revenue Trend Chart -->
+                        <div class="chart-card">
+                            <div class="chart-card-header">
+                                <div class="chart-card-title">
+                                    <div class="chart-card-icon"><i class="fas fa-chart-area"></i></div>
+                                    <div>
+                                        <div class="chart-card-text">Revenue Trend</div>
+                                        <div class="chart-card-subtitle" id="chartSubtitle">This week's performance</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="chart-card-body">
+                                <div class="chart-container">
+                                    <canvas id="revenueChart"></canvas>
+                                </div>
+                            </div>
                         </div>
-                        <div class="chart-card-mini">
-                            <div class="chart-header-mini"><div class="chart-title-mini"><i class="fas fa-crown"></i><span>Top Performers</span></div></div>
-                            <div class="chart-body-mini"><div class="top-list-mini" id="topPerformersList"><div style="text-align:center;color:var(--text-muted);padding:0.75rem;"><i class="fas fa-circle-notch fa-spin"></i></div></div></div>
+
+                        <!-- Top Performers -->
+                        <div class="chart-card">
+                            <div class="chart-card-header">
+                                <div class="chart-card-title">
+                                    <div class="chart-card-icon"><i class="fas fa-trophy"></i></div>
+                                    <div>
+                                        <div class="chart-card-text">Top Performers</div>
+                                        <div class="chart-card-subtitle">By revenue generated</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="chart-card-body">
+                                <div class="top-performers-list" id="topPerformersList">
+                                    <div class="empty-state">
+                                        <div class="empty-icon"><i class="fas fa-circle-notch fa-spin"></i></div>
+                                        <div class="empty-title">Loading...</div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="bottom-row-mini">
-                        <div class="chart-card-mini">
-                            <div class="chart-header-mini"><div class="chart-title-mini"><i class="fas fa-chart-pie"></i><span>Services</span></div></div>
-                            <div class="chart-body-mini"><div class="chart-container-tiny mini-chart-container"><canvas id="servicesChart"></canvas></div></div>
+                    <!-- Bottom Grid -->
+                    <div class="bottom-grid">
+                        <!-- Services -->
+                        <div class="mini-chart-card">
+                            <div class="mini-chart-header">
+                                <div class="mini-chart-icon"><i class="fas fa-chart-pie"></i></div>
+                                <div class="mini-chart-title">Services</div>
+                            </div>
+                            <div class="mini-chart-body">
+                                <div class="chart-container">
+                                    <canvas id="servicesChart"></canvas>
+                                </div>
+                            </div>
                         </div>
-                        <div class="chart-card-mini">
-                            <div class="chart-header-mini"><div class="chart-title-mini"><i class="fas fa-chart-bar"></i><span>Status</span></div></div>
-                            <div class="chart-body-mini"><div class="chart-container-tiny mini-chart-container"><canvas id="statusChart"></canvas></div></div>
+
+                        <!-- Status -->
+                        <div class="mini-chart-card">
+                            <div class="mini-chart-header">
+                                <div class="mini-chart-icon"><i class="fas fa-chart-bar"></i></div>
+                                <div class="mini-chart-title">Status</div>
+                            </div>
+                            <div class="mini-chart-body">
+                                <div class="chart-container">
+                                    <canvas id="statusChart"></canvas>
+                                </div>
+                            </div>
                         </div>
-                        <div class="chart-card-mini">
-                            <div class="chart-header-mini"><div class="chart-title-mini"><i class="fas fa-boxes"></i><span>Stock</span></div></div>
-                            <div class="chart-body-mini"><div class="chart-container-tiny mini-chart-container"><canvas id="inventoryChart"></canvas></div></div>
+
+                        <!-- Recent Activity -->
+                        <div class="mini-chart-card">
+                            <div class="mini-chart-header">
+                                <div class="mini-chart-icon"><i class="fas fa-history"></i></div>
+                                <div class="mini-chart-title">Recent</div>
+                            </div>
+                            <div class="mini-chart-body">
+                                <div class="activity-list" id="recentActivityList">
+                                    <div class="empty-state">
+                                        <div class="empty-icon"><i class="fas fa-circle-notch fa-spin"></i></div>
+                                        <div class="empty-title">Loading...</div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
+        </main>
     </div>
 
-    <!-- Chart.js (from CDN - no local copy) -->
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <!-- Load notification libraries - LOCAL FILES -->
     <script src="../js/sweetalert2.min.js"></script>
     <script src="../js/toastify.min.js"></script>
     <script src="../js/notifications.js"></script>
-    <!-- Core API and modules -->
     <script src="../js/core-api.js"></script>
     <script src="../js/auth-api.js"></script>
     <script src="../js/reports-api.js"></script>
-    <script src="../js/staff-api-module.js"></script>
-    <script src="../js/services-packages-api.js"></script>
-    <script src="../js/stock-api.js"></script>
+
     <script>
         let charts = {};
+        let currentPeriod = 'week';
 
-        // ✅ Phase 1, Task 1.5: Use new single API endpoint for dashboard stats
-        async function loadDashboard() {
-            document.getElementById('loadingState').style.display = 'flex';
-            document.getElementById('dashboardContent').style.display = 'none';
+        document.addEventListener('DOMContentLoaded', function() {
+            loadUserInfo();
+            setDefaultDates();
+            loadDashboard();
+        });
 
-            try {
-                // ✅ SINGLE API CALL - replaces 8 separate calls
-                const dashboardResult = await apiRequest('/reports/dashboard-summary', { method: 'GET' });
-
-                if (dashboardResult.status === 'success') {
-                    const summary = dashboardResult.data.summary;
-
-                    // ✅ DISPLAY BACKEND-CALCULATED VALUES (no .filter() operations)
-                    document.getElementById('statRevenue').textContent = '₹' + parseFloat(summary.total_revenue || 0).toLocaleString('en-IN', {maximumFractionDigits: 0});
-                    document.getElementById('statAppointments').textContent = summary.completed_appointments || 0;
-                    document.getElementById('statCustomers').textContent = summary.active_customers || 0;
-                    document.getElementById('statStaff').textContent = summary.active_staff || 0;
-                    document.getElementById('statServices').textContent = summary.active_services || 0;
-                    document.getElementById('statPackages').textContent = summary.active_packages || 0;
-                    document.getElementById('statInventory').textContent = (summary.active_services || 0) + (summary.active_packages || 0);
-                    document.getElementById('statLowStock').textContent = summary.low_stock_count || 0;
-                    document.getElementById('statIncentives').textContent = '₹0'; // Incentives require separate call if needed
-                }
-
-                document.getElementById('loadingState').style.display = 'none';
-                document.getElementById('dashboardContent').style.display = 'flex';
-            } catch (error) {
-                console.error('Error:', error);
-                document.getElementById('loadingState').style.display = 'none';
-                showErrorToast('Failed to load dashboard: ' + error.message);
+        function loadUserInfo() {
+            const user = TokenManager.getUser();
+            if (user) {
+                document.getElementById('userName').textContent = user.username || user.name || 'Admin';
+                document.getElementById('userRole').textContent = (user.role || 'Admin').toLowerCase();
+                document.getElementById('userAvatar').textContent = (user.username || user.name || 'A')[0].toUpperCase();
             }
         }
 
-        // ✅ OLD updateStats function removed - now using direct backend values
-        // OLD: function updateStats(sales, appts, staff, services, packages, inventory, incentives, staffList) { ... }
+        function setDefaultDates() {
+            const now = new Date();
+            const today = now.toISOString().split('T')[0];
+            
+            // Calculate week start (Monday)
+            const dayOfWeek = now.getDay();
+            const diff = now.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+            const weekStart = new Date(now.setDate(diff));
+            
+            document.getElementById('startDate').value = weekStart.toISOString().split('T')[0];
+            document.getElementById('endDate').value = today;
+        }
 
-        function updateRevenueChart() {
+        function changePeriod() {
+            currentPeriod = document.getElementById('periodSelect').value;
+            const now = new Date();
+            const today = now.toISOString().split('T')[0];
+            let startDate;
+
+            switch(currentPeriod) {
+                case 'today':
+                    startDate = today;
+                    break;
+                case 'week':
+                    const dayOfWeek = now.getDay();
+                    const diff = now.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+                    startDate = new Date(now.setDate(diff)).toISOString().split('T')[0];
+                    break;
+                case 'month':
+                    startDate = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+                    break;
+                case 'year':
+                    startDate = new Date(now.getFullYear(), 0, 1).toISOString().split('T')[0];
+                    break;
+            }
+
+            document.getElementById('startDate').value = startDate;
+            document.getElementById('endDate').value = today;
+            loadDashboard();
+        }
+
+        async function loadDashboard() {
+            const loadingState = document.getElementById('loadingState');
+            const dashboardContent = document.getElementById('dashboardContent');
+
+            loadingState.style.display = 'flex';
+            dashboardContent.style.display = 'none';
+
+            try {
+                const period = document.getElementById('periodSelect')?.value || 'month';
+                const startDate = document.getElementById('startDate')?.value;
+                const endDate = document.getElementById('endDate')?.value;
+
+                // Build query params
+                let queryParams = `?period=${period}`;
+                if (startDate) queryParams += `&start_date=${startDate}`;
+                if (endDate) queryParams += `&end_date=${endDate}`;
+
+                // Fetch from new dashboard stats API
+                const result = await apiRequest(`/dashboard/stats${queryParams}`, { method: 'GET' });
+
+                if (result.status === 'success' && result.data.cards) {
+                    const cards = result.data.cards;
+
+                    // Update all stat cards
+                    updateStatCard('revenue', cards.revenue);
+                    updateStatCard('appointments', cards.appointments);
+                    updateStatCard('customers', cards.customers);
+                    updateStatCard('staff', cards.staff);
+                    updateStatCard('services', cards.services);
+                    updateStatCard('packages', cards.packages);
+                    updateStatCard('completion_rate', cards.completion_rate);
+                    updateStatCard('pending', cards.pending);
+                }
+
+                // Fetch and update revenue chart data
+                const chartResult = await apiRequest(`/dashboard/revenue-chart${queryParams}`, { method: 'GET' });
+                if (chartResult.status === 'success' && chartResult.data.chart_data) {
+                    updateRevenueChart(chartResult.data.chart_data);
+                }
+
+                // Update top performers
+                if (result.data.top_performers) {
+                    updateTopPerformers(result.data.top_performers);
+                }
+
+                // Update services chart
+                if (result.data.services_chart) {
+                    updateServicesChart(result.data.services_chart);
+                }
+
+                // Update status chart
+                if (result.data.status_chart) {
+                    updateStatusChart(result.data.status_chart);
+                }
+
+                // Update recent activity
+                if (result.data.recent_activity) {
+                    updateRecentActivity(result.data.recent_activity);
+                }
+
+                updateChartSubtitle();
+
+            } catch (error) {
+                console.error('Dashboard error:', error);
+                showErrorToast('Error: ' + error.message);
+            } finally {
+                loadingState.style.display = 'none';
+                dashboardContent.style.display = 'flex';
+            }
+        }
+
+        // Update individual stat card (for dashboard.html inline use)
+        function updateStatCard(cardType, data) {
+            if (!data) return;
+
+            const prefix = cardType === 'completion_rate' ? 'completion' : cardType;
+            
+            // Update value
+            const valueEl = document.getElementById(`${prefix}Value`);
+            if (valueEl) {
+                valueEl.textContent = data.formatted || data.value;
+            }
+
+            // Update trend badge
+            const trendEl = document.getElementById(`${prefix}Trend`);
+            if (trendEl && data.trend !== undefined) {
+                updateTrendBadgeInline(trendEl, data.trend);
+            }
+
+            // Update sublabel
+            const sublabelEl = document.getElementById(`${prefix}Sublabel`);
+            if (sublabelEl && data.sublabel) {
+                // Special handling for staff card - show available staff
+                if (cardType === 'staff' && data.available !== undefined) {
+                    sublabelEl.textContent = `${data.available} available today`;
+                } else if (cardType === 'pending' && data.previous_total !== undefined) {
+                    // Special handling for pending card - show trend context
+                    const change = data.previous_total - data.value;
+                    const trendText = change >= 0 ? '↓ improving' : '↑ increasing';
+                    sublabelEl.textContent = `${trendText} • Requires attention`;
+                } else {
+                    sublabelEl.textContent = data.sublabel;
+                }
+            }
+
+            // Update footer/breakdown based on card type
+            updateCardFooterInline(cardType, data);
+        }
+
+        // Update card footer with specific breakdown info (inline version)
+        function updateCardFooterInline(cardType, data) {
+            switch(cardType) {
+                case 'appointments':
+                    const apptBreakdown = document.getElementById('apptBreakdown');
+                    if (apptBreakdown && data.breakdown) {
+                        apptBreakdown.textContent = `${data.breakdown.COMPLETED || 0} completed • ${data.breakdown.CONFIRMED || 0} confirmed`;
+                    }
+                    break;
+                    
+                case 'customers':
+                    const newCustomersLabel = document.getElementById('newCustomersLabel');
+                    if (newCustomersLabel && data.new_customers !== undefined) {
+                        newCustomersLabel.textContent = `+${data.new_customers} new this period`;
+                    }
+                    break;
+                    
+                case 'staff':
+                    const staffBreakdown = document.getElementById('staffBreakdown');
+                    if (staffBreakdown && data.active_percent !== undefined) {
+                        const activePct = Math.round(data.active_percent);
+                        const inactivePct = 100 - activePct;
+                        staffBreakdown.textContent = `${data.total_staff} total • ${data.inactive_staff} inactive (${inactivePct}%) • ${data.on_leave} on leave • ${data.available} free`;
+                    }
+                    break;
+                    
+                case 'services':
+                    const servicesBreakdown = document.getElementById('servicesBreakdown');
+                    if (servicesBreakdown && data.total_bookings !== undefined) {
+                        servicesBreakdown.textContent = `${data.total_bookings} bookings • ${data.booked_count} unique`;
+                    }
+                    break;
+                    
+                case 'packages':
+                    const packagesBreakdown = document.getElementById('packagesBreakdown');
+                    if (packagesBreakdown && data.sold_count !== undefined) {
+                        packagesBreakdown.textContent = `${data.sold_count} sold • ₹${(data.revenue || 0).toLocaleString()}`;
+                    }
+                    break;
+                    
+                case 'completion_rate':
+                    const completionBreakdown = document.getElementById('completionBreakdown');
+                    if (completionBreakdown && data.cancelled !== undefined) {
+                        completionBreakdown.textContent = `${data.completed}/${data.total} completed • ${data.cancelled} cancelled • ${data.no_show || 0} no-show`;
+                    }
+                    break;
+                    
+                case 'pending':
+                    const pendingBreakdown = document.getElementById('pendingBreakdown');
+                    if (pendingBreakdown && data.breakdown) {
+                        const prevTotal = data.previous_total || 0;
+                        const change = prevTotal - data.value;
+                        const changeIcon = change >= 0 ? '↓' : '↑';
+                        const changeText = change >= 0 
+                            ? `${changeIcon} ${Math.abs(change)} vs prev (good!)` 
+                            : `${changeIcon} ${Math.abs(change)} vs prev`;
+                        pendingBreakdown.textContent = `${data.breakdown.appointments || 0} appts • ${data.breakdown.incentives || 0} incentives • ${data.breakdown.low_stock || 0} stock • ${changeText}`;
+                    }
+                    break;
+            }
+        }
+
+        // Update trend badge (inline version)
+        function updateTrendBadgeInline(element, trendValue) {
+            if (!element) return;
+
+            const trend = parseFloat(trendValue) || 0;
+            // Round to 1 decimal place to avoid .9999999999 issues
+            const roundedTrend = Math.round(trend * 10) / 10;
+            
+            element.className = 'trend-badge';
+
+            // Get the card type to determine if up is good or bad
+            const card = element.closest('.stat-card');
+            const cardType = card?.getAttribute('data-card');
+
+            // For pending actions, higher is worse (so show red for up)
+            // For revenue, customers, etc., higher is better (so show green for up)
+            const isInverted = cardType === 'pending';
+
+            if (roundedTrend > 0.01) {
+                if (isInverted) {
+                    element.classList.add('down');
+                    element.innerHTML = `<i class="fas fa-arrow-up"></i><span>+${Math.abs(roundedTrend)}%</span>`;
+                } else {
+                    element.classList.add('up');
+                    element.innerHTML = `<i class="fas fa-arrow-up"></i><span>+${Math.abs(roundedTrend)}%</span>`;
+                }
+            } else if (roundedTrend < -0.01) {
+                if (isInverted) {
+                    element.classList.add('up');
+                    element.innerHTML = `<i class="fas fa-arrow-down"></i><span>${Math.abs(roundedTrend)}%</span>`;
+                } else {
+                    element.classList.add('down');
+                    element.innerHTML = `<i class="fas fa-arrow-down"></i><span>${Math.abs(roundedTrend)}%</span>`;
+                }
+            } else {
+                element.classList.add('stable');
+                element.innerHTML = `<i class="fas fa-minus"></i><span>0%</span>`;
+            }
+        }
+
+        function formatNumber(num) {
+            if (!num || num === 0) return '0';
+            if (num >= 1000) return (num / 1000).toFixed(1) + 'k';
+            return Math.floor(num).toLocaleString('en-IN');
+        }
+
+        function updateChartSubtitle() {
+            const subtitles = {
+                'today': "Today's performance",
+                'week': "This week's performance",
+                'month': "This month's performance",
+                'year': "This year's performance"
+            };
+            document.getElementById('chartSubtitle').textContent = subtitles[currentPeriod] || 'Performance';
+        }
+
+        function updateRevenueChart(chartData) {
             const ctx = document.getElementById('revenueChart').getContext('2d');
             if (charts.revenue) charts.revenue.destroy();
+            if (!chartData || chartData.length === 0) return;
+
+            const labels = chartData.map(item => {
+                if (item.date) {
+                    return new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                }
+                return '';
+            });
+            const data = chartData.map(item => parseFloat(item.revenue || 0));
+
+            const gradient = ctx.createLinearGradient(0, 0, 0, 220);
+            gradient.addColorStop(0, 'rgba(212, 175, 55, 0.4)');
+            gradient.addColorStop(1, 'rgba(212, 175, 55, 0)');
+
             charts.revenue = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: ['W1', 'W2', 'W3', 'W4'],
-                    datasets: [{ label: 'Revenue', data: [15000, 22000, 18000, 25000], borderColor: '#d4af37', backgroundColor: 'rgba(212, 175, 55, 0.1)', tension: 0.4, fill: true, pointRadius: 2 }]
+                    labels: labels,
+                    datasets: [{
+                        label: 'Revenue',
+                        data: data,
+                        borderColor: '#d4af37',
+                        backgroundColor: gradient,
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 3,
+                        pointBackgroundColor: '#d4af37',
+                        pointBorderColor: '#f1f5f9',
+                        pointBorderWidth: 2
+                    }]
                 },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 8 } } }, y: { grid: { color: 'rgba(42,49,66,0.5)' }, ticks: { color: '#94a3b8', font: { size: 8 } } } } }
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(26, 31, 46, 0.95)',
+                            titleColor: '#f1f5f9',
+                            bodyColor: '#d4af37',
+                            borderColor: 'rgba(212, 175, 55, 0.3)',
+                            borderWidth: 1,
+                            padding: 10,
+                            displayColors: false,
+                            callbacks: {
+                                label: function(context) { return '₹' + context.parsed.y.toLocaleString('en-IN'); }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 9 } } },
+                        y: { grid: { color: 'rgba(42, 49, 66, 0.5)' }, ticks: { color: '#94a3b8', font: { size: 9 }, callback: function(value) { return '₹' + (value >= 1000 ? (value/1000).toFixed(0) + 'k' : value); } } }
+                    }
+                }
             });
+        }
+
+        function updateTopPerformers(topStaff) {
+            const container = document.getElementById('topPerformersList');
+            if (!topStaff || topStaff.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="empty-icon"><i class="fas fa-user-slash"></i></div><div class="empty-title">No Data</div></div>';
+                return;
+            }
+
+            const rankClasses = ['gold', 'silver', 'bronze', 'default', 'default'];
+            let html = '';
+            topStaff.slice(0, 5).forEach((staff, index) => {
+                const rank = index + 1;
+                const rankClass = rankClasses[index] || 'default';
+                const initials = (staff.name || 'S')[0].toUpperCase();
+                const revenue = parseFloat(staff.revenue_generated || 0);
+                const appts = parseInt(staff.appointments_count || 0);
+                
+                html += `<div class="top-performer-item">
+                    <div class="performer-rank ${rankClass}">${rank}</div>
+                    <div class="performer-avatar">${initials}</div>
+                    <div class="performer-info">
+                        <div class="performer-name">${escapeHtml(staff.name)}</div>
+                        <div class="performer-role">${escapeHtml(staff.specialization) || 'Staff'}</div>
+                    </div>
+                    <div class="performer-stats">
+                        <div class="performer-value">₹${formatNumber(revenue)}</div>
+                        <div class="performer-sub">${appts} appts</div>
+                    </div>
+                </div>`;
+            });
+            container.innerHTML = html;
         }
 
         function updateServicesChart(services) {
             const ctx = document.getElementById('servicesChart').getContext('2d');
             if (charts.services) charts.services.destroy();
-            const data = (services.data?.services || []).slice(0, 4);
+            if (!services || services.length === 0) return;
+
+            const topServices = services.slice(0, 5);
+            const labels = topServices.map(s => s.service_name.length > 10 ? s.service_name.substring(0, 10) + '...' : s.service_name);
+            const data = topServices.map(s => parseFloat(s.net_revenue || 0));
+
             charts.services = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
-                    labels: data.map(s => s.service_name),
-                    datasets: [{ data: data.map(s => s.net_revenue || 0), backgroundColor: ['#d4af37', '#cd7f32', '#3b82f6', '#10b981'], borderWidth: 0 }]
+                    labels: labels,
+                    datasets: [{ data: data, backgroundColor: ['#d4af37', '#cd7f32', '#3b82f6', '#10b981', '#8b5cf6'], borderWidth: 0 }]
                 },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: '#94a3b8', font: { size: 7 } } } } }
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '60%',
+                    plugins: { legend: { position: 'right', labels: { color: '#94a3b8', font: { size: 7 }, padding: 6, usePointStyle: true } } }
+                }
             });
         }
 
-        function updateStatusChart(appts) {
+        function updateStatusChart(statusBreakdown) {
             const ctx = document.getElementById('statusChart').getContext('2d');
             if (charts.status) charts.status.destroy();
-            const breakdown = appts.data?.status_breakdown || [];
+            if (!statusBreakdown || statusBreakdown.length === 0) return;
+
+            const labels = statusBreakdown.map(s => s.status);
+            const data = statusBreakdown.map(s => parseInt(s.count || 0));
+            const colors = { 'COMPLETED': '#10b981', 'PENDING': '#f59e0b', 'CONFIRMED': '#3b82f6', 'CANCELLED': '#ef4444', 'IN_PROGRESS': '#8b5cf6' };
+            const backgroundColors = labels.map(l => colors[l] || '#64748b');
+
             charts.status = new Chart(ctx, {
-                type: 'pie',
+                type: 'doughnut',
                 data: {
-                    labels: breakdown.map(s => s.status),
-                    datasets: [{ data: breakdown.map(s => s.count), backgroundColor: ['#3b82f6', '#10b981', '#8b5cf6', '#ef4444'], borderWidth: 0 }]
+                    labels: labels,
+                    datasets: [{ data: data, backgroundColor: backgroundColors, borderWidth: 0 }]
                 },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: '#94a3b8', font: { size: 7 } } } } }
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '60%',
+                    plugins: { legend: { position: 'right', labels: { color: '#94a3b8', font: { size: 7 }, padding: 6, usePointStyle: true } } }
+                }
             });
         }
 
-        function updateInventoryChart(inventory) {
-            const ctx = document.getElementById('inventoryChart').getContext('2d');
-            if (charts.inventory) charts.inventory.destroy();
-            const items = inventory.data?.inventory || [];
-            const ok = items.filter(i => i.stock_status === 'OK').length;
-            const low = items.filter(i => i.stock_status === 'LOW').length;
-            const out = items.filter(i => i.current_quantity === 0).length;
-            charts.inventory = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: ['OK', 'Low', 'Out'],
-                    datasets: [{ data: [ok, low, out], backgroundColor: ['#10b981', '#f59e0b', '#ef4444'], borderRadius: 4 }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 8 } } }, y: { display: false } } }
+        function updateRecentActivity(appointments) {
+            const container = document.getElementById('recentActivityList');
+            if (!appointments || appointments.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="empty-icon"><i class="fas fa-history"></i></div><div class="empty-title">No Activity</div></div>';
+                return;
+            }
+            
+            let html = '';
+            appointments.slice(0, 6).forEach(appt => {
+                const statusClass = (appt.status || 'pending').toLowerCase();
+                const time = appt.start_time ? appt.start_time.substring(0, 5) : '--:--';
+                const amount = parseFloat(appt.final_amount || 0);
+                
+                html += `<div class="activity-item">
+                    <div class="activity-time">${time}</div>
+                    <div class="activity-icon ${statusClass}"><i class="fas fa-${statusClass === 'completed' ? 'check' : statusClass === 'cancelled' ? 'times' : statusClass === 'confirmed' ? 'check-circle' : 'clock'}"></i></div>
+                    <div class="activity-content">
+                        <div class="activity-title">${escapeHtml(appt.customer_name || 'Customer')}</div>
+                        <div class="activity-desc">${escapeHtml(appt.services || 'Service')}</div>
+                    </div>
+                    <div class="activity-amount">₹${formatNumber(amount)}</div>
+                </div>`;
             });
+            container.innerHTML = html;
         }
 
-        function updateTopPerformers(services, packages) {
-            const topServices = (services.data?.services || []).sort((a,b) => (b.net_revenue||0) - (a.net_revenue||0)).slice(0, 3);
-            const topPackages = (packages.data?.packages || []).sort((a,b) => (b.net_revenue||0) - (a.net_revenue||0)).slice(0, 2);
-
-            let html = '<div class="top-section-title">Top Services</div>';
-            topServices.forEach((s, i) => {
-                html += `<div class="top-item-mini"><div class="top-item-left-mini"><div class="top-rank-mini">${i+1}</div><div class="top-name-mini" title="${s.service_name}">${s.service_name}</div></div><div class="top-value-mini">₹${(s.net_revenue||0).toLocaleString('en-IN', {maximumFractionDigits:0})}</div></div>`;
-            });
-
-            html += '<div class="top-section-title">Top Packages</div>';
-            topPackages.forEach((p, i) => {
-                html += `<div class="top-item-mini"><div class="top-item-left-mini"><div class="top-rank-mini" style="background:#cd7f32">${i+1}</div><div class="top-name-mini" title="${p.package_name}">${p.package_name}</div></div><div class="top-value-mini">₹${(p.net_revenue||0).toLocaleString('en-IN', {maximumFractionDigits:0})}</div></div>`;
-            });
-
-            document.getElementById('topPerformersList').innerHTML = html || '<div style="text-align:center;color:var(--text-muted);padding:0.75rem;font-size:0.7rem;">No data</div>';
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
 
-        function handleLogout() {
-            if (confirm('Are you sure you want to logout?')) {
+        async function handleLogout() {
+            const result = await Swal.fire({
+                title: 'Logout?',
+                text: 'Are you sure?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d4af37',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Yes',
+                cancelButtonText: 'Cancel'
+            });
+            if (result.isConfirmed) {
                 TokenManager.removeToken();
                 TokenManager.removeUser();
                 localStorage.removeItem('refresh_token');
-                // Use relative path to avoid hardcoded URL issues
                 window.location.href = '../index.html';
             }
         }
-
-        function loadUserInfo() {
-            const user = JSON.parse(localStorage.getItem('user') || '{}');
-            if (user) {
-                document.getElementById('userName').textContent = user.username || user.name || 'User';
-                document.getElementById('userRole').textContent = user.role || 'User';
-                const avatar = document.getElementById('userAvatar');
-                if (avatar) avatar.textContent = (user.username || user.name || 'U')[0].toUpperCase();
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', function() {
-            loadUserInfo();
-            const now = new Date();
-            const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-            document.getElementById('startDate').value = firstDay.toISOString().split('T')[0];
-            document.getElementById('endDate').value = now.toISOString().split('T')[0];
-            loadDashboard();
-        });
     </script>
 </body>
 </html>

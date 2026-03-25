@@ -6,8 +6,6 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Check authentication
     if (!TokenManager.isAuthenticated()) {
-        // Use relative path to avoid hardcoded URL issues
-        // Redirect to parent directory where login.html is located
         window.location.href = '../login.html';
         return;
     }
@@ -34,87 +32,187 @@ async function loadAdminData() {
     try {
         const user = TokenManager.getUser();
         if (!user) return;
-        
-        // Get salon details if admin
+
         if (user.role === USER_ROLES.ADMIN && user.salon_id) {
             const result = await SuperAdminAPI.getSalonDetails(user.salon_id);
             if (result.success) {
                 updateAdminUI(result.data);
             }
         }
-        
-        // Update user info
+
         updateUserUI(user);
     } catch (error) {
         console.error('Failed to load admin data:', error);
     }
 }
 
-// Load dashboard statistics
+// Load dashboard statistics - NEW API
 async function loadDashboardStats() {
     const user = TokenManager.getUser();
     if (!user) return;
-    
+
     try {
-        // Load appointments count
-        const appointmentsResult = await AppointmentAPI.getAppointments({ limit: 1 });
-        if (appointmentsResult.success) {
-            updateStat('totalAppointments', appointmentsResult.data.pagination?.total || 0);
+        const period = document.getElementById('periodSelect')?.value || 'month';
+        const startDate = document.getElementById('startDate')?.value;
+        const endDate = document.getElementById('endDate')?.value;
+
+        // Build query params
+        let queryParams = `?period=${period}`;
+        if (startDate) queryParams += `&start_date=${startDate}`;
+        if (endDate) queryParams += `&end_date=${endDate}`;
+
+        // Fetch from new dashboard stats API
+        const result = await apiRequest(`/dashboard/stats${queryParams}`, { method: 'GET' });
+
+        if (result.status === 'success' && result.data.cards) {
+            const cards = result.data.cards;
+            
+            // Update Revenue Card
+            updateStatCard('revenue', cards.revenue);
+            
+            // Update Appointments Card
+            updateStatCard('appointments', cards.appointments);
+            
+            // Update Customers Card
+            updateStatCard('customers', cards.customers);
+            
+            // Update Staff Card
+            updateStatCard('staff', cards.staff);
+            
+            // Update Services Card
+            updateStatCard('services', cards.services);
+            
+            // Update Packages Card
+            updateStatCard('packages', cards.packages);
+            
+            // Update Completion Rate Card
+            updateStatCard('completion_rate', cards.completion_rate);
+            
+            // Update Pending Actions Card
+            updateStatCard('pending', cards.pending);
         }
-        
-        // Load customers count
-        const customersResult = await CustomerAPI.getCustomers({ limit: 1 });
-        if (customersResult.success) {
-            updateStat('totalCustomers', customersResult.data.pagination?.total || 0);
-        }
-        
-        // Load staff count
-        const staffResult = await StaffAPI.getStaffList({ limit: 1 });
-        if (staffResult.success) {
-            updateStat('totalStaff', staffResult.data.pagination?.total || 0);
-        }
-        
-        // Load services count
-        const servicesResult = await ServiceAPI.getServices({ limit: 1 });
-        if (servicesResult.success) {
-            updateStat('totalServices', servicesResult.data.pagination?.total || 0);
-        }
-        
-        // Load packages count
-        const packagesResult = await PackageAPI.getPackages({ limit: 1 });
-        if (packagesResult.success) {
-            updateStat('totalPackages', packagesResult.data.pagination?.total || 0);
-        }
-        
-        // Load today's appointments
-        const today = new Date().toISOString().split('T')[0];
-        const todayAppointments = await AppointmentAPI.getAppointments({ 
-            from_date: today,
-            to_date: today
-        });
-        if (todayAppointments.success) {
-            updateStat('todayAppointments', todayAppointments.data.pagination?.total || 0);
-        }
-        
-        // Load pending appointments
-        const pendingAppointments = await AppointmentAPI.getAppointments({ 
-            status: STATUS.PENDING
-        });
-        if (pendingAppointments.success) {
-            updateStat('pendingAppointments', pendingAppointments.data.pagination?.total || 0);
-        }
-        
-        // Load revenue
-        const revenueResult = await ReportAPI.getSalesReport({
-            from_date: new Date(new Date().setDate(1)).toISOString().split('T')[0], // First day of month
-            to_date: new Date().toISOString().split('T')[0]
-        });
-        if (revenueResult.success) {
-            updateStat('monthlyRevenue', revenueResult.data.total_received || 0);
-        }
-        
+
     } catch (error) {
         console.error('Failed to load dashboard stats:', error);
+    }
+}
+
+// Update individual stat card
+function updateStatCard(cardType, data) {
+    if (!data) return;
+
+    const prefix = cardType === 'completion_rate' ? 'completion' : cardType;
+    
+    // Update value
+    const valueEl = document.getElementById(`${prefix}Value`);
+    if (valueEl) {
+        valueEl.textContent = data.formatted || data.value;
+    }
+
+    // Update trend badge
+    const trendEl = document.getElementById(`${prefix}Trend`);
+    if (trendEl && data.trend !== undefined) {
+        updateTrendBadge(trendEl, data.trend);
+    }
+
+    // Update sublabel
+    const sublabelEl = document.getElementById(`${prefix}Sublabel`);
+    if (sublabelEl && data.sublabel) {
+        sublabelEl.textContent = data.sublabel;
+    }
+
+    // Update footer/breakdown based on card type
+    updateCardFooter(cardType, data);
+}
+
+// Update card footer with specific breakdown info
+function updateCardFooter(cardType, data) {
+    switch(cardType) {
+        case 'appointments':
+            const apptBreakdown = document.getElementById('apptBreakdown');
+            if (apptBreakdown && data.breakdown) {
+                apptBreakdown.textContent = `${data.breakdown.COMPLETED || 0} completed • ${data.breakdown.CONFIRMED || 0} confirmed`;
+            }
+            break;
+            
+        case 'customers':
+            const newCustomersLabel = document.getElementById('newCustomersLabel');
+            if (newCustomersLabel && data.new_customers !== undefined) {
+                newCustomersLabel.textContent = `+${data.new_customers} new this period`;
+            }
+            break;
+            
+        case 'staff':
+            const staffBreakdown = document.getElementById('staffBreakdown');
+            if (staffBreakdown && data.on_leave !== undefined) {
+                staffBreakdown.textContent = `${data.on_leave} on leave • ${data.busy} busy`;
+            }
+            break;
+            
+        case 'services':
+            const servicesBreakdown = document.getElementById('servicesBreakdown');
+            if (servicesBreakdown && data.total_bookings !== undefined) {
+                servicesBreakdown.textContent = `${data.total_bookings} bookings • ${data.booked_count} unique`;
+            }
+            break;
+            
+        case 'packages':
+            const packagesBreakdown = document.getElementById('packagesBreakdown');
+            if (packagesBreakdown && data.sold_count !== undefined) {
+                packagesBreakdown.textContent = `${data.sold_count} sold • ₹${(data.revenue || 0).toLocaleString()}`;
+            }
+            break;
+            
+        case 'completion_rate':
+            const completionBreakdown = document.getElementById('completionBreakdown');
+            if (completionBreakdown && data.cancelled !== undefined) {
+                completionBreakdown.textContent = `${data.completed}/${data.total} completed • ${data.cancelled} cancelled • ${data.no_show || 0} no-show`;
+            }
+            break;
+            
+        case 'pending':
+            const pendingBreakdown = document.getElementById('pendingBreakdown');
+            if (pendingBreakdown && data.breakdown) {
+                pendingBreakdown.textContent = `${data.breakdown.appointments || 0} appts • ${data.breakdown.incentives || 0} incentives • ${data.breakdown.low_stock || 0} low stock`;
+            }
+            break;
+    }
+}
+
+// Update trend badge
+function updateTrendBadge(element, trendValue) {
+    if (!element) return;
+    
+    const trend = parseFloat(trendValue) || 0;
+    element.className = 'trend-badge';
+    
+    // Get the card type to determine if up is good or bad
+    const card = element.closest('.stat-card');
+    const cardType = card?.getAttribute('data-card');
+    
+    // For pending actions, higher is worse
+    // For revenue, customers, etc., higher is better
+    const isInverted = cardType === 'pending';
+    
+    if (trend > 0) {
+        if (isInverted) {
+            element.classList.add('down');
+            element.innerHTML = `<i class="fas fa-arrow-up"></i><span>+${Math.abs(trend)}%</span>`;
+        } else {
+            element.classList.add('up');
+            element.innerHTML = `<i class="fas fa-arrow-up"></i><span>+${Math.abs(trend)}%</span>`;
+        }
+    } else if (trend < 0) {
+        if (isInverted) {
+            element.classList.add('up');
+            element.innerHTML = `<i class="fas fa-arrow-down"></i><span>${Math.abs(trend)}%</span>`;
+        } else {
+            element.classList.add('down');
+            element.innerHTML = `<i class="fas fa-arrow-down"></i><span>${Math.abs(trend)}%</span>`;
+        }
+    } else {
+        element.classList.add('stable');
+        element.innerHTML = `<i class="fas fa-minus"></i><span>0%</span>`;
     }
 }
 

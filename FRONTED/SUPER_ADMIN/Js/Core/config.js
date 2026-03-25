@@ -32,6 +32,7 @@ const API_ENDPOINTS = {
     // USERS MODULE (SUPER_ADMIN ONLY)
     // =============================================
     USERS: {
+        LIST_ALL: '/admin/users', // List all users across all salons (SUPER_ADMIN only)
         CREATE_ADMIN: (salonId) => `/admin/salons/${salonId}/admin`,
         LIST_BY_SALON: (salonId) => `/admin/salons/${salonId}/users`,
         VIEW: (userId) => `/admin/users/${userId}`,

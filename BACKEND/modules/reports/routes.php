@@ -113,3 +113,13 @@ $router->register(
         $controller->getDashboardSummary();
     }
 );
+
+// 1️⃣1️⃣ Super Admin Dashboard (SUPER_ADMIN only) - Platform-wide metrics
+$router->register(
+    'GET',
+    '/api/reports/super-admin-dashboard',
+    function() use ($controller) {
+        authorize(['SUPER_ADMIN']);
+        $controller->getSuperAdminDashboard();
+    }
+);

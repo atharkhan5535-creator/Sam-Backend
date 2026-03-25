@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Users API</title>
+</head>
+<body>
+    <h1>Testing Users API</h1>
+    <pre id="output"></pre>
+    
+    <script>
+        async function testAPI() {
+            const output = document.getElementById('output');
+            
+            try {
+                // Get token from localStorage
+                const token = localStorage.getItem('auth_token');
+                output.textContent = 'Token: ' + (token ? token.substring(0, 50) + '...' : 'NOT FOUND') + '\n\n';
+                
+                if (!token) {
+                    output.textContent += 'Error: No token found. Please login first.\n';
+                    return;
+                }
+                
+                const url = window.location.origin + '/Sam-Backend/BACKEND/public/index.php/api/admin/users';
+                output.textContent += 'URL: ' + url + '\n\n';
+                
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    }
+                });
+                
+                output.textContent += 'Status: ' + response.status + '\n';
+                output.textContent += 'Headers: ' + JSON.stringify(Object.fromEntries(response.headers.entries()), null, 2) + '\n\n';
+                
+                const text = await response.text();
+                output.textContent += 'Raw Response:\n' + text + '\n\n';
+                
+                try {
+                    const json = JSON.parse(text);
+                    output.textContent += 'Parsed JSON:\n' + JSON.stringify(json, null, 2);
+                } catch (e) {
+                    output.textContent += 'JSON Parse Error: ' + e.message + '\n';
+                    output.textContent += 'Response length: ' + text.length + ' bytes\n';
+                    output.textContent += 'First 100 chars: [' + text.substring(0, 100) + ']\n';
+                    output.textContent += 'Last 100 chars: [' + text.substring(text.length - 100) + ']\n';
+                }
+            } catch (error) {
+                output.textContent += 'Fetch Error: ' + error.message + '\n' + error.stack;
+            }
+        }
+        
+        testAPI();
+    </script>
+</body>
+</html>

@@ -106,6 +106,61 @@ class UserController
 
     /*
     |--------------------------------------------------------------------------
+    | 2️⃣ LIST ALL USERS ACROSS ALL SALONS (SUPER_ADMIN only)
+    | Returns all users from all salons with optional filtering
+    |--------------------------------------------------------------------------
+    */
+    public function indexAll()
+    {
+        $auth = $GLOBALS['auth_user'] ?? null;
+
+        // Authorization check - SUPER_ADMIN only
+        if (!$auth || $auth['role'] !== 'SUPER_ADMIN') {
+            Response::json(["status" => "error", "message" => "Unauthorized - SUPER_ADMIN only"], 403);
+        }
+
+        $salonId = $_GET['salon_id'] ?? null;
+        $role = $_GET['role'] ?? null;
+        $status = $_GET['status'] ?? null;
+
+        $sql = "SELECT user_id, salon_id, username, role, email, status, created_at, updated_at
+                FROM users WHERE 1=1";
+        $params = [];
+
+        // Filter by salon_id if provided
+        if ($salonId) {
+            $sql .= " AND salon_id = ?";
+            $params[] = $salonId;
+        }
+
+        // Filter by role if provided
+        if ($role && in_array($role, ['ADMIN', 'STAFF', 'SUPER_ADMIN'])) {
+            $sql .= " AND role = ?";
+            $params[] = $role;
+        }
+
+        // Filter by status if provided
+        if ($status && in_array($status, ['ACTIVE', 'INACTIVE', 'BLOCKED'])) {
+            $sql .= " AND status = ?";
+            $params[] = $status;
+        }
+
+        $sql .= " ORDER BY created_at DESC";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+        $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        Response::json([
+            "status" => "success",
+            "data" => [
+                "items" => $users
+            ]
+        ]);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
     | 2️⃣ LIST USERS BY SALON (SUPER_ADMIN, ADMIN)
     | SUPER_ADMIN: Can view any salon's users
     | ADMIN: Can only view users in THEIR OWN salon

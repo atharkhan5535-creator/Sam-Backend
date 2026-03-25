@@ -1,8 +1,13 @@
 <?php
 
-// 🔥 ERROR REPORTING - SUPPRESS ERRORS FOR JSON API
-error_reporting(0);
-ini_set('display_errors', 0);
+// 🔥 ERROR REPORTING - ENABLE FOR DEBUGGING
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+ini_set('log_errors', 1);
+ini_set('error_log', __DIR__ . '/../logs/php_error.log');
+
+// 🔥 START OUTPUT BUFFERING - Catch any early output
+ob_start();
 
 // 🔥 CORS HEADERS — REQUIRED FOR BROWSER
 header("Access-Control-Allow-Origin: *");
@@ -42,6 +47,7 @@ require __DIR__ . '/../modules/subscription-plans/routes.php';
 require __DIR__ . '/../modules/salons/routes.php';
 require __DIR__ . '/../modules/users/routes.php';
 require __DIR__ . '/../modules/reports/routes.php';
+require __DIR__ . '/../modules/dashboard/routes.php';  // Dashboard routes
 
 $method = $_SERVER['REQUEST_METHOD'];
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);

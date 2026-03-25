@@ -3,16 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Elite Salon Staff</title>
+    <title>Dashboard - Staff Panel | Elite Salon</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.min.css">
     <link rel="stylesheet" href="../css/toastify.min.css">
     <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/staff.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: var(--primary-dark); color: var(--text-primary); }
+        body { font-family: 'Inter', sans-serif; background: var(--primary-dark); color: var(--text-primary); overflow-x: hidden; }
         .dashboard-wrapper { display: flex; min-height: 100vh; }
+
+        /* Sidebar */
         .sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 220px; background: linear-gradient(180deg, var(--primary-darker) 0%, var(--secondary-dark) 100%); border-right: 1px solid var(--card-border); display: flex; flex-direction: column; z-index: 1000; }
         .sidebar-header { padding: 1rem; border-bottom: 1px solid var(--card-border); }
         .sidebar-logo { font-size: 1.1rem; font-weight: 700; color: var(--text-primary); text-transform: uppercase; }
@@ -32,97 +35,407 @@
         .sidebar-footer { padding: 0.75rem; border-top: 1px solid var(--card-border); }
         .logout-btn { display: flex; align-items: center; justify-content: center; gap: 0.5rem; width: 100%; padding: 0.65rem; background: linear-gradient(135deg, var(--danger), #dc2626); color: white; border: none; border-radius: 6px; font-weight: 600; font-size: 0.8rem; cursor: pointer; transition: all 0.2s; }
         .logout-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(239, 68, 68, 0.4); }
-        .main-content { margin-left: 220px; flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
-        .dashboard-header { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 1rem; background: rgba(10, 14, 26, 0.95); border-bottom: 1px solid var(--card-border); height: 45px; flex-shrink: 0; }
+
+        /* Main Content */
+        .main-content { margin-left: 220px; flex: 1; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        .dashboard-header { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 1rem; background: rgba(10, 14, 26, 0.95); border-bottom: 1px solid var(--card-border); flex-shrink: 0; height: 45px; }
         .page-title-mini { display: flex; align-items: center; gap: 0.5rem; }
         .page-icon-mini { width: 28px; height: 28px; background: linear-gradient(135deg, var(--accent-gold), var(--accent-bronze)); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; color: var(--primary-dark); }
         .page-title-mini h1 { font-size: 0.9rem; font-weight: 700; }
         .page-title-mini p { font-size: 0.6rem; color: var(--text-secondary); }
+        .btn-refresh-mini { padding: 0.25rem 0.5rem; background: linear-gradient(135deg, var(--accent-gold), var(--accent-bronze)); color: var(--primary-dark); border: none; border-radius: 4px; font-weight: 600; font-size: 0.65rem; cursor: pointer; }
+        .btn-refresh-mini:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(212, 175, 55, 0.4); }
+        .btn-refresh-mini i { transition: transform 0.5s; }
+        .btn-refresh-mini:hover i { transform: rotate(180deg); }
+
+        /* Dashboard Content */
         .dashboard-main { flex: 1; padding: 0.5rem; overflow-y: auto; display: flex; flex-direction: column; gap: 0.5rem; }
-        .stats-row-mini { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; }
-        .stat-card-mini { background: linear-gradient(135deg, var(--card-bg), var(--secondary-dark)); border: 1px solid var(--card-border); border-radius: 6px; padding: 0.5rem; position: relative; }
-        .stat-card-mini::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--accent-gold), var(--accent-bronze)); }
-        .stat-icon-mini { width: 24px; height: 24px; background: rgba(212, 175, 55, 0.1); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; color: var(--accent-gold); margin-bottom: 0.35rem; }
-        .stat-label-mini { font-size: 0.5rem; font-weight: 600; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 0.15rem; }
-        .stat-value-mini { font-size: 1rem; font-weight: 700; color: var(--text-primary); line-height: 1; }
-        .stat-sub-mini { font-size: 0.5rem; color: var(--text-muted); margin-top: 0.1rem; }
-        .content-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 6px; padding: 0.5rem; }
-        .card-header-mini { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--card-border); }
+        
+        /* Welcome Banner */
+        .welcome-banner { background: linear-gradient(135deg, var(--card-bg) 0%, var(--secondary-dark) 100%); border: 1px solid var(--card-border); border-radius: 6px; padding: 0.75rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-shrink: 0; }
+        .welcome-content { display: flex; align-items: center; gap: 1rem; flex: 1; }
+        .welcome-avatar { width: 45px; height: 45px; border-radius: 6px; background: linear-gradient(135deg, var(--accent-gold), var(--accent-bronze)); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.1rem; color: var(--primary-dark); flex-shrink: 0; }
+        .welcome-info { flex: 1; }
+        .welcome-greeting { font-size: 0.55rem; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 0.15rem; }
+        .welcome-name { font-size: 0.95rem; font-weight: 700; color: var(--text-primary); }
+        .welcome-stats { display: flex; gap: 1rem; }
+        .welcome-stat { text-align: center; }
+        .welcome-stat-value { font-size: 0.95rem; font-weight: 700; color: var(--accent-gold); }
+        .welcome-stat-label { font-size: 0.5rem; color: var(--text-muted); text-transform: uppercase; }
+
+        /* Stats Grid */
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; flex-shrink: 0; }
+        .stat-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 6px; padding: 0.6rem; position: relative; overflow: hidden; transition: all 0.2s; }
+        .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--accent-gold), var(--accent-bronze)); opacity: 0.5; }
+        .stat-card:hover { border-color: rgba(212, 175, 55, 0.3); transform: translateY(-2px); box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        .stat-card::after { content: ''; position: absolute; bottom: -20px; right: -20px; width: 60px; height: 60px; background: radial-gradient(circle, rgba(212,175,55,0.05) 0%, transparent 70%); border-radius: 50%; }
+        .stat-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.4rem; position: relative; z-index: 1; }
+        .stat-card-icon { width: 28px; height: 28px; border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; flex-shrink: 0; position: relative; z-index: 1; }
+        .stat-card-icon.gold { background: rgba(212, 175, 55, 0.15); color: var(--accent-gold); }
+        .stat-card-icon.green { background: rgba(16, 185, 129, 0.15); color: var(--success); }
+        .stat-card-icon.blue { background: rgba(59, 130, 246, 0.15); color: var(--info); }
+        .stat-card-icon.orange { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
+        .stat-card-body { position: relative; z-index: 1; }
+        .stat-card-label { font-size: 0.5rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 0.2rem; }
+        .stat-card-value { font-size: 1rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.15rem; }
+        .stat-card-mini-stats { display: flex; gap: 0.4rem; padding-top: 0.3rem; border-top: 1px solid rgba(255,255,255,0.05); }
+        .mini-stat { display: flex; flex-direction: column; }
+        .mini-stat-value { font-size: 0.6rem; font-weight: 600; color: var(--accent-gold); }
+        .mini-stat-label { font-size: 0.45rem; color: var(--text-muted); }
+        .stat-card-sub { font-size: 0.5rem; color: var(--text-muted); margin-top: 0.2rem; }
+
+        /* Main Grid */
+        .main-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 0.5rem; flex-shrink: 0; }
+        
+        /* Timeline Card */
+        .timeline-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 6px; padding: 0.6rem; }
+        .card-header-mini { display: flex; align-items: center; justify-content: space-between; padding: 0.5rem; border-bottom: 1px solid var(--card-border); margin-bottom: 0.5rem; }
         .card-title-mini { display: flex; align-items: center; gap: 0.4rem; font-size: 0.7rem; font-weight: 600; color: var(--text-primary); }
         .card-title-mini i { color: var(--accent-gold); font-size: 0.75rem; }
         .card-body-mini { padding: 0.5rem; }
-        .timeline { display: flex; flex-direction: column; gap: 0.5rem; max-height: 300px; overflow-y: auto; }
-        .timeline-item { display: flex; gap: 0.75rem; padding: 0.75rem; background: rgba(255, 255, 255, 0.02); border-radius: var(--radius-lg); border-left: 3px solid var(--accent-gold); }
-        .timeline-time { min-width: 60px; font-size: 0.65rem; font-weight: 600; color: var(--accent-gold); }
-        .timeline-content { flex: 1; }
-        .timeline-title { font-size: 0.75rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.2rem; }
-        .timeline-desc { font-size: 0.65rem; color: var(--text-secondary); }
-        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.35rem; padding: 0.4rem 0.65rem; font-family: inherit; font-size: 0.65rem; font-weight: 600; text-transform: uppercase; border: none; border-radius: 4px; cursor: pointer; transition: all 0.2s; text-decoration: none; }
-        .btn-primary { background: linear-gradient(135deg, var(--accent-gold), var(--accent-bronze)); color: var(--primary-dark); }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(212, 175, 55, 0.4); }
-        .btn-secondary { background: var(--card-bg); color: var(--text-primary); border: 1px solid var(--card-border); }
-        .btn-secondary:hover { background: var(--secondary-dark); border-color: var(--accent-gold); }
-        .btn-sm { padding: 0.3rem 0.5rem; font-size: 0.6rem; }
-        .loading-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(10, 14, 26, 0.9); display: flex; align-items: center; justify-content: center; z-index: 9999; }
-        .loading-spinner { width: 30px; height: 30px; border: 2px solid var(--card-border); border-top-color: var(--accent-gold); border-radius: 50%; animation: spin 1s linear infinite; }
+
+        /* Timeline */
+        .timeline { display: flex; flex-direction: column; gap: 0.4rem; max-height: 280px; overflow-y: auto; }
+        .timeline-item { display: flex; gap: 0.6rem; padding: 0.5rem; background: var(--primary-dark); border-radius: 4px; border-left: 2px solid var(--accent-gold); transition: all 0.2s; }
+        .timeline-item:hover { background: var(--card-bg); transform: translateX(3px); }
+        .timeline-item.completed { border-left-color: var(--success); }
+        .timeline-item.cancelled { border-left-color: var(--danger); }
+        .timeline-item.confirmed { border-left-color: var(--info); }
+        .timeline-time { min-width: 45px; }
+        .timeline-time-box { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 3px; padding: 0.35rem; text-align: center; }
+        .timeline-time-text { font-size: 0.7rem; font-weight: 700; color: var(--text-primary); }
+        .timeline-time-period { font-size: 0.5rem; color: var(--text-muted); text-transform: uppercase; margin-top: 0.1rem; }
+        .timeline-content { flex: 1; min-width: 0; }
+        .timeline-title { font-weight: 600; font-size: 0.7rem; color: var(--text-primary); margin-bottom: 0.15rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .timeline-service { font-size: 0.55rem; color: var(--text-secondary); margin-bottom: 0.25rem; }
+        .timeline-meta { display: flex; gap: 0.5rem; align-items: center; }
+        .timeline-status { display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.15rem 0.4rem; border-radius: 3px; font-size: 0.5rem; font-weight: 700; text-transform: uppercase; }
+        .timeline-status.pending { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
+        .timeline-status.confirmed { background: rgba(59, 130, 246, 0.15); color: var(--info); }
+        .timeline-status.completed { background: rgba(16, 185, 129, 0.15); color: var(--success); }
+        .timeline-status.cancelled { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
+
+        /* Side Panel */
+        .side-panel { display: flex; flex-direction: column; gap: 0.5rem; }
+        
+        /* Performance Card */
+        .performance-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 6px; padding: 0.6rem; }
+        .performance-stats { display: flex; flex-direction: column; gap: 0.4rem; }
+        .perf-stat { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem; background: var(--primary-dark); border-radius: 4px; }
+        .perf-stat-label { font-size: 0.65rem; color: var(--text-secondary); }
+        .perf-stat-value { font-weight: 700; font-size: 0.8rem; color: var(--text-primary); }
+        .perf-stat-value.gold { color: var(--accent-gold); }
+
+        /* Incentives Card */
+        .incentives-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 6px; padding: 0.6rem; }
+        .incentive-summary { text-align: center; padding: 0.5rem 0; }
+        .incentive-label { font-size: 0.55rem; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 0.25rem; }
+        .incentive-amount { font-size: 1.5rem; font-weight: 700; color: var(--accent-gold); }
+        .incentive-sub { font-size: 0.5rem; color: var(--text-muted); margin-top: 0.25rem; }
+        .incentive-breakdown { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; margin-top: 0.5rem; }
+        .incentive-item { text-align: center; padding: 0.5rem; background: var(--primary-dark); border-radius: 4px; }
+        .incentive-item-value { font-weight: 700; font-size: 0.75rem; color: var(--text-primary); }
+        .incentive-item-label { font-size: 0.5rem; color: var(--text-muted); margin-top: 0.15rem; }
+
+        /* Bottom Grid */
+        .bottom-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem; flex-shrink: 0; }
+        .mini-chart-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 6px; padding: 0.6rem; }
+        .mini-chart-header { display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.4rem; }
+        .mini-chart-icon { width: 24px; height: 24px; background: rgba(212, 175, 55, 0.15); border-radius: 4px; display: flex; align-items: center; justify-content: center; color: var(--accent-gold); font-size: 0.7rem; }
+        .mini-chart-title { font-weight: 600; font-size: 0.7rem; color: var(--text-primary); }
+        .mini-chart-body { position: relative; height: 140px; }
+
+        /* Loading & Empty States */
+        .loading-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(10, 14, 26, 0.95); display: flex; align-items: center; justify-content: center; z-index: 999; }
+        .loading-spinner { width: 40px; height: 40px; border: 3px solid var(--card-border); border-top-color: var(--accent-gold); border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
-        .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1.5rem 1rem; text-align: center; }
+        .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1.5rem; text-align: center; }
         .empty-icon { width: 40px; height: 40px; background: rgba(212, 175, 55, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; color: var(--accent-gold); margin-bottom: 0.5rem; }
-        .empty-title { font-size: 0.8rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.25rem; }
-        .empty-text { color: var(--text-secondary); font-size: 0.7rem; }
-        ::-webkit-scrollbar { width: 4px; height: 4px; }
-        ::-webkit-scrollbar-track { background: var(--primary-dark); }
-        ::-webkit-scrollbar-thumb { background: var(--card-border); border-radius: 2px; }
-        @media (max-width: 768px) { .sidebar { transform: translateX(-100%); transition: transform 0.3s; } .sidebar.open { transform: translateX(0); } .main-content { margin-left: 0; } }
+        .empty-title { font-weight: 600; font-size: 0.75rem; color: var(--text-primary); margin-bottom: 0.25rem; }
+        .empty-text { font-size: 0.65rem; color: var(--text-secondary); }
+
+        /* Responsive */
+        @media (max-width: 1400px) { .stats-grid { grid-template-columns: repeat(4, 1fr); } .main-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 1024px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } .bottom-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 768px) { .sidebar { transform: translateX(-100%); } .sidebar.open { transform: translateX(0); } .main-content { margin-left: 0; } .stats-grid { grid-template-columns: 1fr; } .welcome-banner { flex-direction: column; text-align: center; } .welcome-stats { flex-wrap: wrap; justify-content: center; } }
     </style>
 </head>
 <body>
     <div class="dashboard-wrapper">
+        <!-- Sidebar -->
         <aside class="sidebar">
-            <div class="sidebar-header"><div class="sidebar-logo">Elite Salon</div>
-                <div class="sidebar-user"><div class="sidebar-user-info"><div class="user-avatar" id="userAvatar">S</div><div class="user-details"><div class="user-name" id="userName">Staff</div><div class="user-role" id="userRole">Staff</div></div></div></div>
+            <div class="sidebar-header">
+                <div class="sidebar-logo">Elite Salon</div>
+                <div class="sidebar-user">
+                    <div class="sidebar-user-info">
+                        <div class="user-avatar" id="userAvatar">S</div>
+                        <div class="user-details">
+                            <div class="user-name" id="userName">Staff</div>
+                            <div class="user-role" id="userRole">Staff Member</div>
+                        </div>
+                    </div>
+                </div>
             </div>
             <nav class="sidebar-nav">
-                <div class="nav-section"><div class="nav-section-title">Main Menu</div>
+                <div class="nav-section">
+                    <div class="nav-section-title">Main Menu</div>
                     <a href="dashboard.html" class="nav-item active"><i class="fas fa-chart-line"></i><span>Dashboard</span></a>
                     <a href="appointments.html" class="nav-item"><i class="fas fa-calendar-check"></i><span>Appointments</span></a>
                     <a href="customers.html" class="nav-item"><i class="fas fa-users"></i><span>Customers</span></a>
                 </div>
-                <div class="nav-section"><div class="nav-section-title">Services</div>
+                <div class="nav-section">
+                    <div class="nav-section-title">Services</div>
                     <a href="services.html" class="nav-item"><i class="fas fa-cut"></i><span>Services</span></a>
                     <a href="package.html" class="nav-item"><i class="fas fa-gift"></i><span>Packages</span></a>
                     <a href="inventory.html" class="nav-item"><i class="fas fa-boxes"></i><span>Inventory</span></a>
                 </div>
-                <div class="nav-section"><div class="nav-section-title">My</div>
+                <div class="nav-section">
+                    <div class="nav-section-title">My</div>
                     <a href="schedules.html" class="nav-item"><i class="fas fa-calendar-alt"></i><span>My Schedule</span></a>
                     <a href="profile.html" class="nav-item"><i class="fas fa-user"></i><span>Profile</span></a>
                     <a href="my-incentives.html" class="nav-item"><i class="fas fa-trophy"></i><span>My Incentives</span></a>
                 </div>
             </nav>
-            <div class="sidebar-footer"><button class="logout-btn" onclick="handleLogout()"><i class="fas fa-sign-out-alt"></i><span>Logout</span></button></div>
+            <div class="sidebar-footer">
+                <button class="logout-btn" onclick="handleLogout()"><i class="fas fa-sign-out-alt"></i><span>Logout</span></button>
+            </div>
         </aside>
+
+        <!-- Main Content -->
         <main class="main-content">
+            <!-- Header -->
             <header class="dashboard-header">
-                <div class="page-title-mini"><div class="page-icon-mini"><i class="fas fa-chart-line"></i></div><div><h1>Dashboard</h1><p>Your performance overview</p></div></div>
-                <button class="btn btn-primary btn-sm" onclick="loadDashboard()"><i class="fas fa-sync-alt"></i> Refresh</button>
-            </header>
-            <div class="dashboard-main">
-                <div id="loadingState" class="loading-overlay"><div class="loading-spinner"></div></div>
-                <div id="dashboardContent" style="display:none;flex-direction:column;gap:0.5rem;">
-                    <div class="stats-row-mini">
-                        <div class="stat-card-mini"><div class="stat-icon-mini"><i class="fas fa-calendar-check"></i></div><div class="stat-label-mini">Today's Appts</div><div class="stat-value-mini" id="statToday">-</div><div class="stat-sub-mini">Scheduled</div></div>
-                        <div class="stat-card-mini"><div class="stat-icon-mini"><i class="fas fa-users"></i></div><div class="stat-label-mini">My Customers</div><div class="stat-value-mini" id="statCustomers">-</div><div class="stat-sub-mini">This month</div></div>
-                        <div class="stat-card-mini"><div class="stat-icon-mini"><i class="fas fa-star"></i></div><div class="stat-label-mini">My Rating</div><div class="stat-value-mini" id="statRating">-</div><div class="stat-sub-mini">Average</div></div>
-                        <div class="stat-card-mini"><div class="stat-icon-mini"><i class="fas fa-coins"></i></div><div class="stat-label-mini">Incentives</div><div class="stat-value-mini" id="statIncentives">₹0</div><div class="stat-sub-mini">Pending</div></div>
+                <div class="page-title-mini">
+                    <div class="page-icon-mini"><i class="fas fa-chart-line"></i></div>
+                    <div>
+                        <h1>My Dashboard</h1>
+                        <p>Performance Overview</p>
                     </div>
-                    <div class="content-card">
-                        <div class="card-header-mini"><div class="card-title-mini"><i class="fas fa-calendar-day"></i><span>Today's Schedule</span></div></div>
-                        <div class="card-body-mini"><div class="timeline" id="todayTimeline"><div class="empty-state"><div class="empty-icon"><i class="fas fa-calendar-day"></i></div><h3 class="empty-title">Loading...</h3></div></div></div>
+                </div>
+                <button class="btn-refresh-mini" onclick="loadDashboard()">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+            </header>
+
+            <!-- Dashboard Content -->
+            <div class="dashboard-main" id="dashboardMain">
+                <!-- Loading -->
+                <div id="loadingState" class="loading-overlay">
+                    <div class="loading-spinner"></div>
+                </div>
+
+                <!-- Content -->
+                <div id="dashboardContent" style="display:none;flex-direction:column;gap:0.5rem;">
+                    
+                    <!-- Welcome Banner -->
+                    <div class="welcome-banner">
+                        <div class="welcome-content">
+                            <div class="welcome-avatar" id="welcomeAvatar">S</div>
+                            <div class="welcome-info">
+                                <div class="welcome-greeting">Welcome back,</div>
+                                <div class="welcome-name" id="welcomeName">Staff Member</div>
+                            </div>
+                            <div class="welcome-stats">
+                                <div class="welcome-stat">
+                                    <div class="welcome-stat-value" id="todayAppts">0</div>
+                                    <div class="welcome-stat-label">Today</div>
+                                </div>
+                                <div class="welcome-stat">
+                                    <div class="welcome-stat-value" id="weekAppts">0</div>
+                                    <div class="welcome-stat-label">This Week</div>
+                                </div>
+                                <div class="welcome-stat">
+                                    <div class="welcome-stat-value" id="monthRevenue">₹0</div>
+                                    <div class="welcome-stat-label">Month Rev</div>
+                                </div>
+                                <div class="welcome-stat">
+                                    <div class="welcome-stat-value" id="myRating"><i class="fas fa-star" style="font-size:0.7rem;"></i> 0</div>
+                                    <div class="welcome-stat-label">Rating</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stats Grid -->
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-card-header">
+                                <div class="stat-card-icon blue"><i class="fas fa-calendar-day"></i></div>
+                            </div>
+                            <div class="stat-card-body">
+                                <div class="stat-card-label">Today's Appts</div>
+                                <div class="stat-card-value" id="statToday">0</div>
+                                <div class="stat-card-mini-stats">
+                                    <div class="mini-stat">
+                                        <span class="mini-stat-value" id="todayCompleted">0</span>
+                                        <span class="mini-stat-label">Completed</span>
+                                    </div>
+                                    <div class="mini-stat">
+                                        <span class="mini-stat-value" id="todayPending">0</span>
+                                        <span class="mini-stat-label">Pending</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-card-header">
+                                <div class="stat-card-icon green"><i class="fas fa-users"></i></div>
+                            </div>
+                            <div class="stat-card-body">
+                                <div class="stat-card-label">My Customers</div>
+                                <div class="stat-card-value" id="statCustomers">0</div>
+                                <div class="stat-card-mini-stats">
+                                    <div class="mini-stat">
+                                        <span class="mini-stat-value" id="newCust">0</span>
+                                        <span class="mini-stat-label">New</span>
+                                    </div>
+                                    <div class="mini-stat">
+                                        <span class="mini-stat-value" id="repeatCust">0</span>
+                                        <span class="mini-stat-label">Repeat</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-card-header">
+                                <div class="stat-card-icon orange"><i class="fas fa-cut"></i></div>
+                            </div>
+                            <div class="stat-card-body">
+                                <div class="stat-card-label">Services Done</div>
+                                <div class="stat-card-value" id="statServicesDone">0</div>
+                                <div class="stat-card-mini-stats">
+                                    <div class="mini-stat">
+                                        <span class="mini-stat-value" id="monthAppts">0</span>
+                                        <span class="mini-stat-label">This Month</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-card-header">
+                                <div class="stat-card-icon gold"><i class="fas fa-coins"></i></div>
+                            </div>
+                            <div class="stat-card-body">
+                                <div class="stat-card-label">Incentives</div>
+                                <div class="stat-card-value" id="statIncentives">₹0</div>
+                                <div class="stat-card-mini-stats">
+                                    <div class="mini-stat">
+                                        <span class="mini-stat-value" id="incentivesMonth">₹0</span>
+                                        <span class="mini-stat-label">This Month</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Main Grid -->
+                    <div class="main-grid">
+                        <!-- Timeline -->
+                        <div class="timeline-card">
+                            <div class="card-header-mini">
+                                <div class="card-title-mini">
+                                    <i class="fas fa-calendar-day"></i>
+                                    <span>Today's Schedule</span>
+                                </div>
+                            </div>
+                            <div class="card-body-mini">
+                                <div class="timeline" id="todayTimeline">
+                                    <div class="empty-state">
+                                        <div class="empty-icon"><i class="fas fa-circle-notch fa-spin"></i></div>
+                                        <div class="empty-title">Loading...</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Side Panel -->
+                        <div class="side-panel">
+                            <!-- Performance -->
+                            <div class="performance-card">
+                                <div class="card-header-mini">
+                                    <div class="card-title-mini">
+                                        <i class="fas fa-chart-bar"></i>
+                                        <span>My Performance</span>
+                                    </div>
+                                </div>
+                                <div class="performance-stats">
+                                    <div class="perf-stat">
+                                        <div class="perf-stat-label">Appointments</div>
+                                        <div class="perf-stat-value" id="perfAppts">0</div>
+                                    </div>
+                                    <div class="perf-stat">
+                                        <div class="perf-stat-label">Revenue</div>
+                                        <div class="perf-stat-value gold" id="perfRevenue">₹0</div>
+                                    </div>
+                                    <div class="perf-stat">
+                                        <div class="perf-stat-label">Incentives</div>
+                                        <div class="perf-stat-value gold" id="perfIncentives">₹0</div>
+                                    </div>
+                                    <div class="perf-stat">
+                                        <div class="perf-stat-label">Paid Out</div>
+                                        <div class="perf-stat-value" id="perfPaid">₹0</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Incentives -->
+                            <div class="incentives-card">
+                                <div class="card-header-mini">
+                                    <div class="card-title-mini">
+                                        <i class="fas fa-trophy"></i>
+                                        <span>My Incentives</span>
+                                    </div>
+                                </div>
+                                <div class="incentive-summary">
+                                    <div class="incentive-label">Outstanding</div>
+                                    <div class="incentive-amount" id="incentiveOutstanding">₹0</div>
+                                    <div class="incentive-sub">Ready for payout</div>
+                                </div>
+                                <div class="incentive-breakdown">
+                                    <div class="incentive-item">
+                                        <div class="incentive-item-value" id="incentiveMonth">₹0</div>
+                                        <div class="incentive-item-label">This Month</div>
+                                    </div>
+                                    <div class="incentive-item">
+                                        <div class="incentive-item-value" id="incentivePaid">₹0</div>
+                                        <div class="incentive-item-label">Paid Out</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bottom Charts -->
+                    <div class="bottom-grid">
+                        <div class="mini-chart-card">
+                            <div class="mini-chart-header">
+                                <div class="mini-chart-icon"><i class="fas fa-chart-pie"></i></div>
+                                <div class="mini-chart-title">My Services</div>
+                            </div>
+                            <div class="mini-chart-body">
+                                <div class="chart-container">
+                                    <canvas id="servicesChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mini-chart-card">
+                            <div class="mini-chart-header">
+                                <div class="mini-chart-icon"><i class="fas fa-chart-area"></i></div>
+                                <div class="mini-chart-title">Weekly Activity</div>
+                            </div>
+                            <div class="mini-chart-body">
+                                <div class="chart-container">
+                                    <canvas id="weeklyChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </main>
     </div>
+
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="../js/sweetalert2.min.js"></script>
     <script src="../js/toastify.min.js"></script>
@@ -130,63 +443,262 @@
     <script src="../js/core-api.js"></script>
     <script src="../js/auth-api.js"></script>
     <script src="../js/appointments-api.js"></script>
+
     <script>
+        let charts = {};
+
         document.addEventListener('DOMContentLoaded', function() {
-            if (!TokenManager.isAuthenticated()) { window.location.href = '../login.html'; return; }
-            const user = TokenManager.getUser();
-            if (!user || user.role !== USER_ROLES.STAFF) { window.location.href = '../index.html'; return; }
-            updateUserInfo(user);
+            loadUserInfo();
             loadDashboard();
         });
-        function updateUserInfo(user) {
-            document.getElementById('userName').textContent = user.username || user.name || 'User';
-            document.getElementById('userRole').textContent = user.role || 'User';
-            document.getElementById('userAvatar').textContent = (user.username || user.name || 'U')[0].toUpperCase();
+
+        function loadUserInfo() {
+            const user = TokenManager.getUser();
+            if (user) {
+                const name = user.username || user.name || 'Staff';
+                const initial = name[0].toUpperCase();
+                document.getElementById('userName').textContent = name;
+                document.getElementById('userRole').textContent = (user.role || 'Staff').toLowerCase();
+                document.getElementById('userAvatar').textContent = initial;
+                document.getElementById('welcomeName').textContent = name;
+                document.getElementById('welcomeAvatar').textContent = initial;
+            }
         }
+
         async function loadDashboard() {
-            document.getElementById('loadingState').style.display = 'flex';
-            document.getElementById('dashboardContent').style.display = 'none';
+            const loadingState = document.getElementById('loadingState');
+            const dashboardContent = document.getElementById('dashboardContent');
+            
+            loadingState.style.display = 'flex';
+            dashboardContent.style.display = 'none';
+
             try {
                 const user = TokenManager.getUser();
                 const today = new Date().toISOString().split('T')[0];
-                const [apptsResult, incentivesResult] = await Promise.all([
-                    AppointmentsAPI.list({ date: today }),
-                    fetch(API_BASE_URL + '/reports/incentives', { headers: { 'Authorization': 'Bearer ' + TokenManager.getToken() } }).then(r => r.json())
+                const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
+
+                const [apptsResult, incentivesResult, staffPerfResult] = await Promise.all([
+                    apiRequest(`/appointments?date=${today}`, { method: 'GET' }),
+                    apiRequest(`/reports/incentives?start_date=${monthStart}&end_date=${today}`, { method: 'GET' }),
+                    apiRequest(`/reports/staff-performance?start_date=${monthStart}&end_date=${today}`, { method: 'GET' })
                 ]);
-                let myAppts = [];
-                if (apptsResult.success) {
-                    myAppts = (apptsResult.data.items || []).filter(a => (a.services || []).some(s => s.staff_id == user.id));
+
+                let myAppointments = [];
+                if (apptsResult.status === 'success') {
+                    myAppointments = (apptsResult.data?.items || []).filter(
+                        a => (a.services || []).some(s => String(s.staff_id) === String(user.id))
+                    );
                 }
-                let incentivesData = { outstanding: 0, total_paid: 0 };
+
+                let incentivesData = { outstanding: 0, total_paid: 0, this_month: 0 };
                 if (incentivesResult.status === 'success') {
-                    const byStaff = incentivesResult.data.by_staff || [];
-                    const staffData = byStaff.find(s => s.staff_id == user.id) || {};
-                    incentivesData = { outstanding: staffData.outstanding || 0, total_paid: staffData.total_paid || 0 };
+                    const byStaff = incentivesResult.data?.by_staff || [];
+                    const staffData = byStaff.find(s => String(s.staff_id) === String(user.id)) || {};
+                    incentivesData = {
+                        outstanding: staffData.outstanding || 0,
+                        total_paid: staffData.total_paid || 0,
+                        this_month: staffData.total_incentives || 0
+                    };
                 }
-                document.getElementById('statToday').textContent = myAppts.length;
-                document.getElementById('statCustomers').textContent = new Set(myAppts.map(a => a.customer_id)).size;
-                document.getElementById('statRating').textContent = '4.8';
-                document.getElementById('statIncentives').textContent = '₹' + incentivesData.outstanding.toLocaleString('en-IN');
-                renderTimeline(myAppts);
-                document.getElementById('loadingState').style.display = 'none';
-                document.getElementById('dashboardContent').style.display = 'flex';
-            } catch (error) { console.error('Error:', error); showErrorToast('Failed: ' + error.message); document.getElementById('loadingState').style.display = 'none'; }
+
+                let perfData = { appointments: 0, revenue: 0 };
+                if (staffPerfResult.status === 'success') {
+                    const staff = staffPerfResult.data?.staff || [];
+                    const myPerf = staff.find(s => String(s.staff_id) === String(user.id)) || {};
+                    perfData = {
+                        appointments: myPerf.appointments_handled || 0,
+                        revenue: myPerf.revenue_generated || 0
+                    };
+                }
+
+                updateEnhancedStats(myAppointments, incentivesData, perfData);
+                updateTimeline(myAppointments);
+                updatePerformance(perfData, incentivesData);
+                updateIncentives(incentivesData);
+                updateServicesChart();
+                updateWeeklyChart();
+
+            } catch (error) {
+                console.error('Dashboard error:', error);
+                showErrorToast('Error: ' + error.message);
+            } finally {
+                loadingState.style.display = 'none';
+                dashboardContent.style.display = 'flex';
+            }
         }
-        function renderTimeline(appts) {
+
+        function updateEnhancedStats(appointments, incentives, perf) {
+            const todayCount = appointments.length;
+            const todayCompleted = appointments.filter(a => a.status === 'COMPLETED').length;
+            const todayPending = appointments.filter(a => a.status === 'PENDING').length;
+            const uniqueCustomers = new Set(appointments.map(a => a.customer_id)).size;
+
+            document.getElementById('statToday').textContent = todayCount;
+            document.getElementById('todayCompleted').textContent = todayCompleted;
+            document.getElementById('todayPending').textContent = todayPending;
+            document.getElementById('statCustomers').textContent = uniqueCustomers;
+            document.getElementById('newCust').textContent = '0';
+            document.getElementById('repeatCust').textContent = uniqueCustomers;
+            document.getElementById('statServicesDone').textContent = perf.appointments;
+            document.getElementById('monthAppts').textContent = perf.appointments;
+            document.getElementById('statIncentives').textContent = '₹' + formatNumber(incentives.outstanding);
+            document.getElementById('incentivesMonth').textContent = '₹' + formatNumber(incentives.this_month);
+            
+            document.getElementById('todayAppts').textContent = todayCount;
+            document.getElementById('weekAppts').textContent = Math.ceil(todayCount * 5);
+            document.getElementById('monthRevenue').textContent = '₹' + formatNumber(perf.revenue);
+        }
+
+        function updateTimeline(appointments) {
             const container = document.getElementById('todayTimeline');
-            if (appts.length === 0) {
-                container.innerHTML = '<div class="empty-state"><div class="empty-icon"><i class="fas fa-calendar-times"></i></div><h3 class="empty-title">No Appointments Today</h3><p class="empty-text">You have no appointments scheduled</p></div>';
+            
+            if (appointments.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="empty-icon"><i class="fas fa-calendar-times"></i></div><div class="empty-title">No Appointments Today</div><div class="empty-text">You have no appointments scheduled</div></div>';
                 return;
             }
-            container.innerHTML = appts.sort((a, b) => (a.start_time || '').localeCompare(b.start_time || '')).map(appt => {
-                const services = (appt.services || []).filter(s => s.staff_id == TokenManager.getUser().id);
-                const customerName = appt.customer_name || 'Unknown';
-                const status = appt.status || 'PENDING';
-                const statusColor = status === 'COMPLETED' ? 'var(--success)' : status === 'CANCELLED' ? 'var(--danger)' : 'var(--accent-gold)';
-                return '<div class="timeline-item"><div class="timeline-time">' + (appt.start_time ? appt.start_time.substring(0, 5) : '-') + '</div><div class="timeline-content"><div class="timeline-title">' + customerName + ' <span style="color:' + statusColor + ';font-size:0.6rem;">(' + status + ')</span></div><div class="timeline-desc">' + (services.map(s => s.service_name).join(', ') || 'Service') + '</div></div></div>';
-            }).join('');
+
+            const sorted = appointments.sort((a, b) => (a.start_time || '').localeCompare(b.start_time || ''));
+            
+            let html = '';
+            sorted.forEach(appt => {
+                const statusClass = (appt.status || 'pending').toLowerCase();
+                const time = appt.start_time ? appt.start_time.substring(0, 5) : '--:--';
+                const services = (appt.services || []).filter(s => String(s.staff_id) === String(TokenManager.getUser().id));
+                const serviceName = services.map(s => s.service_name).join(', ') || 'Service';
+                const customerName = appt.customer_name || 'Customer';
+                
+                html += `<div class="timeline-item ${statusClass}">
+                    <div class="timeline-time">
+                        <div class="timeline-time-box">
+                            <div class="timeline-time-text">${time}</div>
+                            <div class="timeline-time-period">${parseInt(appt.start_time) >= 12 ? 'PM' : 'AM'}</div>
+                        </div>
+                    </div>
+                    <div class="timeline-content">
+                        <div class="timeline-title">${escapeHtml(customerName)}</div>
+                        <div class="timeline-service">${escapeHtml(serviceName)}</div>
+                        <div class="timeline-meta">
+                            <span class="timeline-status ${statusClass}">${appt.status || 'Pending'}</span>
+                        </div>
+                    </div>
+                </div>`;
+            });
+            
+            container.innerHTML = html;
         }
-        async function handleLogout() { if (confirm('Are you sure?')) { await AuthAPI.logout(); TokenManager.removeToken(); TokenManager.removeUser(); localStorage.removeItem('refresh_token'); window.location.href = '../index.html'; } }
+
+        function updatePerformance(perf, incentives) {
+            document.getElementById('perfAppts').textContent = perf.appointments;
+            document.getElementById('perfRevenue').textContent = '₹' + formatNumber(perf.revenue);
+            document.getElementById('perfIncentives').textContent = '₹' + formatNumber(incentives.this_month);
+            document.getElementById('perfPaid').textContent = '₹' + formatNumber(incentives.total_paid);
+        }
+
+        function updateIncentives(incentives) {
+            document.getElementById('incentiveOutstanding').textContent = '₹' + formatNumber(incentives.outstanding);
+            document.getElementById('incentiveMonth').textContent = '₹' + formatNumber(incentives.this_month);
+            document.getElementById('incentivePaid').textContent = '₹' + formatNumber(incentives.total_paid);
+        }
+
+        function formatNumber(num) {
+            if (num === 0) return '0';
+            if (num >= 1000) return (num / 1000).toFixed(1) + 'k';
+            return Math.floor(num).toLocaleString('en-IN');
+        }
+
+        function updateServicesChart() {
+            const ctx = document.getElementById('servicesChart').getContext('2d');
+            if (charts.services) charts.services.destroy();
+
+            charts.services = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Hair', 'Skin', 'Nails', 'Spa'],
+                    datasets: [{ data: [40, 30, 20, 10], backgroundColor: ['#d4af37', '#cd7f32', '#3b82f6', '#10b981'], borderWidth: 0 }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '60%',
+                    plugins: { legend: { position: 'right', labels: { color: '#94a3b8', font: { size: 7 }, padding: 6, usePointStyle: true } } }
+                }
+            });
+        }
+
+        function updateWeeklyChart() {
+            const ctx = document.getElementById('weeklyChart').getContext('2d');
+            if (charts.weekly) charts.weekly.destroy();
+
+            const gradient = ctx.createLinearGradient(0, 0, 0, 140);
+            gradient.addColorStop(0, 'rgba(212, 175, 55, 0.3)');
+            gradient.addColorStop(1, 'rgba(212, 175, 55, 0)');
+
+            charts.weekly = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    datasets: [{
+                        label: 'Appointments',
+                        data: [5, 8, 6, 9, 7, 10, 4],
+                        borderColor: '#d4af37',
+                        backgroundColor: gradient,
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 3,
+                        pointBackgroundColor: '#d4af37',
+                        pointBorderColor: '#f1f5f9',
+                        pointBorderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(26, 31, 46, 0.95)',
+                            titleColor: '#f1f5f9',
+                            bodyColor: '#d4af37',
+                            borderColor: 'rgba(212, 175, 55, 0.3)',
+                            borderWidth: 1,
+                            padding: 10,
+                            displayColors: false
+                        }
+                    },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 9 } } },
+                        y: { grid: { color: 'rgba(42, 49, 66, 0.5)' }, ticks: { color: '#94a3b8', font: { size: 9 } } }
+                    }
+                }
+            });
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        async function handleLogout() {
+            const result = await Swal.fire({
+                title: 'Logout?',
+                text: 'Are you sure?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d4af37',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Yes',
+                cancelButtonText: 'Cancel'
+            });
+            if (result.isConfirmed) {
+                TokenManager.removeToken();
+                TokenManager.removeUser();
+                localStorage.removeItem('refresh_token');
+                window.location.href = '../index.html';
+            }
+        }
     </script>
 </body>
 </html>

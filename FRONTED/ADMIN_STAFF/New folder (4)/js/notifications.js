@@ -30,11 +30,11 @@ function showSuccess(message, duration = 3000) {
         duration: duration,
         gravity: "top",
         position: "right",
-        backgroundColor: "#10b981",
-        borderRadius: "8px",
-        style: { 
-            fontSize: "14px", 
+        style: {
+            fontSize: "14px",
             fontWeight: "600",
+            background: "#10b981",
+            borderRadius: "8px",
             boxShadow: "0 4px 15px rgba(16, 185, 129, 0.4)"
         },
         escapeMarkup: false
@@ -52,11 +52,11 @@ function showErrorToast(message, duration = 4000) {
         duration: duration,
         gravity: "top",
         position: "right",
-        backgroundColor: "#ef4444",
-        borderRadius: "8px",
-        style: { 
-            fontSize: "14px", 
+        style: {
+            fontSize: "14px",
             fontWeight: "600",
+            background: "#ef4444",
+            borderRadius: "8px",
             boxShadow: "0 4px 15px rgba(239, 68, 68, 0.4)"
         },
         escapeMarkup: false
@@ -74,11 +74,11 @@ function showWarningToast(message, duration = 4000) {
         duration: duration,
         gravity: "top",
         position: "right",
-        backgroundColor: "#f59e0b",
-        borderRadius: "8px",
-        style: { 
-            fontSize: "14px", 
+        style: {
+            fontSize: "14px",
             fontWeight: "600",
+            background: "#f59e0b",
+            borderRadius: "8px",
             boxShadow: "0 4px 15px rgba(245, 158, 11, 0.4)"
         },
         escapeMarkup: false
@@ -96,11 +96,11 @@ function showInfoToast(message, duration = 3000) {
         duration: duration,
         gravity: "top",
         position: "right",
-        backgroundColor: "#3b82f6",
-        borderRadius: "8px",
-        style: { 
-            fontSize: "14px", 
+        style: {
+            fontSize: "14px",
             fontWeight: "600",
+            background: "#3b82f6",
+            borderRadius: "8px",
             boxShadow: "0 4px 15px rgba(59, 130, 246, 0.4)"
         },
         escapeMarkup: false

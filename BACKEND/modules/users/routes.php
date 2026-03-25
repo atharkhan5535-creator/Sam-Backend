@@ -12,7 +12,17 @@ $controller = new UserController();
 |--------------------------------------------------------------------------
 */
 
-// 1️⃣ Create Salon Admin (for existing salon) - SUPER_ADMIN only
+// 1️⃣ List All Users (SUPER_ADMIN only) - NEW endpoint for listing all users across all salons
+$router->register(
+    'GET',
+    '/api/admin/users',
+    function() use ($controller) {
+        authorize(['SUPER_ADMIN']);
+        $controller->indexAll();
+    }
+);
+
+// 2️⃣ Create Salon Admin (for existing salon) - SUPER_ADMIN only
 $router->register(
     'POST',
     '/api/admin/salons/{salon_id}/admin',
@@ -22,7 +32,7 @@ $router->register(
     }
 );
 
-// 2️⃣ List Users by Salon - SUPER_ADMIN (any salon), ADMIN (own salon only)
+// 3️⃣ List Users by Salon - SUPER_ADMIN (any salon), ADMIN (own salon only)
 $router->register(
     'GET',
     '/api/admin/salons/{salon_id}/users',
@@ -32,7 +42,7 @@ $router->register(
     }
 );
 
-// 3️⃣ View User Details - SUPER_ADMIN (any), ADMIN (own salon)
+// 4️⃣ View User Details - SUPER_ADMIN (any), ADMIN (own salon)
 // NOTE: Staff should use StaffController endpoints
 $router->register(
     'GET',
@@ -43,7 +53,7 @@ $router->register(
     }
 );
 
-// 4️⃣ Update User - SUPER_ADMIN (any), ADMIN (own salon only)
+// 5️⃣ Update User - SUPER_ADMIN (any), ADMIN (own salon only)
 $router->register(
     'PUT',
     '/api/admin/users/{user_id}',
@@ -53,7 +63,7 @@ $router->register(
     }
 );
 
-// 5️⃣ Toggle User Status - SUPER_ADMIN only
+// 6️⃣ Toggle User Status - SUPER_ADMIN only
 $router->register(
     'PATCH',
     '/api/admin/users/{user_id}/status',

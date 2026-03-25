@@ -38,12 +38,15 @@ class Router
             }
         }
 
+        // Clear any output buffers before sending error response
+        if (ob_get_level()) {
+            ob_end_clean();
+        }
+        
         http_response_code(404);
-        echo json_encode(['message' => 'Route not found']);
-        foreach ($this->routes as $route) {
-    echo $route['method'] . ' => ' . $route['path'] . "<br>";
-}
-exit;
+        header("Content-Type: application/json");
+        echo json_encode(['status' => 'error', 'message' => 'Route not found: ' . $method . ' ' . $uri]);
+        exit;
     }
 }
 

@@ -1,0 +1,7 @@
+[25-Mar-2026 01:48:32 Europe/Berlin] Dashboard stats error: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'asrv.staff_id' in 'field list'
+[25-Mar-2026 01:48:32 Europe/Berlin] Stack trace: #0 C:\xampp\htdocs\Sam-Backend\BACKEND\modules\dashboard\DashboardController.php(242): PDOStatement->execute(Array)
+#1 C:\xampp\htdocs\Sam-Backend\BACKEND\modules\dashboard\DashboardController.php(51): DashboardController->getStaffStats(1)
+#2 C:\xampp\htdocs\Sam-Backend\BACKEND\modules\dashboard\routes.php(16): DashboardController->getStats()
+#3 C:\xampp\htdocs\Sam-Backend\BACKEND\core\Router.php(37): {closure}()
+#4 C:\xampp\htdocs\Sam-Backend\BACKEND\public\index.php(62): Router->resolve('GET', '/api/dashboard/...')
+#5 {main}

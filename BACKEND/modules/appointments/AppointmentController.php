@@ -189,12 +189,16 @@ class AppointmentController
             // Calculate end time
             $endTime = date('H:i:s', strtotime($startTime) + ($estimatedDuration * 60));
 
+            // Set status based on who is booking
+            // CUSTOMER bookings start as PENDING, ADMIN/STAFF bookings start as CONFIRMED
+            $appointmentStatus = ($userRole === 'CUSTOMER') ? 'PENDING' : 'CONFIRMED';
+
             // Insert appointment
             $stmt = $this->db->prepare("
                 INSERT INTO appointments
-                (salon_id, customer_id, appointment_date, start_time, end_time, estimated_duration, 
+                (salon_id, customer_id, appointment_date, start_time, end_time, estimated_duration,
                  total_amount, discount_amount, final_amount, status, notes, created_at, updated_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'CONFIRMED', ?, NOW(), NOW())
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
             ");
 
             $stmt->execute([
@@ -207,6 +211,7 @@ class AppointmentController
                 $totalAmount,
                 $discountAmount,
                 $finalAmount,
+                $appointmentStatus,
                 $notes ?: null
             ]);
 

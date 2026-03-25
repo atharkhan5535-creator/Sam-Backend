@@ -40,16 +40,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // --- API FUNCTIONS ---
 
-    // Fetch all users (by salon - super admin can fetch from any salon)
+    // Fetch all users from all salons (super admin only)
     async function fetchUsers(salonId = '', role = '', status = '') {
         try {
-            const targetSalonId = salonId || 1;
-            let endpoint = API_ENDPOINTS.USERS.LIST_BY_SALON(targetSalonId);
-            
+            let endpoint = API_ENDPOINTS.USERS.LIST_ALL;
+
             const params = [];
+            if (salonId) params.push(`salon_id=${salonId}`);
             if (role) params.push(`role=${role}`);
             if (status) params.push(`status=${status}`);
-            
+
             if (params.length > 0) {
                 endpoint += '?' + params.join('&');
             }
