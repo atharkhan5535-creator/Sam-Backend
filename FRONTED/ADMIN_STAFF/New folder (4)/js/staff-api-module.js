@@ -255,13 +255,14 @@ const StaffAPI = {
 
     /**
      * Get list of all incentives (ADMIN only)
-     * Query params: staff_id, status, start_date, end_date
+     * Query params: staff_id, status, type, start_date, end_date
      * @param {object} params - Query parameters
      */
     listIncentives: async (params = {}) => {
         const queryParams = new URLSearchParams();
         if (params.staff_id) queryParams.append('staff_id', params.staff_id);
         if (params.status) queryParams.append('status', params.status);
+        if (params.type) queryParams.append('type', params.type);
         if (params.start_date) queryParams.append('start_date', params.start_date);
         if (params.end_date) queryParams.append('end_date', params.end_date);
 
@@ -296,6 +297,59 @@ const StaffAPI = {
     getIncentiveHistory: async (staffId) => {
         try {
             const response = await apiRequest(`/staff/incentives/history/${staffId}`, { method: 'GET' });
+            return { success: true, data: response.data };
+        } catch (error) {
+            return { success: false, message: error.message };
+        }
+    },
+
+    /**
+     * Get appointment commission breakdown (ADMIN only)
+     * Returns detailed commission calculation for all staff in an appointment
+     * @param {number} appointmentId - Appointment ID
+     */
+    getAppointmentCommissionBreakdown: async (appointmentId) => {
+        try {
+            const response = await apiRequest(`/staff/incentives/appointment/${appointmentId}/breakdown`, { method: 'GET' });
+            return { success: true, data: response.data };
+        } catch (error) {
+            return { success: false, message: error.message };
+        }
+    },
+
+    /**
+     * Create incentive from appointment commission (ADMIN only)
+     * Automatically creates incentives for all staff in an appointment
+     * @param {number} appointmentId - Appointment ID
+     * @param {object} commissionData - Commission data (commission_rate, remarks, status)
+     */
+    createIncentiveFromAppointment: async (appointmentId, commissionData = {}) => {
+        try {
+            const response = await apiRequest(`/staff/incentives/appointment/${appointmentId}`, {
+                method: 'POST',
+                body: JSON.stringify(commissionData)
+            });
+            return { success: true, data: response.data };
+        } catch (error) {
+            return { success: false, message: error.message };
+        }
+    },
+
+    /**
+     * Get completable appointments for incentives (ADMIN only)
+     * Returns completed appointments that haven't had incentives created yet
+     * @param {object} params - Query parameters (start_date, end_date)
+     */
+    getCompletableAppointments: async (params = {}) => {
+        const queryParams = new URLSearchParams();
+        if (params.start_date) queryParams.append('start_date', params.start_date);
+        if (params.end_date) queryParams.append('end_date', params.end_date);
+
+        const query = queryParams.toString();
+        const endpoint = `/staff/incentives/completable-appointments${query ? '?' + query : ''}`;
+
+        try {
+            const response = await apiRequest(endpoint, { method: 'GET' });
             return { success: true, data: response.data };
         } catch (error) {
             return { success: false, message: error.message };

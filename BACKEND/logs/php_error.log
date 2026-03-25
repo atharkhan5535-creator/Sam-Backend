@@ -5,3 +5,155 @@
 #3 C:\xampp\htdocs\Sam-Backend\BACKEND\core\Router.php(37): {closure}()
 #4 C:\xampp\htdocs\Sam-Backend\BACKEND\public\index.php(62): Router->resolve('GET', '/api/dashboard/...')
 #5 {main}
+[25-Mar-2026 12:54:15 Europe/Berlin] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'aserv.staff_id' in 'on clause' in C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\StaffController.php:1452
+Stack trace:
+#0 C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\StaffController.php(1452): PDOStatement->execute(Array)
+#1 C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\routes.php(159): StaffController->getCompletableAppointments()
+#2 C:\xampp\htdocs\Sam-Backend\BACKEND\core\Router.php(37): {closure}()
+#3 C:\xampp\htdocs\Sam-Backend\BACKEND\public\index.php(62): Router->resolve('GET', '/api/staff/ince...')
+#4 {main}
+  thrown in C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\StaffController.php on line 1452
+[25-Mar-2026 12:54:17 Europe/Berlin] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'aserv.staff_id' in 'on clause' in C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\StaffController.php:1452
+Stack trace:
+#0 C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\StaffController.php(1452): PDOStatement->execute(Array)
+#1 C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\routes.php(159): StaffController->getCompletableAppointments()
+#2 C:\xampp\htdocs\Sam-Backend\BACKEND\core\Router.php(37): {closure}()
+#3 C:\xampp\htdocs\Sam-Backend\BACKEND\public\index.php(62): Router->resolve('GET', '/api/staff/ince...')
+#4 {main}
+  thrown in C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\StaffController.php on line 1452
+[25-Mar-2026 12:54:17 Europe/Berlin] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'aserv.staff_id' in 'on clause' in C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\StaffController.php:1452
+Stack trace:
+#0 C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\StaffController.php(1452): PDOStatement->execute(Array)
+#1 C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\routes.php(159): StaffController->getCompletableAppointments()
+#2 C:\xampp\htdocs\Sam-Backend\BACKEND\core\Router.php(37): {closure}()
+#3 C:\xampp\htdocs\Sam-Backend\BACKEND\public\index.php(62): Router->resolve('GET', '/api/staff/ince...')
+#4 {main}
+  thrown in C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\StaffController.php on line 1452
+[25-Mar-2026 12:58:35 Europe/Berlin] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'aserv.staff_id' in 'on clause' in C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\StaffController.php:1452
+Stack trace:
+#0 C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\StaffController.php(1452): PDOStatement->execute(Array)
+#1 C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\routes.php(159): StaffController->getCompletableAppointments()
+#2 C:\xampp\htdocs\Sam-Backend\BACKEND\core\Router.php(37): {closure}()
+#3 C:\xampp\htdocs\Sam-Backend\BACKEND\public\index.php(62): Router->resolve('GET', '/api/staff/ince...')
+#4 {main}
+  thrown in C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\StaffController.php on line 1452
+[25-Mar-2026 12:59:05 Europe/Berlin] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'aserv.staff_id' in 'on clause' in C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\StaffController.php:1452
+Stack trace:
+#0 C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\StaffController.php(1452): PDOStatement->execute(Array)
+#1 C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\routes.php(159): StaffController->getCompletableAppointments()
+#2 C:\xampp\htdocs\Sam-Backend\BACKEND\core\Router.php(37): {closure}()
+#3 C:\xampp\htdocs\Sam-Backend\BACKEND\public\index.php(62): Router->resolve('GET', '/api/staff/ince...')
+#4 {main}
+  thrown in C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\StaffController.php on line 1452
+[25-Mar-2026 12:59:05 Europe/Berlin] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'aserv.staff_id' in 'on clause' in C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\StaffController.php:1452
+Stack trace:
+#0 C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\StaffController.php(1452): PDOStatement->execute(Array)
+#1 C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\routes.php(159): StaffController->getCompletableAppointments()
+#2 C:\xampp\htdocs\Sam-Backend\BACKEND\core\Router.php(37): {closure}()
+#3 C:\xampp\htdocs\Sam-Backend\BACKEND\public\index.php(62): Router->resolve('GET', '/api/staff/ince...')
+#4 {main}
+  thrown in C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\StaffController.php on line 1452
+[25-Mar-2026 12:59:28 Europe/Berlin] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'aserv.staff_id' in 'on clause' in C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\StaffController.php:1452
+Stack trace:
+#0 C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\StaffController.php(1452): PDOStatement->execute(Array)
+#1 C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\routes.php(159): StaffController->getCompletableAppointments()
+#2 C:\xampp\htdocs\Sam-Backend\BACKEND\core\Router.php(37): {closure}()
+#3 C:\xampp\htdocs\Sam-Backend\BACKEND\public\index.php(62): Router->resolve('GET', '/api/staff/ince...')
+#4 {main}
+  thrown in C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\StaffController.php on line 1452
+[25-Mar-2026 12:59:30 Europe/Berlin] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'aserv.staff_id' in 'on clause' in C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\StaffController.php:1452
+Stack trace:
+#0 C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\StaffController.php(1452): PDOStatement->execute(Array)
+#1 C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\routes.php(159): StaffController->getCompletableAppointments()
+#2 C:\xampp\htdocs\Sam-Backend\BACKEND\core\Router.php(37): {closure}()
+#3 C:\xampp\htdocs\Sam-Backend\BACKEND\public\index.php(62): Router->resolve('GET', '/api/staff/ince...')
+#4 {main}
+  thrown in C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\StaffController.php on line 1452
+[25-Mar-2026 12:59:31 Europe/Berlin] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'aserv.staff_id' in 'on clause' in C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\StaffController.php:1452
+Stack trace:
+#0 C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\StaffController.php(1452): PDOStatement->execute(Array)
+#1 C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\routes.php(159): StaffController->getCompletableAppointments()
+#2 C:\xampp\htdocs\Sam-Backend\BACKEND\core\Router.php(37): {closure}()
+#3 C:\xampp\htdocs\Sam-Backend\BACKEND\public\index.php(62): Router->resolve('GET', '/api/staff/ince...')
+#4 {main}
+  thrown in C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\StaffController.php on line 1452
+[25-Mar-2026 13:03:39 Europe/Berlin] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'aserv.staff_id' in 'on clause' in C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\StaffController.php:1452
+Stack trace:
+#0 C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\StaffController.php(1452): PDOStatement->execute(Array)
+#1 C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\routes.php(159): StaffController->getCompletableAppointments()
+#2 C:\xampp\htdocs\Sam-Backend\BACKEND\core\Router.php(37): {closure}()
+#3 C:\xampp\htdocs\Sam-Backend\BACKEND\public\index.php(62): Router->resolve('GET', '/api/staff/ince...')
+#4 {main}
+  thrown in C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\StaffController.php on line 1452
+[25-Mar-2026 13:07:57 Europe/Berlin] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'aserv.staff_id' in 'on clause' in C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\StaffController.php:1452
+Stack trace:
+#0 C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\StaffController.php(1452): PDOStatement->execute(Array)
+#1 C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\routes.php(159): StaffController->getCompletableAppointments()
+#2 C:\xampp\htdocs\Sam-Backend\BACKEND\core\Router.php(37): {closure}()
+#3 C:\xampp\htdocs\Sam-Backend\BACKEND\public\index.php(62): Router->resolve('GET', '/api/staff/ince...')
+#4 {main}
+  thrown in C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\StaffController.php on line 1452
+[25-Mar-2026 13:08:00 Europe/Berlin] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'aserv.staff_id' in 'on clause' in C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\StaffController.php:1452
+Stack trace:
+#0 C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\StaffController.php(1452): PDOStatement->execute(Array)
+#1 C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\routes.php(159): StaffController->getCompletableAppointments()
+#2 C:\xampp\htdocs\Sam-Backend\BACKEND\core\Router.php(37): {closure}()
+#3 C:\xampp\htdocs\Sam-Backend\BACKEND\public\index.php(62): Router->resolve('GET', '/api/staff/ince...')
+#4 {main}
+  thrown in C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\StaffController.php on line 1452
+[25-Mar-2026 13:08:00 Europe/Berlin] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'aserv.staff_id' in 'on clause' in C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\StaffController.php:1452
+Stack trace:
+#0 C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\StaffController.php(1452): PDOStatement->execute(Array)
+#1 C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\routes.php(159): StaffController->getCompletableAppointments()
+#2 C:\xampp\htdocs\Sam-Backend\BACKEND\core\Router.php(37): {closure}()
+#3 C:\xampp\htdocs\Sam-Backend\BACKEND\public\index.php(62): Router->resolve('GET', '/api/staff/ince...')
+#4 {main}
+  thrown in C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\StaffController.php on line 1452
+[25-Mar-2026 13:08:00 Europe/Berlin] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'aserv.staff_id' in 'on clause' in C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\StaffController.php:1452
+Stack trace:
+#0 C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\StaffController.php(1452): PDOStatement->execute(Array)
+#1 C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\routes.php(159): StaffController->getCompletableAppointments()
+#2 C:\xampp\htdocs\Sam-Backend\BACKEND\core\Router.php(37): {closure}()
+#3 C:\xampp\htdocs\Sam-Backend\BACKEND\public\index.php(62): Router->resolve('GET', '/api/staff/ince...')
+#4 {main}
+  thrown in C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\StaffController.php on line 1452
+[25-Mar-2026 13:08:00 Europe/Berlin] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'aserv.staff_id' in 'on clause' in C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\StaffController.php:1452
+Stack trace:
+#0 C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\StaffController.php(1452): PDOStatement->execute(Array)
+#1 C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\routes.php(159): StaffController->getCompletableAppointments()
+#2 C:\xampp\htdocs\Sam-Backend\BACKEND\core\Router.php(37): {closure}()
+#3 C:\xampp\htdocs\Sam-Backend\BACKEND\public\index.php(62): Router->resolve('GET', '/api/staff/ince...')
+#4 {main}
+  thrown in C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\StaffController.php on line 1452
+[25-Mar-2026 13:08:00 Europe/Berlin] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'aserv.staff_id' in 'on clause' in C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\StaffController.php:1452
+Stack trace:
+#0 C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\StaffController.php(1452): PDOStatement->execute(Array)
+#1 C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\routes.php(159): StaffController->getCompletableAppointments()
+#2 C:\xampp\htdocs\Sam-Backend\BACKEND\core\Router.php(37): {closure}()
+#3 C:\xampp\htdocs\Sam-Backend\BACKEND\public\index.php(62): Router->resolve('GET', '/api/staff/ince...')
+#4 {main}
+  thrown in C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\StaffController.php on line 1452
+[25-Mar-2026 13:11:48 Europe/Berlin] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'aserv.staff_id' in 'on clause' in C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\StaffController.php:1452
+Stack trace:
+#0 C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\StaffController.php(1452): PDOStatement->execute(Array)
+#1 C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\routes.php(159): StaffController->getCompletableAppointments()
+#2 C:\xampp\htdocs\Sam-Backend\BACKEND\core\Router.php(37): {closure}()
+#3 C:\xampp\htdocs\Sam-Backend\BACKEND\public\index.php(62): Router->resolve('GET', '/api/staff/ince...')
+#4 {main}
+  thrown in C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\StaffController.php on line 1452
+[25-Mar-2026 13:21:02 Europe/Berlin] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 's.service_code' in 'field list' in C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\StaffController.php:1046
+Stack trace:
+#0 C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\StaffController.php(1046): PDOStatement->execute(Array)
+#1 C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\routes.php(139): StaffController->getAppointmentCommissionBreakdown('91')
+#2 C:\xampp\htdocs\Sam-Backend\BACKEND\core\Router.php(37): {closure}('91')
+#3 C:\xampp\htdocs\Sam-Backend\BACKEND\public\index.php(62): Router->resolve('GET', '/api/staff/ince...')
+#4 {main}
+  thrown in C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\StaffController.php on line 1046
+[25-Mar-2026 13:23:25 Europe/Berlin] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'p.package_code' in 'field list' in C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\StaffController.php:1072
+Stack trace:
+#0 C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\StaffController.php(1072): PDOStatement->execute(Array)
+#1 C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\routes.php(139): StaffController->getAppointmentCommissionBreakdown('91')
+#2 C:\xampp\htdocs\Sam-Backend\BACKEND\core\Router.php(37): {closure}('91')
+#3 C:\xampp\htdocs\Sam-Backend\BACKEND\public\index.php(62): Router->resolve('GET', '/api/staff/ince...')
+#4 {main}
+  thrown in C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\StaffController.php on line 1072

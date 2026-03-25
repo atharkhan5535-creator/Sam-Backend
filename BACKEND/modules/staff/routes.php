@@ -100,7 +100,17 @@ $router->register(
     }
 );
 
-// 8️⃣ Get Unpaid Incentives by Staff (ADMIN only)
+// 8️⃣ Get All Incentives (ADMIN only)
+$router->register(
+    'GET',
+    '/api/staff/incentives',
+    function() use ($staffController) {
+        authorize(['ADMIN']);
+        $staffController->getAllIncentives();
+    }
+);
+
+// 9️⃣ Get Unpaid Incentives by Staff (ADMIN only)
 $router->register(
     'GET',
     '/api/staff/incentives/unpaid/{staff_id}',
@@ -117,6 +127,36 @@ $router->register(
     function($staffId) use ($staffController) {
         authorize(['ADMIN']);
         $staffController->getIncentiveHistory($staffId);
+    }
+);
+
+// 1️⃣1️⃣ Get Appointment Commission Breakdown (ADMIN only)
+$router->register(
+    'GET',
+    '/api/staff/incentives/appointment/{appointment_id}/breakdown',
+    function($appointmentId) use ($staffController) {
+        authorize(['ADMIN']);
+        $staffController->getAppointmentCommissionBreakdown($appointmentId);
+    }
+);
+
+// 1️⃣2️⃣ Create Incentive from Appointment Commission (ADMIN only)
+$router->register(
+    'POST',
+    '/api/staff/incentives/appointment/{appointment_id}',
+    function($appointmentId) use ($staffController) {
+        authorize(['ADMIN']);
+        $staffController->createIncentiveFromAppointment($appointmentId);
+    }
+);
+
+// 1️⃣3️⃣ Get Completable Appointments for Incentives (ADMIN only)
+$router->register(
+    'GET',
+    '/api/staff/incentives/completable-appointments',
+    function() use ($staffController) {
+        authorize(['ADMIN']);
+        $staffController->getCompletableAppointments();
     }
 );
 

@@ -237,6 +237,15 @@ async function apiRequest(endpoint, options = {}) {
 
     try {
         const response = await fetch(url, config);
+        
+        // Check if response is JSON before parsing
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            const text = await response.text();
+            console.error('Non-JSON response from', url, ':', text.substring(0, 500));
+            throw new Error('Server returned non-JSON response. Check server logs.');
+        }
+        
         const data = await response.json();
 
         if (!response.ok) {
@@ -247,8 +256,8 @@ async function apiRequest(endpoint, options = {}) {
                 localStorage.removeItem('refresh_token');
                 // Use dynamic path to handle both root and subdirectory pages
                 const currentPath = window.location.pathname;
-                const loginPath = currentPath.includes('/admin/') || currentPath.includes('/staff/') 
-                    ? '../login.html' 
+                const loginPath = currentPath.includes('/admin/') || currentPath.includes('/staff/')
+                    ? '../login.html'
                     : 'login.html';
                 window.location.href = loginPath;
                 throw new Error('Session expired. Please login again.');
@@ -258,6 +267,11 @@ async function apiRequest(endpoint, options = {}) {
 
         return data;
     } catch (error) {
+        // Re-throw with more context
+        if (error instanceof SyntaxError && error.message.includes('JSON')) {
+            console.error('JSON parse error for endpoint:', endpoint);
+            throw new Error('Server error: Invalid response format. Check backend logs.');
+        }
         throw error;
     }
 }

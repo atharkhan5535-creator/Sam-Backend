@@ -442,7 +442,7 @@ class StaffController
 
         // 3️⃣ Incentive Amount Range Validation (must be > 0 and <= 1,000,000)
         if ($incentiveAmount <= 0 || $incentiveAmount > 1000000) {
-            Response::json(["status" => "error", "message" => "Incentive amount must be between 0 and 1,000,000"], 400);
+            Response::json(["status" => "error", "message" => "Incentive amount must be greater than 0 and not exceed 1,000,000"], 400);
         }
 
         // 4️⃣ Status Enum Validation (includes APPROVED)
@@ -658,12 +658,14 @@ class StaffController
 
             foreach ($incentiveIds as $incentiveId) {
                 // Check if incentive exists and get its details
+                // Added salon_id verification for security
                 $stmt = $this->db->prepare("
-                    SELECT incentive_id, staff_id, incentive_amount, status
-                    FROM incentives
-                    WHERE incentive_id = ? AND staff_id = ?
+                    SELECT i.incentive_id, i.staff_id, i.incentive_amount, i.status
+                    FROM incentives i
+                    INNER JOIN staff_info si ON i.staff_id = si.staff_id
+                    WHERE i.incentive_id = ? AND i.staff_id = ? AND si.salon_id = ?
                 ");
-                $stmt->execute([$incentiveId, $staffId]);
+                $stmt->execute([$incentiveId, $staffId, $salonId]);
                 $incentive = $stmt->fetch();
 
                 if (!$incentive) {
@@ -862,6 +864,83 @@ class StaffController
 
     /*
     |--------------------------------------------------------------------------
+    | 1️⃣0️⃣ GET ALL INCENTIVES (ADMIN only)
+    | Returns list of all incentives with staff details
+    |--------------------------------------------------------------------------
+    */
+    public function getAllIncentives()
+    {
+        $auth = $GLOBALS['auth_user'] ?? null;
+        $salonId = $auth['salon_id'] ?? null;
+
+        if (!$salonId) {
+            Response::json(["status" => "error", "message" => "Invalid salon context"], 400);
+        }
+
+        $startDate = $_GET['start_date'] ?? null;
+        $endDate = $_GET['end_date'] ?? null;
+        $staffId = $_GET['staff_id'] ?? null;
+        $status = $_GET['status'] ?? null;
+        $type = $_GET['type'] ?? null;
+
+        // Build query with optional filters
+        $query = "
+            SELECT
+                i.*,
+                si.name as staff_name,
+                si.specialization as staff_specialization,
+                a.appointment_date,
+                a.final_amount as appointment_amount
+            FROM incentives i
+            INNER JOIN staff_info si ON i.staff_id = si.staff_id
+            LEFT JOIN appointments a ON i.appointment_id = a.appointment_id
+            WHERE si.salon_id = ?
+        ";
+
+        $params = [$salonId];
+
+        if ($startDate) {
+            $query .= " AND i.created_at >= ?";
+            $params[] = $startDate;
+        }
+
+        if ($endDate) {
+            $query .= " AND i.created_at <= ?";
+            $params[] = $endDate;
+        }
+
+        if ($staffId) {
+            $query .= " AND i.staff_id = ?";
+            $params[] = $staffId;
+        }
+
+        if ($status) {
+            $query .= " AND i.status = ?";
+            $params[] = $status;
+        }
+
+        if ($type) {
+            $query .= " AND i.incentive_type = ?";
+            $params[] = $type;
+        }
+
+        $query .= " ORDER BY i.created_at DESC";
+
+        $stmt = $this->db->prepare($query);
+        $stmt->execute($params);
+        $incentives = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        Response::json([
+            "status" => "success",
+            "data" => [
+                "items" => $incentives,
+                "total" => count($incentives)
+            ]
+        ]);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
     | 🔟 PUBLIC STAFF LIST (For Customer Booking)
     | - PUBLIC: Can view active staff members (for booking)
     | - Returns only ACTIVE staff with essential info
@@ -878,7 +957,7 @@ class StaffController
 
         // Get only ACTIVE staff members with essential info for booking
         $stmt = $this->db->prepare("
-            SELECT 
+            SELECT
                 s.staff_id,
                 s.salon_id,
                 s.name,
@@ -898,6 +977,512 @@ class StaffController
             "status" => "success",
             "data" => [
                 "items" => $staff
+            ]
+        ]);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | 1️⃣1️⃣ GET APPOINTMENT COMMISSION BREAKDOWN
+    | - Calculate staff commissions from appointment services and packages
+    | - Extract staff IDs from services and packages within the appointment
+    | - Return detailed breakdown per staff member
+    |--------------------------------------------------------------------------
+    */
+    public function getAppointmentCommissionBreakdown($appointmentId)
+    {
+        $auth = $GLOBALS['auth_user'] ?? null;
+        $salonId = $auth['salon_id'] ?? null;
+
+        if (!$salonId) {
+            Response::json(["status" => "error", "message" => "Invalid salon context"], 400);
+        }
+
+        try {
+            // Verify appointment exists and belongs to salon
+            $stmt = $this->db->prepare("
+                SELECT
+                    a.appointment_id,
+                    a.customer_id,
+                    a.appointment_date,
+                    a.start_time,
+                    a.end_time,
+                    a.total_amount,
+                    a.discount_amount,
+                    a.final_amount,
+                    a.status,
+                    c.name as customer_name,
+                    c.phone as customer_phone
+                FROM appointments a
+                INNER JOIN customers c ON a.customer_id = c.customer_id
+                WHERE a.appointment_id = ? AND a.salon_id = ?
+            ");
+            $stmt->execute([$appointmentId, $salonId]);
+            $appointment = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$appointment) {
+                Response::json(["status" => "error", "message" => "Appointment not found"], 404);
+            }
+
+            // Get services with staff assignments
+            // Note: appointment_services.staff_id was removed, get staff from services table
+            $stmt = $this->db->prepare("
+                SELECT
+                    aserv.appointment_service_id,
+                    aserv.service_id,
+                    s.staff_id,
+                    aserv.service_price,
+                    aserv.discount_amount,
+                    aserv.final_price,
+                    aserv.status as service_status,
+                    s.service_name,
+                    si.name as staff_name,
+                    si.specialization as staff_specialization
+                FROM appointment_services aserv
+                INNER JOIN services s ON aserv.service_id = s.service_id
+                INNER JOIN staff_info si ON s.staff_id = si.staff_id
+                WHERE aserv.appointment_id = ?
+            ");
+            $stmt->execute([$appointmentId]);
+            $services = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Get packages with staff assignments (from package_services)
+            // Note: package_services only has package_id, service_id, salon_id
+            // Get service_price from services table (column is 'price' not 'service_price')
+            $stmt = $this->db->prepare("
+                SELECT
+                    ap.appointment_package_id,
+                    ap.package_id,
+                    ap.package_price,
+                    ap.discount_amount,
+                    ap.final_price,
+                    ap.status as package_status,
+                    p.package_name,
+                    ps.service_id,
+                    s.staff_id,
+                    s.price as service_price,
+                    s.service_name,
+                    si.name as staff_name,
+                    si.specialization as staff_specialization
+                FROM appointment_packages ap
+                INNER JOIN packages p ON ap.package_id = p.package_id
+                INNER JOIN package_services ps ON ap.package_id = ps.package_id
+                INNER JOIN services s ON ps.service_id = s.service_id
+                INNER JOIN staff_info si ON s.staff_id = si.staff_id
+                WHERE ap.appointment_id = ?
+            ");
+            $stmt->execute([$appointmentId]);
+            $packages = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Calculate commission per staff member
+            $staffCommissions = [];
+
+            // Process services
+            foreach ($services as $service) {
+                $staffId = $service['staff_id'];
+                
+                if (!isset($staffCommissions[$staffId])) {
+                    $staffCommissions[$staffId] = [
+                        'staff_id' => $staffId,
+                        'staff_name' => $service['staff_name'],
+                        'staff_specialization' => $service['staff_specialization'],
+                        'services' => [],
+                        'package_services' => [],
+                        'total_amount' => 0,
+                        'commission_amount' => 0
+                    ];
+                }
+
+                // Default commission rate: 10% of service final price
+                $commissionRate = 0.10;
+                $commissionAmount = $service['final_price'] * $commissionRate;
+
+                $staffCommissions[$staffId]['services'][] = [
+                    'service_id' => $service['service_id'],
+                    'service_name' => $service['service_name'],
+                    'price' => (float)$service['service_price'],
+                    'discount' => (float)$service['discount_amount'],
+                    'final_price' => (float)$service['final_price'],
+                    'status' => $service['service_status'],
+                    'commission_rate' => $commissionRate * 100,
+                    'commission_amount' => $commissionAmount
+                ];
+
+                $staffCommissions[$staffId]['total_amount'] += (float)$service['final_price'];
+                $staffCommissions[$staffId]['commission_amount'] += $commissionAmount;
+            }
+
+            // Process packages - distribute package revenue among staff
+            foreach ($packages as $package) {
+                $staffId = $package['staff_id'];
+                
+                if (!isset($staffCommissions[$staffId])) {
+                    $staffCommissions[$staffId] = [
+                        'staff_id' => $staffId,
+                        'staff_name' => $package['staff_name'],
+                        'staff_specialization' => $package['staff_specialization'],
+                        'services' => [],
+                        'package_services' => [],
+                        'total_amount' => 0,
+                        'commission_amount' => 0
+                    ];
+                }
+
+                // Calculate proportional share of package price
+                $totalPackageServices = count($packages);
+                $proportionalShare = $package['final_price'] / max($totalPackageServices, 1);
+                
+                // Default commission rate: 10% of proportional package price
+                $commissionRate = 0.10;
+                $commissionAmount = $proportionalShare * $commissionRate;
+
+                $staffCommissions[$staffId]['package_services'][] = [
+                    'package_id' => $package['package_id'],
+                    'package_name' => $package['package_name'],
+                    'service_id' => $package['service_id'],
+                    'service_name' => $package['service_name'],
+                    'proportional_share' => $proportionalShare,
+                    'commission_rate' => $commissionRate * 100,
+                    'commission_amount' => $commissionAmount
+                ];
+
+                $staffCommissions[$staffId]['total_amount'] += $proportionalShare;
+                $staffCommissions[$staffId]['commission_amount'] += $commissionAmount;
+            }
+
+            // Re-index array
+            $staffCommissions = array_values($staffCommissions);
+
+            // Calculate totals
+            $totalAmount = array_sum(array_column($staffCommissions, 'total_amount'));
+            $totalCommission = array_sum(array_column($staffCommissions, 'commission_amount'));
+
+            Response::json([
+                "status" => "success",
+                "data" => [
+                    "appointment" => $appointment,
+                    "staff_commissions" => $staffCommissions,
+                    "summary" => [
+                        "total_services" => count($services),
+                        "total_package_services" => count($packages),
+                        "total_amount" => $totalAmount,
+                        "total_commission" => $totalCommission,
+                        "staff_count" => count($staffCommissions)
+                    ]
+                ]
+            ]);
+            
+        } catch (Exception $e) {
+            Response::json([
+                "status" => "error",
+                "message" => "Failed to get commission breakdown: " . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | 1️⃣2️⃣ CREATE INCENTIVE FROM APPOINTMENT COMMISSION
+    | - Create incentives for all staff members from an appointment
+    | - Automatically calculate commissions based on services performed
+    |--------------------------------------------------------------------------
+    */
+    public function createIncentiveFromAppointment($appointmentId)
+    {
+        $auth = $GLOBALS['auth_user'] ?? null;
+        $salonId = $auth['salon_id'] ?? null;
+
+        if (!$salonId) {
+            Response::json(["status" => "error", "message" => "Invalid salon context"], 400);
+        }
+
+        $data = json_decode(file_get_contents("php://input"), true);
+        $commissionRate = floatval($data['commission_rate'] ?? 10); // Default 10%
+        $remarks = trim($data['remarks'] ?? 'Commission from appointment #' . $appointmentId);
+        $status = $data['status'] ?? 'PENDING';
+
+        try {
+            $this->db->beginTransaction();
+
+            // Get appointment details
+            $stmt = $this->db->prepare("
+                SELECT 
+                    a.appointment_id,
+                    a.final_amount,
+                    a.appointment_date,
+                    c.name as customer_name
+                FROM appointments a
+                INNER JOIN customers c ON a.customer_id = c.customer_id
+                WHERE a.appointment_id = ? AND a.salon_id = ?
+            ");
+            $stmt->execute([$appointmentId, $salonId]);
+            $appointment = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$appointment) {
+                $this->db->rollBack();
+                Response::json(["status" => "error", "message" => "Appointment not found"], 404);
+            }
+
+            // Get services with staff
+            // Note: appointment_services.staff_id was removed, get staff from services table
+            $stmt = $this->db->prepare("
+                SELECT
+                    s.staff_id,
+                    aserv.final_price,
+                    s.service_name,
+                    si.name as staff_name
+                FROM appointment_services aserv
+                INNER JOIN services s ON aserv.service_id = s.service_id
+                INNER JOIN staff_info si ON s.staff_id = si.staff_id
+                WHERE aserv.appointment_id = ?
+            ");
+            $stmt->execute([$appointmentId]);
+            $services = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Get package services with staff
+            // Note: package_services only has package_id, service_id, salon_id
+            // Get price from services table (column is 'price' not 'service_price')
+            $stmt = $this->db->prepare("
+                SELECT
+                    s.staff_id,
+                    s.price as service_price,
+                    p.package_name,
+                    s.service_name,
+                    si.name as staff_name
+                FROM appointment_packages ap
+                INNER JOIN packages p ON ap.package_id = p.package_id
+                INNER JOIN package_services ps ON ap.package_id = ps.package_id
+                INNER JOIN services s ON ps.service_id = s.service_id
+                INNER JOIN staff_info si ON s.staff_id = si.staff_id
+                WHERE ap.appointment_id = ?
+            ");
+            $stmt->execute([$appointmentId]);
+            $packageServices = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            $createdIncentives = [];
+            $totalIncentives = 0;
+
+            // Process services - group by staff
+            $staffServices = [];
+            foreach ($services as $service) {
+                $staffId = $service['staff_id'];
+                if (!isset($staffServices[$staffId])) {
+                    $staffServices[$staffId] = [
+                        'staff_name' => $service['staff_name'],
+                        'total_amount' => 0,
+                        'services' => []
+                    ];
+                }
+                $staffServices[$staffId]['total_amount'] += (float)$service['final_price'];
+                $staffServices[$staffId]['services'][] = $service['service_name'];
+            }
+
+            // Process package services - group by staff
+            $staffPackages = [];
+            $totalPackageServices = count($packageServices);
+            foreach ($packageServices as $ps) {
+                $staffId = $ps['staff_id'];
+                if (!isset($staffPackages[$staffId])) {
+                    $staffPackages[$staffId] = [
+                        'staff_name' => $ps['staff_name'],
+                        'total_amount' => 0,
+                        'services' => []
+                    ];
+                }
+                // Proportional share of package
+                $proportionalShare = (float)$appointment['final_amount'] / max($totalPackageServices, 1);
+                $staffPackages[$staffId]['total_amount'] += $proportionalShare;
+                $staffPackages[$staffId]['services'][] = $ps['service_name'] . ' (' . $ps['package_name'] . ')';
+            }
+
+            // Merge staff data
+            $allStaff = array_unique(array_merge(array_keys($staffServices), array_keys($staffPackages)));
+
+            foreach ($allStaff as $staffId) {
+                $totalAmount = 0;
+                $serviceList = [];
+
+                if (isset($staffServices[$staffId])) {
+                    $totalAmount += $staffServices[$staffId]['total_amount'];
+                    $serviceList = array_merge($serviceList, $staffServices[$staffId]['services']);
+                }
+
+                if (isset($staffPackages[$staffId])) {
+                    $totalAmount += $staffPackages[$staffId]['total_amount'];
+                    $serviceList = array_merge($serviceList, $staffPackages[$staffId]['services']);
+                }
+
+                if ($totalAmount > 0) {
+                    $commissionAmount = $totalAmount * ($commissionRate / 100);
+                    $serviceNames = implode(', ', array_unique($serviceList));
+                    $fullRemarks = $remarks . ' - Services: ' . $serviceNames;
+
+                    // Check if incentive already exists for this staff & appointment
+                    $stmt = $this->db->prepare("
+                        SELECT incentive_id FROM incentives 
+                        WHERE staff_id = ? AND appointment_id = ?
+                    ");
+                    $stmt->execute([$staffId, $appointmentId]);
+                    
+                    if ($stmt->fetch()) {
+                        $createdIncentives[] = [
+                            'staff_id' => $staffId,
+                            'status' => 'skipped',
+                            'message' => 'Incentive already exists'
+                        ];
+                        continue;
+                    }
+
+                    // Create incentive
+                    $stmt = $this->db->prepare("
+                        INSERT INTO incentives (
+                            staff_id,
+                            appointment_id,
+                            incentive_type,
+                            calculation_type,
+                            base_amount,
+                            percentage_rate,
+                            incentive_amount,
+                            remarks,
+                            status,
+                            created_at,
+                            updated_at
+                        ) VALUES (?, ?, 'SERVICE_COMMISSION', 'PERCENTAGE', ?, ?, ?, ?, ?, NOW(), NOW())
+                    ");
+                    
+                    $stmt->execute([
+                        $staffId,
+                        $appointmentId,
+                        $totalAmount,
+                        $commissionRate,
+                        $commissionAmount,
+                        $fullRemarks,
+                        $status
+                    ]);
+
+                    $createdIncentives[] = [
+                        'incentive_id' => $this->db->lastInsertId(),
+                        'staff_id' => $staffId,
+                        'staff_name' => $staffServices[$staffId]['staff_name'] ?? $staffPackages[$staffId]['staff_name'],
+                        'base_amount' => $totalAmount,
+                        'commission_rate' => $commissionRate,
+                        'commission_amount' => $commissionAmount,
+                        'status' => 'created'
+                    ];
+
+                    $totalIncentives += $commissionAmount;
+                }
+            }
+
+            $this->db->commit();
+
+            Response::json([
+                "status" => "success",
+                "message" => "Incentives created successfully",
+                "data" => [
+                    "appointment_id" => $appointmentId,
+                    "appointment_date" => $appointment['appointment_date'],
+                    "customer_name" => $appointment['customer_name'],
+                    "commission_rate" => $commissionRate,
+                    "total_incentives" => $totalIncentives,
+                    "incentives_created" => count(array_filter($createdIncentives, fn($i) => $i['status'] === 'created')),
+                    "incentives" => $createdIncentives
+                ]
+            ], 201);
+
+        } catch (Exception $e) {
+            $this->db->rollBack();
+            Response::json([
+                "status" => "error",
+                "message" => "Failed to create incentives: " . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | 1️⃣3️⃣ GET COMPLETABLE APPOINTMENTS FOR INCENTIVES
+    | - Get appointments that haven't had incentives created yet
+    | - Filter by COMPLETED status
+    |--------------------------------------------------------------------------
+    */
+    public function getCompletableAppointments()
+    {
+        $auth = $GLOBALS['auth_user'] ?? null;
+        $salonId = $auth['salon_id'] ?? null;
+
+        if (!$salonId) {
+            Response::json(["status" => "error", "message" => "Invalid salon context"], 400);
+        }
+
+        $startDate = $_GET['start_date'] ?? null;
+        $endDate = $_GET['end_date'] ?? null;
+
+        // Note: appointment_services.staff_id was removed in migration
+        // We get staff from services table instead
+        $query = "
+            SELECT
+                a.appointment_id,
+                a.appointment_date,
+                a.start_time,
+                a.end_time,
+                a.total_amount,
+                a.discount_amount,
+                a.final_amount,
+                a.status,
+                c.name as customer_name,
+                c.phone as customer_phone,
+                COUNT(DISTINCT aserv.appointment_service_id) as service_count,
+                COUNT(DISTINCT ap.appointment_package_id) as package_count,
+                GROUP_CONCAT(DISTINCT si.name SEPARATOR ', ') as staff_names
+            FROM appointments a
+            INNER JOIN customers c ON a.customer_id = c.customer_id
+            LEFT JOIN appointment_services aserv ON a.appointment_id = aserv.appointment_id
+            LEFT JOIN services s ON aserv.service_id = s.service_id
+            LEFT JOIN staff_info si ON s.staff_id = si.staff_id
+            LEFT JOIN appointment_packages ap ON a.appointment_id = ap.appointment_id
+            WHERE a.salon_id = ? AND a.status = 'COMPLETED'
+        ";
+
+        $params = [$salonId];
+
+        if ($startDate) {
+            $query .= " AND a.appointment_date >= ?";
+            $params[] = $startDate;
+        }
+
+        if ($endDate) {
+            $query .= " AND a.appointment_date <= ?";
+            $params[] = $endDate;
+        }
+
+        $query .= "
+            GROUP BY a.appointment_id
+            ORDER BY a.appointment_date DESC, a.start_time DESC
+        ";
+
+        $stmt = $this->db->prepare($query);
+        $stmt->execute($params);
+        $appointments = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Check which appointments already have incentives
+        foreach ($appointments as &$appt) {
+            $stmt = $this->db->prepare("
+                SELECT COUNT(*) as incentive_count
+                FROM incentives
+                WHERE appointment_id = ?
+            ");
+            $stmt->execute([$appt['appointment_id']]);
+            $result = $stmt->fetch();
+            $appt['has_incentives'] = $result['incentive_count'] > 0;
+            $appt['existing_incentive_count'] = $result['incentive_count'];
+        }
+
+        Response::json([
+            "status" => "success",
+            "data" => [
+                "items" => $appointments,
+                "total" => count($appointments)
             ]
         ]);
     }
