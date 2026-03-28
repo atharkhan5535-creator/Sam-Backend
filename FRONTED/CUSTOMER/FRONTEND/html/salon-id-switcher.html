@@ -251,6 +251,10 @@
             localStorage.setItem('salon_id', id);
             showSuccess();
             document.getElementById('currentSalonId').textContent = id;
+            // Auto redirect to home page with salon_id URL parameter
+            setTimeout(() => {
+                window.location.href = `../index.html?salon_id=${id}`;
+            }, 1000);
         }
         
         function setSalonIdFromInput() {

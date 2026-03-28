@@ -157,3 +157,24 @@ Stack trace:
 #3 C:\xampp\htdocs\Sam-Backend\BACKEND\public\index.php(62): Router->resolve('GET', '/api/staff/ince...')
 #4 {main}
   thrown in C:\xampp\htdocs\Sam-Backend\BACKEND\modules\staff\StaffController.php on line 1072
+[26-Mar-2026 06:57:09 Europe/Berlin] Service upload - MIME: image/avif, Extension: png, Original name: al.png
+[26-Mar-2026 06:57:09 Europe/Berlin] Service upload - Upload dir: C:\xampp\htdocs\Sam-Backend\BACKEND\modules\services/../../public/uploads/services/
+[26-Mar-2026 06:57:09 Europe/Berlin] Service upload - Filename: svc_69c4cab50fdaf_1774504629.png
+[26-Mar-2026 06:57:09 Europe/Berlin] Service upload - Full path: C:\xampp\htdocs\Sam-Backend\BACKEND\modules\services/../../public/uploads/services/svc_69c4cab50fdaf_1774504629.png
+[26-Mar-2026 06:57:09 Europe/Berlin] Service upload - Directory writable: YES
+[26-Mar-2026 06:57:09 Europe/Berlin] Service upload - Temp file exists: YES
+[26-Mar-2026 06:57:09 Europe/Berlin] Service upload - File saved successfully: C:\xampp\htdocs\Sam-Backend\BACKEND\modules\services/../../public/uploads/services/svc_69c4cab50fdaf_1774504629.png
+[26-Mar-2026 06:58:05 Europe/Berlin] Service upload - MIME: image/jpeg, Extension: jpg, Original name: wp13066639-aesthetic-anime-nature-desktop-wallpapers.jpg
+[26-Mar-2026 06:58:05 Europe/Berlin] Service upload - Upload dir: C:\xampp\htdocs\Sam-Backend\BACKEND\modules\services/../../public/uploads/services/
+[26-Mar-2026 06:58:05 Europe/Berlin] Service upload - Filename: svc_69c4caedaab44_1774504685.jpg
+[26-Mar-2026 06:58:05 Europe/Berlin] Service upload - Full path: C:\xampp\htdocs\Sam-Backend\BACKEND\modules\services/../../public/uploads/services/svc_69c4caedaab44_1774504685.jpg
+[26-Mar-2026 06:58:05 Europe/Berlin] Service upload - Directory writable: YES
+[26-Mar-2026 06:58:05 Europe/Berlin] Service upload - Temp file exists: YES
+[26-Mar-2026 06:58:05 Europe/Berlin] Service upload - File saved successfully: C:\xampp\htdocs\Sam-Backend\BACKEND\modules\services/../../public/uploads/services/svc_69c4caedaab44_1774504685.jpg
+[26-Mar-2026 06:59:19 Europe/Berlin] Package upload - MIME: image/avif, Extension: png, Original name: al.png
+[26-Mar-2026 06:59:19 Europe/Berlin] Package upload - Upload dir: C:\xampp\htdocs\Sam-Backend\BACKEND\modules\packages/../../public/uploads/packages/
+[26-Mar-2026 06:59:19 Europe/Berlin] Package upload - Filename: pkg_69c4cb375d6e0_1774504759.png
+[26-Mar-2026 06:59:19 Europe/Berlin] Package upload - Full path: C:\xampp\htdocs\Sam-Backend\BACKEND\modules\packages/../../public/uploads/packages/pkg_69c4cb375d6e0_1774504759.png
+[26-Mar-2026 06:59:19 Europe/Berlin] Package upload - Directory writable: YES
+[26-Mar-2026 06:59:19 Europe/Berlin] Package upload - Temp file exists: YES
+[26-Mar-2026 06:59:19 Europe/Berlin] Package upload - File saved successfully: C:\xampp\htdocs\Sam-Backend\BACKEND\modules\packages/../../public/uploads/packages/pkg_69c4cb375d6e0_1774504759.png

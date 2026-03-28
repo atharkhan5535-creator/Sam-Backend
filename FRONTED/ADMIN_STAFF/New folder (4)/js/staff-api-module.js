@@ -354,6 +354,19 @@ const StaffAPI = {
         } catch (error) {
             return { success: false, message: error.message };
         }
+    },
+
+    /**
+     * Get my own incentive history (STAFF can access their own)
+     * @returns {Promise} Incentive history for authenticated staff
+     */
+    getMyIncentiveHistory: async () => {
+        try {
+            const response = await apiRequest('/staff/incentives/my-history', { method: 'GET' });
+            return { success: true, data: response.data };
+        } catch (error) {
+            return { success: false, message: error.message };
+        }
     }
 };
 

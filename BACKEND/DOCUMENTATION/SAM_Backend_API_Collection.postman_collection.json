@@ -1,0 +1,1514 @@
+{
+  "info": {
+    "name": "SAM Backend API",
+    "description": "Complete API collection for SAM (Salon Management) Backend - 140 APIs\n\n⚠️ ACCESS CONTROL NOTES:\n- SUPER_ADMIN: Full access to all APIs\n- ADMIN: Salon-level access (cannot access SUPER_ADMIN endpoints)\n- STAFF: Limited salon-level access\n- CUSTOMER: Self-service only (own profile, appointments, invoices)\n- PUBLIC: Limited endpoints (services, packages, staff list, salon info, registration)\n\nLast Updated: 2026-03-27",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{access_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost/Sam-Backend/BACKEND/public/index.php/api",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refresh_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "salon_id",
+      "value": "1",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "🔐 AUTH",
+      "item": [
+        {
+          "name": "Super Admin Login",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"super@gmail.com\",\n  \"password\": \"123456\",\n  \"login_type\": \"SUPER_ADMIN\"\n}"
+            },
+            "url": "{{base_url}}/auth/login"
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": ["if (pm.response.code === 200) {",
+                "    var jsonData = pm.response.json();",
+                "    pm.environment.set('access_token', jsonData.data.access_token);",
+                "    pm.environment.set('refresh_token', jsonData.data.refresh_token);",
+                "}"]
+            }
+          }]
+        },
+        {
+          "name": "Admin Login",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@elite.com\",\n  \"password\": \"123456\",\n  \"login_type\": \"ADMIN/STAFF\",\n  \"salon_id\": 1\n}"
+            },
+            "url": "{{base_url}}/auth/login"
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": ["if (pm.response.code === 200) {",
+                "    var jsonData = pm.response.json();",
+                "    pm.environment.set('access_token', jsonData.data.access_token);",
+                "    pm.environment.set('refresh_token', jsonData.data.refresh_token);",
+                "}"]
+            }
+          }]
+        },
+        {
+          "name": "Staff Login",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"staff@elite.com\",\n  \"password\": \"123456\",\n  \"login_type\": \"ADMIN/STAFF\",\n  \"salon_id\": 1\n}"
+            },
+            "url": "{{base_url}}/auth/login"
+          }
+        },
+        {
+          "name": "Customer Login",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"customer@test.com\",\n  \"password\": \"123456\",\n  \"login_type\": \"CUSTOMER\",\n  \"salon_id\": 1\n}"
+            },
+            "url": "{{base_url}}/auth/login"
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": ["if (pm.response.code === 200) {",
+                "    var jsonData = pm.response.json();",
+                "    pm.environment.set('access_token', jsonData.data.access_token);",
+                "}"]
+            }
+          }]
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/auth/me"
+          }
+        },
+        {
+          "name": "Update Own Profile",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Name\",\n  \"email\": \"newemail@test.com\",\n  \"phone\": \"9876543210\"\n}"
+            },
+            "url": "{{base_url}}/auth/me"
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh_token\": \"{{refresh_token}}\"\n}"
+            },
+            "url": "{{base_url}}/auth/refresh"
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": ["if (pm.response.code === 200) {",
+                "    var jsonData = pm.response.json();",
+                "    pm.environment.set('access_token', jsonData.data.access_token);",
+                "    pm.environment.set('refresh_token', jsonData.data.refresh_token);",
+                "}"]
+            }
+          }]
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh_token\": \"{{refresh_token}}\"\n}"
+            },
+            "url": "{{base_url}}/auth/logout"
+          }
+        }
+      ]
+    },
+    {
+      "name": "👥 CUSTOMERS",
+      "item": [
+        {
+          "name": "Customer Register",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe\",\n  \"phone\": \"9876543210\",\n  \"email\": \"john@example.com\",\n  \"password\": \"123456\",\n  \"salon_id\": 1\n}"
+            },
+            "url": "{{base_url}}/customers/register"
+          }
+        },
+        {
+          "name": "Create Customer",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Jane Smith\",\n  \"phone\": \"9876543211\",\n  \"email\": \"jane@example.com\",\n  \"gender\": \"FEMALE\",\n  \"date_of_birth\": \"1990-05-15\",\n  \"anniversary_date\": \"2015-06-20\"\n}"
+            },
+            "url": "{{base_url}}/customers/create"
+          }
+        },
+        {
+          "name": "Update Customer",
+          "request": {
+            "method": "PATCH",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Jane Updated\",\n  \"phone\": \"9999999999\",\n  \"status\": \"ACTIVE\"\n}"
+            },
+            "url": "{{base_url}}/customers/update/1"
+          }
+        },
+        {
+          "name": "Soft Delete Customer",
+          "request": {
+            "method": "PATCH",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"INACTIVE\"\n}"
+            },
+            "url": "{{base_url}}/customers/status/1"
+          }
+        },
+        {
+          "name": "List Customers",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/customers/list"
+          }
+        },
+        {
+          "name": "View Customer",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/customers/view/1"
+          }
+        },
+        {
+          "name": "Update Own Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Updated\",\n  \"phone\": \"9999999999\"\n}"
+            },
+            "url": "{{base_url}}/customers/me"
+          }
+        },
+        {
+          "name": "Get My Appointments",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/customers/me/appointments"
+          }
+        },
+        {
+          "name": "Get Customer Appointments",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/customers/1/appointments"
+          }
+        },
+        {
+          "name": "Get My Feedback",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/customers/me/feedback"
+          }
+        },
+        {
+          "name": "Get Customer Feedback",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/customers/1/feedback"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🛎 SERVICES",
+      "item": [
+        {
+          "name": "Upload Service Image",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [{"key": "image", "type": "file", "src": ""}]
+            },
+            "url": "{{base_url}}/admin/services/upload-image"
+          }
+        },
+        {
+          "name": "Create Service",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"service_name\": \"Haircut\",\n  \"description\": \"Professional haircut\",\n  \"price\": 500,\n  \"duration\": 30,\n  \"status\": \"ACTIVE\"\n}"
+            },
+            "url": "{{base_url}}/admin/services"
+          }
+        },
+        {
+          "name": "Update Service",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"service_name\": \"Premium Haircut\",\n  \"price\": 800,\n  \"duration\": 45\n}"
+            },
+            "url": "{{base_url}}/admin/services/1"
+          }
+        },
+        {
+          "name": "Toggle Service Status",
+          "request": {
+            "method": "PATCH",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"INACTIVE\"\n}"
+            },
+            "url": "{{base_url}}/admin/services/1/status"
+          }
+        },
+        {
+          "name": "List Services",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/services?salon_id=1",
+              "host": ["{{base_url}}"],
+              "path": ["services"],
+              "query": [{"key": "salon_id", "value": "1"}]
+            }
+          }
+        },
+        {
+          "name": "View Service",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/services/1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "📦 PACKAGES",
+      "item": [
+        {
+          "name": "Upload Package Image",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [{"key": "image", "type": "file", "src": ""}]
+            },
+            "url": "{{base_url}}/admin/packages/upload-image"
+          }
+        },
+        {
+          "name": "Create Package",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"package_name\": \"Bridal Package\",\n  \"description\": \"Complete bridal makeover\",\n  \"total_price\": 15000,\n  \"validity_days\": 30,\n  \"status\": \"ACTIVE\",\n  \"service_ids\": [1, 2, 3]\n}"
+            },
+            "url": "{{base_url}}/admin/packages"
+          }
+        },
+        {
+          "name": "Update Package",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"package_name\": \"Premium Bridal\",\n  \"total_price\": 20000,\n  \"service_ids\": [2, 4]\n}"
+            },
+            "url": "{{base_url}}/admin/packages/1"
+          }
+        },
+        {
+          "name": "Toggle Package Status",
+          "request": {
+            "method": "PATCH",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"INACTIVE\"\n}"
+            },
+            "url": "{{base_url}}/admin/packages/1/status"
+          }
+        },
+        {
+          "name": "List Packages",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/packages"
+          }
+        },
+        {
+          "name": "View Package",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/packages/1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "👨‍💼 STAFF",
+      "item": [
+        {
+          "name": "Create Staff",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"rohit_staff\",\n  \"email\": \"rohit@salon.com\",\n  \"password\": \"123456\",\n  \"role\": \"STAFF\",\n  \"name\": \"Rohit Kumar\",\n  \"phone\": \"9876543210\",\n  \"specialization\": \"Hair Stylist\",\n  \"experience_years\": 5,\n  \"salary\": 25000\n}"
+            },
+            "url": "{{base_url}}/admin/staff"
+          }
+        },
+        {
+          "name": "Update Staff",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Rohit Updated\",\n  \"salary\": 30000\n}"
+            },
+            "url": "{{base_url}}/admin/staff/1"
+          }
+        },
+        {
+          "name": "Toggle Staff Status",
+          "request": {
+            "method": "PATCH",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"INACTIVE\"\n}"
+            },
+            "url": "{{base_url}}/admin/staff/1/status"
+          }
+        },
+        {
+          "name": "List Staff",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/admin/staff"
+          }
+        },
+        {
+          "name": "View Staff",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/admin/staff/1"
+          }
+        },
+        {
+          "name": "Get My Profile",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/staff/my-profile"
+          }
+        },
+        {
+          "name": "Create Incentive",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"staff_id\": 1,\n  \"incentive_type\": \"BONUS\",\n  \"incentive_amount\": 500,\n  \"remarks\": \"Excellent performance\"\n}"
+            },
+            "url": "{{base_url}}/staff/incentives"
+          }
+        },
+        {
+          "name": "Process Payout",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"payout_amount\": 500,\n  \"payment_mode\": \"BANK\",\n  \"transaction_reference\": \"TXN123\"\n}"
+            },
+            "url": "{{base_url}}/staff/incentives/1/payout"
+          }
+        },
+        {
+          "name": "Batch Payout",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"staff_id\": 1,\n  \"incentive_ids\": [1, 2, 3],\n  \"payment_mode\": \"BANK\"\n}"
+            },
+            "url": "{{base_url}}/staff/incentives/batch-payout"
+          }
+        },
+        {
+          "name": "All Incentives",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/staff/incentives"
+          }
+        },
+        {
+          "name": "Unpaid Incentives",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/staff/incentives/unpaid/1"
+          }
+        },
+        {
+          "name": "Incentive History",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/staff/incentives/history/1"
+          }
+        },
+        {
+          "name": "My Incentive History",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/staff/incentives/my-history"
+          }
+        },
+        {
+          "name": "Commission Breakdown",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/staff/incentives/appointment/1/breakdown"
+          }
+        },
+        {
+          "name": "Create Incentive from Appointment",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"staff_id\": 1\n}"
+            },
+            "url": "{{base_url}}/staff/incentives/appointment/1"
+          }
+        },
+        {
+          "name": "Completable Appointments",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/staff/incentives/completable-appointments"
+          }
+        },
+        {
+          "name": "Add Staff Document",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"doc_type\": \"CERTIFICATION\",\n  \"document_name\": \"Hair Certificate\",\n  \"file_path\": \"uploads/staff/doc.pdf\"\n}"
+            },
+            "url": "{{base_url}}/admin/staff/1/documents"
+          }
+        },
+        {
+          "name": "List Staff Documents",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/admin/staff/1/documents"
+          }
+        },
+        {
+          "name": "View Staff Document",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/admin/staff/1/documents/1"
+          }
+        },
+        {
+          "name": "Delete Staff Document",
+          "request": {
+            "method": "DELETE",
+            "url": "{{base_url}}/admin/staff/1/documents/1"
+          }
+        },
+        {
+          "name": "Public Staff List",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/staff"
+          }
+        }
+      ]
+    },
+    {
+      "name": "📦 STOCK",
+      "item": [
+        {
+          "name": "Create Product",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"product_name\": \"Shampoo\",\n  \"brand\": \"L'Oreal\",\n  \"category\": \"product\",\n  \"minimum_quantity\": 10,\n  \"maximum_quantity\": 100,\n  \"initial_quantity\": 50\n}"
+            },
+            "url": "{{base_url}}/admin/products"
+          }
+        },
+        {
+          "name": "Update Product",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"product_name\": \"Premium Shampoo\",\n  \"brand\": \"L'Oreal Professional\"\n}"
+            },
+            "url": "{{base_url}}/admin/products/1"
+          }
+        },
+        {
+          "name": "List Products",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/admin/products"
+          }
+        },
+        {
+          "name": "View Product",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/admin/products/1"
+          }
+        },
+        {
+          "name": "Update Stock Levels",
+          "request": {
+            "method": "PATCH",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"current_quantity\": 75,\n  \"minimum_quantity\": 15\n}"
+            },
+            "url": "{{base_url}}/admin/stock/1"
+          }
+        },
+        {
+          "name": "All Stock Levels",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/admin/stock"
+          }
+        },
+        {
+          "name": "Low Stock Alerts",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/admin/stock/low-stock-alerts"
+          }
+        },
+        {
+          "name": "Create Stock Transaction",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"product_id\": 1,\n  \"transaction_type\": \"IN\",\n  \"quantity\": 50,\n  \"unit_price\": 250\n}"
+            },
+            "url": "{{base_url}}/admin/stock/transactions"
+          }
+        },
+        {
+          "name": "List Stock Transactions",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/admin/stock/transactions"
+          }
+        },
+        {
+          "name": "View Stock Transaction",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/admin/stock/transactions/1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "📅 APPOINTMENTS",
+      "item": [
+        {
+          "name": "Create Appointment",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customer_id\": 1,\n  \"appointment_date\": \"2025-04-01\",\n  \"start_time\": \"10:00:00\",\n  \"estimated_duration\": 90,\n  \"services\": [{\"service_id\": 1, \"price\": 500}],\n  \"notes\": \"First visit\"\n}"
+            },
+            "url": "{{base_url}}/appointments"
+          }
+        },
+        {
+          "name": "Update Appointment",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"appointment_date\": \"2025-04-02\",\n  \"start_time\": \"11:00:00\"\n}"
+            },
+            "url": "{{base_url}}/appointments/1"
+          }
+        },
+        {
+          "name": "Cancel Appointment",
+          "request": {
+            "method": "PATCH",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cancellation_reason\": \"Client requested\"\n}"
+            },
+            "url": "{{base_url}}/appointments/1/cancel"
+          }
+        },
+        {
+          "name": "Approve Appointment",
+          "request": {
+            "method": "PATCH",
+            "url": "{{base_url}}/appointments/1/approve"
+          }
+        },
+        {
+          "name": "Complete Appointment",
+          "request": {
+            "method": "PATCH",
+            "url": "{{base_url}}/appointments/1/complete"
+          }
+        },
+        {
+          "name": "List Appointments",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/appointments"
+          }
+        },
+        {
+          "name": "View Appointment",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/appointments/1"
+          }
+        },
+        {
+          "name": "Submit Feedback",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 5,\n  \"comment\": \"Excellent service!\"\n}"
+            },
+            "url": "{{base_url}}/appointments/1/feedback"
+          }
+        },
+        {
+          "name": "Add/Update Service (Upsert)",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"service_price\": 500,\n  \"discount_amount\": 50\n}"
+            },
+            "url": "{{base_url}}/appointments/1/services/1"
+          }
+        },
+        {
+          "name": "Update Service",
+          "request": {
+            "method": "PATCH",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"service_price\": 550\n}"
+            },
+            "url": "{{base_url}}/appointments/1/services/1"
+          }
+        },
+        {
+          "name": "Remove Service",
+          "request": {
+            "method": "DELETE",
+            "url": "{{base_url}}/appointments/1/services/1"
+          }
+        },
+        {
+          "name": "Add Package",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"package_id\": 1,\n  \"package_price\": 5000\n}"
+            },
+            "url": "{{base_url}}/appointments/1/packages"
+          }
+        },
+        {
+          "name": "Update Package",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"package_price\": 5500\n}"
+            },
+            "url": "{{base_url}}/appointments/1/packages/1"
+          }
+        },
+        {
+          "name": "Remove Package",
+          "request": {
+            "method": "DELETE",
+            "url": "{{base_url}}/appointments/1/packages/1"
+          }
+        },
+        {
+          "name": "Generate Invoice",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/appointments/1/invoice"
+          }
+        }
+      ]
+    },
+    {
+      "name": "📄 INVOICES",
+      "item": [
+        {
+          "name": "Create Invoice",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"appointment_id\": 1,\n  \"subtotal_amount\": 1500,\n  \"tax_amount\": 0,\n  \"discount_amount\": 100\n}"
+            },
+            "url": "{{base_url}}/invoices"
+          }
+        },
+        {
+          "name": "Update Invoice",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subtotal_amount\": 1600,\n  \"discount_amount\": 100\n}"
+            },
+            "url": "{{base_url}}/invoices/1"
+          }
+        },
+        {
+          "name": "List Invoices",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/invoices"
+          }
+        },
+        {
+          "name": "View Invoice",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/invoices/1"
+          }
+        },
+        {
+          "name": "Get Invoice by Appointment",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/invoices/appointment/1"
+          }
+        },
+        {
+          "name": "Record Payment",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"payment_mode\": \"UPI\",\n  \"amount\": 500,\n  \"transaction_no\": \"TXN123\"\n}"
+            },
+            "url": "{{base_url}}/invoices/customer/1/payments"
+          }
+        },
+        {
+          "name": "Get Invoice Payments",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/invoices/customer/1/payments"
+          }
+        }
+      ]
+    },
+    {
+      "name": "💳 PAYMENTS",
+      "item": [
+        {
+          "name": "Create Payment",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"invoice_customer_id\": 1,\n  \"payment_mode\": \"UPI\",\n  \"amount\": 500\n}"
+            },
+            "url": "{{base_url}}/payments"
+          }
+        },
+        {
+          "name": "List Payments",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/payments"
+          }
+        },
+        {
+          "name": "View Payment",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/payments/1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "📋 SUBSCRIPTION PLANS",
+      "item": [
+        {
+          "name": "Create Plan",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"plan_name\": \"Basic Plan\",\n  \"duration_days\": 30,\n  \"plan_type\": \"flat\",\n  \"flat_price\": 5000,\n  \"status\": 1\n}"
+            },
+            "url": "{{base_url}}/subscription-plans"
+          }
+        },
+        {
+          "name": "Update Plan",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"plan_name\": \"Premium Plan\",\n  \"flat_price\": 8000\n}"
+            },
+            "url": "{{base_url}}/subscription-plans/1"
+          }
+        },
+        {
+          "name": "List Plans",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/subscription-plans"
+          }
+        },
+        {
+          "name": "View Plan",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/subscription-plans/1"
+          }
+        },
+        {
+          "name": "Toggle Plan Status",
+          "request": {
+            "method": "PATCH",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": 0\n}"
+            },
+            "url": "{{base_url}}/subscription-plans/1/status"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔄 SALON SUBSCRIPTIONS",
+      "item": [
+        {
+          "name": "Create Subscription",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"plan_id\": 1,\n  \"start_date\": \"2025-03-27\"\n}"
+            },
+            "url": "{{base_url}}/subscriptions"
+          }
+        },
+        {
+          "name": "Get Current Subscription",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/subscriptions/current"
+          }
+        },
+        {
+          "name": "List Subscriptions",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/subscriptions"
+          }
+        },
+        {
+          "name": "View Subscription",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/subscriptions/1"
+          }
+        },
+        {
+          "name": "Update Subscription",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"plan_id\": 2,\n  \"status\": \"ACTIVE\"\n}"
+            },
+            "url": "{{base_url}}/subscriptions/1"
+          }
+        },
+        {
+          "name": "Cancel Subscription",
+          "request": {
+            "method": "PATCH",
+            "url": "{{base_url}}/subscriptions/1/cancel"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🏢 SUPER-ADMIN SALONS",
+      "item": [
+        {
+          "name": "Upload Salon Logo",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [{"key": "image", "type": "file", "src": ""}]
+            },
+            "url": "{{base_url}}/admin/upload/logo"
+          }
+        },
+        {
+          "name": "Create Salon",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"salon_name\": \"Elite Salon\",\n  \"salon_ownername\": \"John Smith\",\n  \"email\": \"salon@example.com\",\n  \"phone\": \"9876543210\",\n  \"address\": \"123 Main St\",\n  \"city\": \"Mumbai\",\n  \"state\": \"Maharashtra\"\n}"
+            },
+            "url": "{{base_url}}/super-admin/salons"
+          }
+        },
+        {
+          "name": "Update Salon",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"salon_name\": \"Elite Salon Premium\",\n  \"phone\": \"9999999999\"\n}"
+            },
+            "url": "{{base_url}}/super-admin/salons/1"
+          }
+        },
+        {
+          "name": "Toggle Salon Status",
+          "request": {
+            "method": "PATCH",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": 0\n}"
+            },
+            "url": "{{base_url}}/super-admin/salons/1/status"
+          }
+        },
+        {
+          "name": "List Salons",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/super-admin/salons"
+          }
+        },
+        {
+          "name": "View Salon",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/super-admin/salons/1"
+          }
+        },
+        {
+          "name": "Get Salon Info (Public)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/salon/info?salon_id=1",
+              "host": ["{{base_url}}"],
+              "path": ["salon", "info"],
+              "query": [{"key": "salon_id", "value": "1"}]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "👤 SUPER-ADMIN USERS",
+      "item": [
+        {
+          "name": "List All Users",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/admin/users"
+          }
+        },
+        {
+          "name": "Create Salon Admin",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin_salon2\",\n  \"email\": \"admin2@salon.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": "{{base_url}}/admin/salons/1/admin"
+          }
+        },
+        {
+          "name": "List Users by Salon",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/admin/salons/1/users"
+          }
+        },
+        {
+          "name": "View User",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/admin/users/1"
+          }
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"new_username\",\n  \"email\": \"newemail@salon.com\"\n}"
+            },
+            "url": "{{base_url}}/admin/users/1"
+          }
+        },
+        {
+          "name": "Toggle User Status",
+          "request": {
+            "method": "PATCH",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"BLOCKED\"\n}"
+            },
+            "url": "{{base_url}}/admin/users/1/status"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔄 SUPER-ADMIN SUBSCRIPTIONS",
+      "item": [
+        {
+          "name": "Assign Subscription to Salon",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"plan_id\": 1,\n  \"start_date\": \"2025-03-27\"\n}"
+            },
+            "url": "{{base_url}}/super-admin/salons/1/subscriptions"
+          }
+        },
+        {
+          "name": "Update Subscription",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"plan_id\": 2,\n  \"end_date\": \"2025-05-30\"\n}"
+            },
+            "url": "{{base_url}}/super-admin/subscriptions/1"
+          }
+        },
+        {
+          "name": "List Salon Subscriptions",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/super-admin/salons/1/subscriptions"
+          }
+        },
+        {
+          "name": "View Subscription",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/super-admin/subscriptions/1"
+          }
+        },
+        {
+          "name": "Generate Invoice",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/super-admin/subscriptions/1/generate-invoice"
+          }
+        },
+        {
+          "name": "Renew Subscription",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"start_date\": \"2025-04-27\",\n  \"plan_id\": 2\n}"
+            },
+            "url": "{{base_url}}/super-admin/subscriptions/1/renew"
+          }
+        },
+        {
+          "name": "List All Subscriptions",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/super-admin/subscriptions"
+          }
+        }
+      ]
+    },
+    {
+      "name": "📄 SUPER-ADMIN INVOICES",
+      "item": [
+        {
+          "name": "Generate Salon Invoice",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"salon_id\": 1,\n  \"subscription_id\": 1,\n  \"amount\": 5000,\n  \"tax_amount\": 0\n}"
+            },
+            "url": "{{base_url}}/super-admin/invoices/salon"
+          }
+        },
+        {
+          "name": "List Salon Invoices",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/super-admin/invoices/salon"
+          }
+        },
+        {
+          "name": "View Salon Invoice",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/super-admin/invoices/salon/1"
+          }
+        },
+        {
+          "name": "Record Payment for Salon Invoice",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"payment_mode\": \"UPI\",\n  \"amount\": 2000,\n  \"transaction_no\": \"TXN123\"\n}"
+            },
+            "url": "{{base_url}}/super-admin/invoices/salon/1/payments"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🏢 SALON INVOICES",
+      "item": [
+        {
+          "name": "List Salon Invoices",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/salon/invoices"
+          }
+        },
+        {
+          "name": "View Salon Invoice",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/salon/invoices/1"
+          }
+        },
+        {
+          "name": "Update Salon Invoice",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 5500,\n  \"tax_amount\": 0\n}"
+            },
+            "url": "{{base_url}}/salon/invoices/1"
+          }
+        },
+        {
+          "name": "Get by Subscription",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/salon/invoices/subscription/1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "💳 SALON PAYMENTS",
+      "item": [
+        {
+          "name": "Create Salon Payment",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"invoice_salon_id\": 1,\n  \"payment_mode\": \"UPI\",\n  \"amount\": 2000\n}"
+            },
+            "url": "{{base_url}}/salon/payments"
+          }
+        },
+        {
+          "name": "List Salon Payments",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/salon/payments"
+          }
+        },
+        {
+          "name": "View Salon Payment",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/salon/payments/1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "📊 REPORTS",
+      "item": [
+        {
+          "name": "Sales Report",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/reports/sales?start_date=2025-03-01&end_date=2025-03-27",
+              "host": ["{{base_url}}"],
+              "path": ["reports", "sales"],
+              "query": [
+                {"key": "start_date", "value": "2025-03-01"},
+                {"key": "end_date", "value": "2025-03-27"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Appointment Report",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/reports/appointments"
+          }
+        },
+        {
+          "name": "Staff Performance Report",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/reports/staff-performance"
+          }
+        },
+        {
+          "name": "Services Revenue Report",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/reports/services"
+          }
+        },
+        {
+          "name": "Packages Revenue Report",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/reports/packages"
+          }
+        },
+        {
+          "name": "Customer Visits Report",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/reports/customers"
+          }
+        },
+        {
+          "name": "Inventory Usage Report",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/reports/inventory"
+          }
+        },
+        {
+          "name": "Incentive Payouts Report",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/reports/incentives"
+          }
+        },
+        {
+          "name": "Tax Report (GST)",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/reports/tax"
+          }
+        },
+        {
+          "name": "Dashboard Summary",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/reports/dashboard-summary"
+          }
+        },
+        {
+          "name": "Super Admin Dashboard",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/reports/super-admin-dashboard"
+          }
+        }
+      ]
+    },
+    {
+      "name": "📈 DASHBOARD",
+      "item": [
+        {
+          "name": "Dashboard Statistics",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/dashboard/stats?period=month",
+              "host": ["{{base_url}}"],
+              "path": ["dashboard", "stats"],
+              "query": [{"key": "period", "value": "month"}]
+            }
+          }
+        },
+        {
+          "name": "Revenue Chart Data",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/dashboard/revenue-chart"
+          }
+        },
+        {
+          "name": "Appointment Trends",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/dashboard/appointment-trends"
+          }
+        }
+      ]
+    }
+  ]
+}

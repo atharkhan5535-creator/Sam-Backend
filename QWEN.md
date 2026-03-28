@@ -1,6 +1,0 @@
-## Qwen Added Memories
-- SAM Backend has 101 APIs documented in API_DOCUMENTATION.txt across 15 modules: AUTH(4), CUSTOMERS(7), SERVICES(5), PACKAGES(5), STAFF(10), STOCK(10), APPOINTMENTS(6), INVOICES(5), PAYMENTS(4), SUBSCRIPTION-PLANS(5), SUBSCRIPTIONS(6), SUPER-ADMIN SALONS(5), SUPER-ADMIN USERS(5), SUPER-ADMIN SUBSCRIPTIONS(3), SUPER-ADMIN INVOICES(4), SALON INVOICES(4), SALON PAYMENTS(3), REPORTS(9). All APIs have been implemented and tested with real database operations.
-- SAM Backend now has 115 total APIs implemented: AUTH(5), CUSTOMERS(11), SERVICES(5), PACKAGES(5), STAFF(10), STOCK(10), APPOINTMENTS(11), INVOICES(7), PAYMENTS(4), SUBSCRIPTION-PLANS(5), SUBSCRIPTIONS(9), SUPER-ADMIN SALONS(5), SUPER-ADMIN USERS(5), SUPER-ADMIN SUBSCRIPTIONS(3), SUPER-ADMIN INVOICES(4), SALON INVOICES(4), SALON PAYMENTS(3), REPORTS(9). All 14 missing APIs from README have been implemented.
-
-## Bug Fixes
-- **2026-03-17**: Fixed Appointments API error "Unexpected token '<'" caused by `appointment_packages` table missing `staff_id` column. Removed `ap.staff_id` from SELECT queries in `AppointmentController.php::index()` and `::show()` methods. Also improved error handling in middlewares (`authenticate.php`, `authorize.php`) and added fallback token retrieval methods in `Request.php`.

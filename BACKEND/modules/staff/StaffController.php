@@ -404,6 +404,44 @@ class StaffController
 
     /*
     |--------------------------------------------------------------------------
+    | 5️⃣➀ GET MY STAFF PROFILE (STAFF only)
+    | Returns staff_id for logged-in STAFF user
+    |--------------------------------------------------------------------------
+    */
+    public function getMyProfile()
+    {
+        $auth = $GLOBALS['auth_user'] ?? null;
+        $salonId = $auth['salon_id'] ?? null;
+        $userId = $auth['user_id'] ?? null;
+
+        if (!$salonId || !$userId) {
+            Response::json(["status" => "error", "message" => "Invalid salon context"], 400);
+        }
+
+        $stmt = $this->db->prepare("
+            SELECT si.staff_id, si.user_id, si.name, si.phone, si.email,
+                   si.specialization, si.status, si.date_of_joining,
+                   u.role, u.last_login, si.created_at
+            FROM staff_info si
+            INNER JOIN users u ON si.user_id = u.user_id
+            WHERE si.user_id = ? AND si.salon_id = ?
+        ");
+
+        $stmt->execute([$userId, $salonId]);
+        $staff = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$staff) {
+            Response::json(["status" => "error", "message" => "Staff profile not found"], 404);
+        }
+
+        Response::json([
+            "status" => "success",
+            "data" => $staff
+        ]);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
     | 6️⃣ GENERATE STAFF INCENTIVE (ADMIN only)
     |--------------------------------------------------------------------------
     */
@@ -825,6 +863,69 @@ class StaffController
         if (!$staff) {
             Response::json(["status" => "error", "message" => "Staff not found"], 404);
         }
+
+        // Get all incentives for this staff with payout info
+        $stmt = $this->db->prepare("
+            SELECT 
+                i.*,
+                a.appointment_date,
+                a.final_amount as appointment_amount,
+                p.payout_id,
+                p.payout_amount,
+                p.payout_date,
+                p.payment_mode
+            FROM incentives i
+            LEFT JOIN appointments a ON i.appointment_id = a.appointment_id
+            LEFT JOIN incentive_payouts p ON i.incentive_id = p.incentive_id
+            WHERE i.staff_id = ?
+            ORDER BY i.created_at DESC
+        ");
+        $stmt->execute([$staffId]);
+        $incentives = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Calculate totals
+        $totalIncentives = array_sum(array_column($incentives, 'incentive_amount'));
+        $totalPaid = array_sum(array_column($incentives, 'payout_amount'));
+
+        Response::json([
+            "status" => "success",
+            "data" => [
+                "staff_id" => $staffId,
+                "total_incentives" => $totalIncentives,
+                "total_paid" => $totalPaid,
+                "total_outstanding" => $totalIncentives - $totalPaid,
+                "count" => count($incentives),
+                "incentives" => $incentives
+            ]
+        ]);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | 9️⃣B GET MY INCENTIVE HISTORY (STAFF can view their own)
+    | Returns incentive history for the authenticated staff member
+    |--------------------------------------------------------------------------
+    */
+    public function getMyIncentiveHistory()
+    {
+        $auth = $GLOBALS['auth_user'] ?? null;
+        $salonId = $auth['salon_id'] ?? null;
+        $userId = $auth['user_id'] ?? null;
+
+        if (!$salonId || !$userId) {
+            Response::json(["status" => "error", "message" => "Invalid authentication context"], 400);
+        }
+
+        // Get staff_id from user_id
+        $stmt = $this->db->prepare("SELECT staff_id FROM staff_info WHERE user_id = ? AND salon_id = ?");
+        $stmt->execute([$userId, $salonId]);
+        $staff = $stmt->fetch();
+
+        if (!$staff) {
+            Response::json(["status" => "error", "message" => "Staff record not found"], 404);
+        }
+
+        $staffId = $staff['staff_id'];
 
         // Get all incentives for this staff with payout info
         $stmt = $this->db->prepare("

@@ -466,11 +466,10 @@ class AppointmentController
         foreach ($appointments as &$appointment) {
             // Get services
             $stmt = $this->db->prepare("
-                SELECT asvc.service_id, s.service_name, svc.staff_id, asvc.service_price,
+                SELECT asvc.service_id, s.service_name, s.staff_id, asvc.service_price,
                        asvc.discount_amount, asvc.final_price, asvc.start_time, asvc.end_time, asvc.status
                 FROM appointment_services asvc
                 INNER JOIN services s ON asvc.service_id = s.service_id
-                INNER JOIN services svc ON asvc.service_id = svc.service_id
                 WHERE asvc.appointment_id = ?
             ");
             $stmt->execute([$appointment['appointment_id']]);
@@ -539,11 +538,10 @@ class AppointmentController
 
         // Get services
         $stmt = $this->db->prepare("
-            SELECT asvc.service_id, s.service_name, svc.staff_id, asvc.service_price,
+            SELECT asvc.service_id, s.service_name, s.staff_id, asvc.service_price,
                    asvc.discount_amount, asvc.final_price, asvc.start_time, asvc.end_time, asvc.status
             FROM appointment_services asvc
             INNER JOIN services s ON asvc.service_id = s.service_id
-            INNER JOIN services svc ON asvc.service_id = svc.service_id
             WHERE asvc.appointment_id = ?
         ");
         $stmt->execute([$appointmentId]);

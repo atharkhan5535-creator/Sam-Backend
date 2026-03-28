@@ -58,9 +58,9 @@
 
     /* ── Beauty salon images via Unsplash (free, no key needed) ── */
     .slide:nth-child(1) { background-image: url(../Assets/images/landing1.jpeg); }
-    .slide:nth-child(2) { background-image: url(../Assets/images/landing2.jpeg); }
-    .slide:nth-child(3) { background-image: url(../Assets/images/landing3.jpeg); }
-    .slide:nth-child(4) { background-image: url(../Assets/images/landing4.jpeg); }
+    .slide:nth-child(2) { background-image: url(../Assets/images/landing2.jpg); }
+    .slide:nth-child(3) { background-image: url(../Assets/images/landing3.jpg); }
+    .slide:nth-child(4) { background-image: url(../Assets/images/landing4.jpg); }
 
     /* ─── VERTICAL DIVIDER LINE ─── */
     .hero-divider {

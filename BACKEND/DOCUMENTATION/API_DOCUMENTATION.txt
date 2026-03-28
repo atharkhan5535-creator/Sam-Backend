@@ -1,0 +1,577 @@
+================================================================================
+                    SAM BACKEND - COMPLETE API DOCUMENTATION
+                         VERIFIED & UPDATED: 2026-03-27
+================================================================================
+
+Base URL: http://localhost/Sam-Backend/BACKEND/public/index.php/api
+
+Authentication: Bearer token in Authorization header
+  Format: Authorization: Bearer <access_token>
+
+User Roles: SUPER_ADMIN, ADMIN, STAFF, CUSTOMER
+
+Total APIs: 140
+
+================================================================================
+                              PART 1: AUTH MODULE (5 APIs)
+================================================================================
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 1. POST /api/auth/login - User Login                                        │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ Access: PUBLIC                                                              │
+│ Tables: super_admin_login, users, customer_authentication, refresh_tokens   │
+│                                                                             │
+│ Request Body:                                                               │
+│ {                                                                           │
+│   "email": "admin@mail.com",          // Required for SUPER_ADMIN, ADMIN   │
+│   "phone": "9876543210",              // Alternative for CUSTOMER          │
+│   "password": "123456",               // Required, min 6 chars             │
+│   "login_type": "SUPER_ADMIN",        // SUPER_ADMIN|ADMIN/STAFF|CUSTOMER  │
+│   "salon_id": 1                      // Required for ADMIN/STAFF, CUSTOMER│
+│ }                                                                           │
+│                                                                             │
+│ Response (200):                                                             │
+│ {                                                                           │
+│   "status": "success",                                                      │
+│   "data": {                                                                 │
+│     "access_token": "eyJhbGci...",                                          │
+│     "refresh_token": "abc123...",                                           │
+│     "expires_in": 900                                                       │
+│   }                                                                         │
+│ }                                                                           │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 2. POST /api/auth/refresh - Refresh Access Token                            │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ Access: PUBLIC (requires valid refresh_token)                               │
+│ Tables: refresh_tokens                                                      │
+│                                                                             │
+│ Request Body:                                                               │
+│ { "refresh_token": "abc123..." }                                            │
+│                                                                             │
+│ Response (200):                                                             │
+│ {                                                                           │
+│   "status": "success",                                                      │
+│   "data": { "access_token": "...", "refresh_token": "...", "expires_in": 900 } │
+│ }                                                                           │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 3. POST /api/auth/logout - User Logout                                      │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ Access: PUBLIC (requires valid refresh_token)                               │
+│ Tables: refresh_tokens                                                      │
+│                                                                             │
+│ Request Body:                                                               │
+│ { "refresh_token": "abc123..." }                                            │
+│                                                                             │
+│ Response (200):                                                             │
+│ { "status": "success", "message": "Logged out successfully" }               │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 4. GET /api/auth/me - Get Current User                                      │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ Access: AUTHENTICATED (All roles)                                           │
+│ Headers: Authorization: Bearer <access_token>                               │
+│ Tables: N/A (Reads from JWT token)                                          │
+│                                                                             │
+│ Response (200):                                                             │
+│ {                                                                           │
+│   "status": "success",                                                      │
+│   "data": {                                                                 │
+│     "user_id": 1, "role": "ADMIN", "salon_id": 1,                           │
+│     "customer_id": null, "username": "admin_user", "email": "...", "name": "..." │
+│   }                                                                         │
+│ }                                                                           │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 5. PUT /api/auth/me - Update Own Profile                                    │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ Access: AUTHENTICATED (All roles)                                           │
+│ Headers: Authorization: Bearer <access_token>                               │
+│ Tables: super_admin_login, users, customers                                 │
+│                                                                             │
+│ Request Body (fields vary by role):                                         │
+│ { "name": "Updated Name", "email": "new@mail.com", "phone": "9876543210" }  │
+│                                                                             │
+│ Allowed Fields by Role:                                                     │
+│ - SUPER_ADMIN: name, email, phone                                           │
+│ - ADMIN/STAFF: username, email, phone                                       │
+│ - CUSTOMER: name, email, phone                                              │
+│                                                                             │
+│ Response (200): { "status": "success" }                                     │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+================================================================================
+                           PART 2: CUSTOMERS MODULE (10 APIs)
+================================================================================
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 6. POST /api/customers/register - Customer Self Registration                │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ Access: PUBLIC                                                              │
+│ Tables: customers, customer_authentication                                  │
+│                                                                             │
+│ Request Body:                                                               │
+│ {                                                                           │
+│   "name": "John Doe",           // Required, 1-100 chars                   │
+│   "phone": "9876543210",        // Required if no email, 10-digit Indian   │
+│   "email": "john@example.com",  // Required if no phone, valid format     │
+│   "password": "123456",         // Required, min 6 chars                   │
+│   "salon_id": 1                // Required                                  │
+│ }                                                                           │
+│                                                                             │
+│ Response (201): { "status": "success", "message": "Customer registered..." }│
+│ Response (409): { "status": "error", "message": "Phone already registered" }│
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 7. POST /api/customers/create - Create Customer (Manual)                    │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ Access: ADMIN, STAFF                                                        │
+│ Tables: customers                                                           │
+│                                                                             │
+│ Request Body:                                                               │
+│ {                                                                           │
+│   "name": "Jane Smith",                                                      │
+│   "phone": "9876543211",                                                      │
+│   "email": "jane@example.com",                                                │
+│   "gender": "FEMALE",           // MALE | FEMALE | OTHER                    │
+│   "date_of_birth": "1990-05-15",                                              │
+│   "anniversary_date": "2015-06-20"                                           │
+│ }                                                                           │
+│                                                                             │
+│ Response (201): { "status": "success", "data": { "customer_id": 1 } }       │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 8. PATCH /api/customers/update/{customer_id} - Update Customer              │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ Access: ADMIN, STAFF                                                        │
+│ Tables: customers                                                           │
+│                                                                             │
+│ Request Body (all optional):                                                │
+│ { "name", "phone", "email", "gender", "date_of_birth", "anniversary_date",  │
+│   "address", "preferences", "status" }                                      │
+│                                                                             │
+│ Response (200): { "status": "success" }                                     │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 9. PATCH /api/customers/status/{customer_id} - Soft Delete Customer         │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ Access: ADMIN, STAFF                                                        │
+│ Tables: customers                                                           │
+│                                                                             │
+│ Request Body: { "status": "INACTIVE" }                                      │
+│ Response (200): { "status": "success" }                                     │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 10. GET /api/customers/list - List Customers                                │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ Access: ADMIN, STAFF                                                        │
+│ Tables: customers                                                           │
+│ Response (200): { "status": "success", "data": { "items": [...], "total": 10 } } │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 11. GET /api/customers/view/{customer_id} - View Customer Profile           │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ Access: ADMIN, STAFF, CUSTOMER (own profile only)                           │
+│ Tables: customers                                                           │
+│ Response (200): { "status": "success", "data": { customer details } }       │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 12. PATCH /api/customers/me - Update Own Profile                            │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ Access: CUSTOMER                                                            │
+│ Tables: customers                                                           │
+│ Request Body: { "name", "phone", "email", "date_of_birth", "anniversary_date", │
+│                "address", "preferences" }                                   │
+│ Response (200): { "status": "success" }                                     │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 13. GET /api/customers/me/appointments - Get My Appointments                │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ Access: CUSTOMER                                                            │
+│ Tables: appointments, appointment_services, appointment_packages            │
+│ Query: status (optional)                                                    │
+│ Response (200): { "status": "success", "data": { "items": [appointments] } }│
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 14. GET /api/customers/{customer_id}/appointments - Get Customer Appointments│
+├─────────────────────────────────────────────────────────────────────────────┤
+│ Access: ADMIN, STAFF, CUSTOMER (own only)                                   │
+│ Tables: appointments                                                        │
+│ Response (200): { "status": "success", "data": { "items": [...] } }         │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 15. GET /api/customers/me/feedback - Get My Feedback                        │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ Access: CUSTOMER                                                            │
+│ Tables: appointment_feedback, appointments                                  │
+│ Response (200): { "status": "success", "data": { "items": [...] } }         │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 16. GET /api/customers/{customer_id}/feedback - Get Customer Feedback       │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ Access: ADMIN, STAFF, CUSTOMER (own only)                                   │
+│ Tables: appointment_feedback, appointments, customers                       │
+│ Response (200): { "status": "success", "data": { "items": [...] } }         │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+================================================================================
+                           PART 3: SERVICES MODULE (6 APIs)
+================================================================================
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 17. POST /api/admin/services/upload-image - Upload Service Image            │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ Access: ADMIN                                                               │
+│ Content-Type: multipart/form-data                                           │
+│ Form: image (file, max 5MB, JPG/PNG/GIF/WEBP)                               │
+│ Response: { "status": "success", "data": { "image_url", "file_name", ... } }│
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 18. POST /api/admin/services - Create Service                               │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ Access: ADMIN                                                               │
+│ Tables: services                                                            │
+│ Request: { "service_name", "description", "price", "duration", "image_url", │
+│           "status", "staff_id" }                                            │
+│ Response (201): { "status": "success", "data": { "service_id": 1 } }        │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 19. PUT /api/admin/services/{service_id} - Update Service                   │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ Access: ADMIN                                                               │
+│ Request: { "service_name", "description", "price", "duration", "image_url", │
+│           "staff_id" }                                                      │
+│ Response (200): { "status": "success" }                                     │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 20. PATCH /api/admin/services/{service_id}/status - Toggle Service Status   │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ Access: ADMIN                                                               │
+│ Request: { "status": "ACTIVE" | "INACTIVE" }                                │
+│ Response (200): { "status": "success" }                                     │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 21. GET /api/services - List Services                                       │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ Access: PUBLIC (ACTIVE only), ADMIN, STAFF, CUSTOMER (ACTIVE only)          │
+│ Tables: services                                                            │
+│ Query: salon_id (required for PUBLIC), status (ADMIN/STAFF only)            │
+│ Response (200): { "status": "success", "data": { "items": [...] } }         │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 22. GET /api/services/{service_id} - View Service                           │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ Access: PUBLIC (ACTIVE only), ADMIN, STAFF, CUSTOMER (ACTIVE only)          │
+│ Query: salon_id (required for PUBLIC)                                       │
+│ Response (200): { "status": "success", "data": { service details } }        │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+================================================================================
+                           PART 4: PACKAGES MODULE (6 APIs)
+================================================================================
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 23. POST /api/admin/packages/upload-image - Upload Package Image            │
+│ 24. POST /api/admin/packages - Create Package                               │
+│ 25. PUT /api/admin/packages/{package_id} - Update Package                   │
+│ 26. PATCH /api/admin/packages/{package_id}/status - Toggle Package Status   │
+│ 27. GET /api/packages - List Packages                                       │
+│ 28. GET /api/packages/{package_id} - View Package                           │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+  Similar structure to Services module. Package creation requires service_ids array.
+
+================================================================================
+                           PART 5: STAFF MODULE (18 APIs)
+================================================================================
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 29. POST /api/admin/staff - Create Staff                                    │
+│ 30. PUT /api/admin/staff/{staff_id} - Update Staff                          │
+│ 31. PATCH /api/admin/staff/{staff_id}/status - Toggle Staff Status          │
+│ 32. GET /api/admin/staff - List Staff                                       │
+│ 33. GET /api/admin/staff/{staff_id} - View Staff                            │
+│ 34. GET /api/staff/my-profile - Get My Staff Profile                        │
+│ 35. POST /api/staff/incentives - Create Incentive                           │
+│ 36. POST /api/staff/incentives/{incentive_id}/payout - Process Payout       │
+│ 37. POST /api/staff/incentives/batch-payout - Batch Payout                  │
+│ 38. GET /api/staff/incentives - All Incentives                              │
+│ 39. GET /api/staff/incentives/unpaid/{staff_id} - Unpaid Incentives         │
+│ 40. GET /api/staff/incentives/history/{staff_id} - Incentive History        │
+│ 41. GET /api/staff/incentives/my-history - My Incentive History             │
+│ 42. GET /api/staff/incentives/appointment/{appointment_id}/breakdown        │
+│ 43. POST /api/staff/incentives/appointment/{appointment_id} - Create from Appt│
+│ 44. GET /api/staff/incentives/completable-appointments - Completable Appts  │
+│ 45. POST /api/admin/staff/{staff_id}/documents - Add Staff Document         │
+│ 46. GET /api/admin/staff/{staff_id}/documents - List Staff Documents        │
+│ 47. GET /api/admin/staff/{staff_id}/documents/{doc_id} - View Staff Document│
+│ 48. DELETE /api/admin/staff/{staff_id}/documents/{doc_id} - Delete Document │
+│ 49. GET /api/staff - Public Staff List                                      │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+================================================================================
+                           PART 6: STOCK MODULE (10 APIs)
+================================================================================
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 50. POST /api/admin/products - Create Product                               │
+│ 51. PUT /api/admin/products/{product_id} - Update Product                   │
+│ 52. GET /api/admin/products - List Products                                 │
+│ 53. GET /api/admin/products/{product_id} - View Product                     │
+│ 54. PATCH /api/admin/stock/{product_id} - Update Stock Levels               │
+│ 55. GET /api/admin/stock - All Stock Levels                                 │
+│ 56. GET /api/admin/stock/low-stock-alerts - Low Stock Alerts                │
+│ 57. POST /api/admin/stock/transactions - Create Transaction                 │
+│ 58. GET /api/admin/stock/transactions - List Transactions                   │
+│ 59. GET /api/admin/stock/transactions/{transaction_id} - View Transaction   │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+  Access: ADMIN, STAFF for all STOCK APIs
+
+================================================================================
+                           PART 7: APPOINTMENTS MODULE (15 APIs)
+================================================================================
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 60. POST /api/appointments - Create Appointment                             │
+│ 61. PUT /api/appointments/{appointment_id} - Update Appointment             │
+│ 62. PATCH /api/appointments/{appointment_id}/cancel - Cancel Appointment    │
+│ 63. PATCH /api/appointments/{appointment_id}/approve - Approve Appointment  │
+│ 64. PATCH /api/appointments/{appointment_id}/complete - Complete Appointment│
+│ 65. GET /api/appointments - List Appointments                               │
+│ 66. GET /api/appointments/{appointment_id} - View Appointment               │
+│ 67. POST /api/appointments/{appointment_id}/feedback - Submit Feedback      │
+│ 68. PUT /api/appointments/{appointment_id}/services/{service_id} - Add/Update│
+│ 69. PATCH /api/appointments/{appointment_id}/services/{service_id} - Update │
+│ 70. DELETE /api/appointments/{appointment_id}/services/{service_id} - Remove│
+│ 71. POST /api/appointments/{appointment_id}/packages - Add Package          │
+│ 72. PUT /api/appointments/{appointment_id}/packages/{package_id} - Update   │
+│ 73. DELETE /api/appointments/{appointment_id}/packages/{package_id} - Remove│
+│ 74. POST /api/appointments/{appointment_id}/invoice - Generate Invoice      │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+================================================================================
+                           PART 8: INVOICES MODULE (7 APIs)
+================================================================================
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 75. POST /api/invoices - Create Invoice                                     │
+│ 76. PUT /api/invoices/{invoice_customer_id} - Update Invoice                │
+│ 77. GET /api/invoices - List Invoices                                       │
+│ 78. GET /api/invoices/{invoice_customer_id} - View Invoice                  │
+│ 79. GET /api/invoices/appointment/{appointment_id} - Get by Appointment     │
+│ 80. POST /api/invoices/customer/{invoice_customer_id}/payments - Record     │
+│ 81. GET /api/invoices/customer/{invoice_customer_id}/payments - Get Payments│
+└─────────────────────────────────────────────────────────────────────────────┘
+
+================================================================================
+                           PART 9: PAYMENTS MODULE (3 APIs)
+================================================================================
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 82. POST /api/payments - Create Payment                                     │
+│ 83. GET /api/payments - List Payments                                       │
+│ 84. GET /api/payments/{customer_payment_id} - View Payment                  │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+================================================================================
+                        PART 10: SUBSCRIPTION PLANS MODULE (5 APIs)
+================================================================================
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 85. POST /api/subscription-plans - Create Plan                              │
+│ 86. PUT /api/subscription-plans/{plan_id} - Update Plan                     │
+│ 87. GET /api/subscription-plans - List Plans                                │
+│ 88. GET /api/subscription-plans/{plan_id} - View Plan                       │
+│ 89. PATCH /api/subscription-plans/{plan_id}/status - Toggle Status          │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+  Access: SUPER_ADMIN (full), ADMIN (read-only)
+  STAFF and CUSTOMER have NO access
+
+================================================================================
+                        PART 11: SALON SUBSCRIPTIONS MODULE (6 APIs)
+================================================================================
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 90. POST /api/subscriptions - Create Subscription                           │
+│ 91. GET /api/subscriptions/current - Get Current Subscription               │
+│ 92. GET /api/subscriptions - List Subscriptions                             │
+│ 93. GET /api/subscriptions/{subscription_id} - View Subscription            │
+│ 94. PUT /api/subscriptions/{subscription_id} - Update Subscription          │
+│ 95. PATCH /api/subscriptions/{subscription_id}/cancel - Cancel Subscription │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+  Access: SUPER_ADMIN, ADMIN
+  STAFF and CUSTOMER have NO access
+
+================================================================================
+                        PART 12: SUPER-ADMIN SALONS MODULE (7 APIs)
+================================================================================
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 96. POST /api/admin/upload/logo - Upload Salon Logo                         │
+│ 97. POST /api/super-admin/salons - Create Salon                             │
+│ 98. PUT /api/super-admin/salons/{salon_id} - Update Salon                   │
+│ 99. PATCH /api/super-admin/salons/{salon_id}/status - Toggle Status         │
+│ 100. GET /api/super-admin/salons - List Salons                              │
+│ 101. GET /api/super-admin/salons/{salon_id} - View Salon                    │
+│ 102. GET /api/salon/info - Get Salon Info (PUBLIC)                          │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+  Access: SUPER_ADMIN only (except salon/info which is PUBLIC)
+
+================================================================================
+                        PART 13: SUPER-ADMIN USERS MODULE (6 APIs)
+================================================================================
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 103. GET /api/admin/users - List All Users                                  │
+│ 104. POST /api/admin/salons/{salon_id}/admin - Create Salon Admin           │
+│ 105. GET /api/admin/salons/{salon_id}/users - List Users by Salon           │
+│ 106. GET /api/admin/users/{user_id} - View User                             │
+│ 107. PUT /api/admin/users/{user_id} - Update User                           │
+│ 108. PATCH /api/admin/users/{user_id}/status - Toggle User Status           │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+  Access: SUPER_ADMIN (full), ADMIN (limited to own salon)
+
+================================================================================
+                    PART 14: SUPER-ADMIN SUBSCRIPTIONS MODULE (7 APIs)
+================================================================================
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 109. POST /api/super-admin/salons/{salon_id}/subscriptions - Assign         │
+│ 110. PUT /api/super-admin/subscriptions/{subscription_id} - Update          │
+│ 111. GET /api/super-admin/salons/{salon_id}/subscriptions - List by Salon   │
+│ 112. GET /api/super-admin/subscriptions/{subscription_id} - View            │
+│ 113. POST /api/super-admin/subscriptions/{id}/generate-invoice - Invoice    │
+│ 114. POST /api/super-admin/subscriptions/{subscription_id}/renew - Renew    │
+│ 115. GET /api/super-admin/subscriptions - List All                          │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+  Access: SUPER_ADMIN only
+
+================================================================================
+                    PART 15: SUPER-ADMIN SALON INVOICES MODULE (3 APIs)
+================================================================================
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 116. POST /api/super-admin/invoices/salon - Generate Salon Invoice          │
+│ 117. GET /api/super-admin/invoices/salon - List Salon Invoices              │
+│ 118. GET /api/super-admin/invoices/salon/{invoice_salon_id} - View Invoice  │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+  Access: SUPER_ADMIN only
+
+================================================================================
+                        PART 16: SALON INVOICES MODULE (4 APIs)
+================================================================================
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 119. GET /api/salon/invoices - List Salon Invoices                          │
+│ 120. GET /api/salon/invoices/{invoice_salon_id} - View Salon Invoice        │
+│ 121. PUT /api/salon/invoices/{invoice_salon_id} - Update Salon Invoice      │
+│ 122. GET /api/salon/invoices/subscription/{subscription_id} - Get by Sub    │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+  Access: ADMIN only (own salon)
+
+================================================================================
+                        PART 17: SALON PAYMENTS MODULE (3 APIs)
+================================================================================
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 123. POST /api/salon/payments - Create Salon Payment                        │
+│ 124. GET /api/salon/payments - List Salon Payments                          │
+│ 125. GET /api/salon/payments/{payment_salon_id} - View Salon Payment        │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+  Access: ADMIN only (own salon)
+
+================================================================================
+                    PART 18: SUPER-ADMIN SALON PAYMENTS MODULE (1 API)
+================================================================================
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 126. POST /api/super-admin/invoices/salon/{id}/payments - Record Payment    │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+  Access: SUPER_ADMIN only
+
+================================================================================
+                           PART 19: REPORTS MODULE (11 APIs)
+================================================================================
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 127. GET /api/reports/sales - Sales Report                                  │
+│ 128. GET /api/reports/appointments - Appointment Report                     │
+│ 129. GET /api/reports/staff-performance - Staff Performance                 │
+│ 130. GET /api/reports/services - Services Revenue                           │
+│ 131. GET /api/reports/packages - Packages Revenue                           │
+│ 132. GET /api/reports/customers - Customer Visits                           │
+│ 133. GET /api/reports/inventory - Inventory Usage                           │
+│ 134. GET /api/reports/incentives - Incentive Payouts                        │
+│ 135. GET /api/reports/tax - Tax Report (GST)                                │
+│ 136. GET /api/reports/dashboard-summary - Dashboard Summary                 │
+│ 137. GET /api/reports/super-admin-dashboard - Super Admin Dashboard         │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+  Access:
+  - SUPER_ADMIN: All reports with optional ?salon_id= for platform-wide view
+  - ADMIN/STAFF: Salon-level reports only
+
+================================================================================
+                           PART 20: DASHBOARD MODULE (3 APIs)
+================================================================================
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 138. GET /api/dashboard/stats - Dashboard Statistics                        │
+│ 139. GET /api/dashboard/revenue-chart - Revenue Chart Data                  │
+│ 140. GET /api/dashboard/appointment-trends - Appointment Trends             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+  Access: AUTHENTICATED (reads salon_id from JWT token)
+
+================================================================================
+                              END OF DOCUMENTATION
+================================================================================
+
+Last Updated: 2026-03-27
+Total APIs: 140 (VERIFIED FROM ROUTES)
+
+Notes:
+- All timestamps are in IST (Indian Standard Time)
+- All monetary values are in INR (Indian Rupees)
+- Phone numbers follow Indian 10-digit format (6-9XXXXXXXXX)
+- GST numbers follow Indian format (27AABCU9603R1ZM)
+- Date format: YYYY-MM-DD
+- Time format: HH:MM:SS (24-hour)
+
+Files Updated:
+1. API_DOCUMENTATION.txt - This comprehensive documentation
+2. API_ROUTES_VERIFIED.txt - Quick reference list of all routes
+3. SAM_Backend_API_Collection.postman_collection.json - Postman collection
+
+================================================================================

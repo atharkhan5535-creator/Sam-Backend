@@ -64,6 +64,16 @@ $router->register(
     }
 );
 
+// 5️⃣➀ Get My Staff Profile (STAFF only) - Returns staff_id for logged-in user
+$router->register(
+    'GET',
+    '/api/staff/my-profile',
+    function() use ($staffController) {
+        authorize(['STAFF']);
+        $staffController->getMyProfile();
+    }
+);
+
 /*
 |--------------------------------------------------------------------------
 | STAFF INCENTIVE ROUTES
@@ -127,6 +137,16 @@ $router->register(
     function($staffId) use ($staffController) {
         authorize(['ADMIN']);
         $staffController->getIncentiveHistory($staffId);
+    }
+);
+
+// 9️⃣B Get My Incentive History (STAFF can view their own)
+$router->register(
+    'GET',
+    '/api/staff/incentives/my-history',
+    function() use ($staffController) {
+        authorize(['ADMIN', 'STAFF']);
+        $staffController->getMyIncentiveHistory();
     }
 );
 

@@ -37,15 +37,27 @@ class SubscriptionPlanController
             return "Invalid plan type";
         }
 
-        if (!isset($data['flat_price']) || !is_numeric($data['flat_price']) || $data['flat_price'] < 0) {
-            return "Invalid flat price";
+        // Validate price based on plan type
+        if ($data['plan_type'] === 'flat') {
+            if (!isset($data['flat_price']) || !is_numeric($data['flat_price']) || $data['flat_price'] < 0) {
+                return "Invalid flat price";
+            }
+        } elseif ($data['plan_type'] === 'per-appointments') {
+            if (!isset($data['per_appointments_price']) || !is_numeric($data['per_appointments_price']) || $data['per_appointments_price'] < 0) {
+                return "Invalid per appointment price";
+            }
+        } elseif ($data['plan_type'] === 'Percentage-per-appointments') {
+            if (!isset($data['percentage_per_appointment']) || !is_numeric($data['percentage_per_appointment']) || $data['percentage_per_appointment'] < 0 || $data['percentage_per_appointment'] > 100) {
+                return "Invalid percentage (must be 0-100)";
+            }
         }
 
-        if (isset($data['per_appointments_price']) && (!is_numeric($data['per_appointments_price']) || $data['per_appointments_price'] < 0)) {
+        // Additional validation for optional price fields (if provided, must be valid)
+        if (isset($data['per_appointments_price']) && $data['plan_type'] !== 'flat' && (!is_numeric($data['per_appointments_price']) || $data['per_appointments_price'] < 0)) {
             return "Invalid per appointment price";
         }
 
-        if (isset($data['percentage_per_appointments']) && (!is_numeric($data['percentage_per_appointments']) || $data['percentage_per_appointments'] < 0)) {
+        if (isset($data['percentage_per_appointment']) && (!is_numeric($data['percentage_per_appointment']) || $data['percentage_per_appointment'] < 0 || $data['percentage_per_appointment'] > 100)) {
             return "Invalid percentage";
         }
 

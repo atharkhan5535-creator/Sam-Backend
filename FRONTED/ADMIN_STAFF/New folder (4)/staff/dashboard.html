@@ -468,7 +468,7 @@
         async function loadDashboard() {
             const loadingState = document.getElementById('loadingState');
             const dashboardContent = document.getElementById('dashboardContent');
-            
+
             loadingState.style.display = 'flex';
             dashboardContent.style.display = 'none';
 
@@ -476,6 +476,23 @@
                 const user = TokenManager.getUser();
                 const today = new Date().toISOString().split('T')[0];
                 const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
+
+                // Get staff_id from user_id (needed because JWT contains user_id but appointments use staff_id)
+                let staffId = user.staff_id;
+                if (!staffId) {
+                    try {
+                        const staffResponse = await apiRequest(`/staff/my-profile`, { method: 'GET' });
+                        if (staffResponse.status === 'success' && staffResponse.data) {
+                            staffId = staffResponse.data.staff_id;
+                            // Cache staff_id in user object for future use
+                            user.staff_id = staffId;
+                            TokenManager.setUser(user);
+                        }
+                    } catch (e) {
+                        console.warn('Could not fetch staff_id, using user.id as fallback');
+                        staffId = user.id;
+                    }
+                }
 
                 const [apptsResult, incentivesResult, staffPerfResult] = await Promise.all([
                     apiRequest(`/appointments?date=${today}`, { method: 'GET' }),
@@ -486,14 +503,14 @@
                 let myAppointments = [];
                 if (apptsResult.status === 'success') {
                     myAppointments = (apptsResult.data?.items || []).filter(
-                        a => (a.services || []).some(s => String(s.staff_id) === String(user.id))
+                        a => (a.services || []).some(s => String(s.staff_id) === String(staffId))
                     );
                 }
 
                 let incentivesData = { outstanding: 0, total_paid: 0, this_month: 0 };
                 if (incentivesResult.status === 'success') {
                     const byStaff = incentivesResult.data?.by_staff || [];
-                    const staffData = byStaff.find(s => String(s.staff_id) === String(user.id)) || {};
+                    const staffData = byStaff.find(s => String(s.staff_id) === String(staffId)) || {};
                     incentivesData = {
                         outstanding: staffData.outstanding || 0,
                         total_paid: staffData.total_paid || 0,
@@ -504,7 +521,7 @@
                 let perfData = { appointments: 0, revenue: 0 };
                 if (staffPerfResult.status === 'success') {
                     const staff = staffPerfResult.data?.staff || [];
-                    const myPerf = staff.find(s => String(s.staff_id) === String(user.id)) || {};
+                    const myPerf = staff.find(s => String(s.staff_id) === String(staffId)) || {};
                     perfData = {
                         appointments: myPerf.appointments_handled || 0,
                         revenue: myPerf.revenue_generated || 0

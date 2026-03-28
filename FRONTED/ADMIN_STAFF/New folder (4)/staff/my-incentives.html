@@ -340,16 +340,10 @@
         async function loadIncentives() {
             document.getElementById('loadingState').style.display = 'flex';
             document.getElementById('incentivesContent').style.display = 'none';
-            
+
             try {
-                const user = TokenManager.getUser();
-                const staffId = user.id || user.staff_id;
-
-                if (!staffId) {
-                    throw new Error('Staff ID not found in user session');
-                }
-
-                const historyResponse = await StaffAPI.getIncentiveHistory(staffId);
+                // Use the new endpoint that STAFF can access
+                const historyResponse = await StaffAPI.getMyIncentiveHistory();
 
                 if (historyResponse.success && historyResponse.data) {
                     allIncentives = historyResponse.data.incentives || [];

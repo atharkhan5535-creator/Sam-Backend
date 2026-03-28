@@ -2839,4 +2839,6 @@ document.addEventListener('DOMContentLoaded', () => {
     window.openRenewSubscriptionModal = openRenewSubscriptionModal;
     window.closeRenewModalFunc = closeRenewModalFunc;
     window.updateRenewalPreview = updateRenewalPreview;
+    // Plan type price fields updater
+    window.updatePriceFields = updatePriceFields;
 });

@@ -6,7 +6,9 @@
       "Bash(c:\\xampp\\apache\\logs\\error.log)",
       "Bash(c:\\xampp\\php\\php.exe *)",
       "Bash(dir *)",
-      "Bash(php *)"
+      "Bash(php *)",
+      "Bash(powershell *)",
+      "Bash(python *)"
     ]
   },
   "$version": 3
