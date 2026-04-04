@@ -400,31 +400,31 @@
             document.getElementById('payDate').value = new Date().toISOString().split('T')[0];
             document.getElementById('payTransactionNo').value = '';
             document.getElementById('payRemarks').value = '';
-            
+
             // Reset validation states
             document.getElementById('paymentAmountError').style.display = 'none';
             document.getElementById('payAmount').style.borderColor = 'var(--card-border)';
             updateRemarksCount();
-            updateRemainingAmount();
-            
+
             document.getElementById('paymentModal').classList.add('open');
         }
 
         async function recordPayment() {
-            // Validate payment amount
-            if (!validatePaymentAmount()) {
+            const amount = parseFloat(document.getElementById('payAmount').value);
+
+            // Validate payment amount doesn't exceed outstanding
+            if (!amount || amount > currentOutstandingAmount + 0.01) {
                 showErrorToast('Payment amount cannot exceed outstanding balance');
                 return;
             }
 
-            const amount = parseFloat(document.getElementById('payAmount').value);
             const paymentMode = document.getElementById('payMode').value;
             const paymentDate = document.getElementById('payDate').value;
             let transactionNo = document.getElementById('payTransactionNo').value.trim();
             const remarks = document.getElementById('payRemarks').value.trim();
 
             // Validate amount (0.01 - 10,000,000 per backend)
-            if (!amount || amount < 0.01 || amount > 10000000) {
+            if (amount < 0.01 || amount > 10000000) {
                 showErrorToast('Payment amount must be between ₹0.01 and ₹10,000,000');
                 return;
             }

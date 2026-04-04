@@ -16,7 +16,6 @@ class DashboardController
     /*
     |--------------------------------------------------------------------------
     | 1️⃣ GET DASHBOARD STATS (ADMIN only)
-    | - Returns 8 comprehensive KPI cards with trends
     |--------------------------------------------------------------------------
     */
     public function getStats()
@@ -28,50 +27,29 @@ class DashboardController
             Response::json(["status" => "error", "message" => "Invalid salon context"], 400);
         }
 
-        // Get time period from query params
         $period = $_GET['period'] ?? 'month';
         $startDate = $_GET['start_date'] ?? null;
         $endDate = $_GET['end_date'] ?? null;
 
-        // Calculate current and previous date ranges
         $currentRange = $this->getDateRange($period, $startDate, $endDate);
         $previousRange = $this->getPreviousDateRange($period, $currentRange);
 
+        // DEBUG: Log computed ranges
+        error_log("DASH DEBUG currentRange: " . json_encode($currentRange));
+        error_log("DASH DEBUG previousRange: " . json_encode($previousRange));
+
         try {
-            // ===== 1. REVENUE (Current Period) =====
             $revenueData = $this->getRevenueStats($salonId, $currentRange, $previousRange);
-            
-            // ===== 2. APPOINTMENTS =====
             $appointmentsData = $this->getAppointmentStats($salonId, $currentRange, $previousRange);
-            
-            // ===== 3. CUSTOMERS =====
             $customersData = $this->getCustomerStats($salonId, $currentRange, $previousRange);
-            
-            // ===== 4. STAFF =====
             $staffData = $this->getStaffStats($salonId, $currentRange, $previousRange);
-
-            // ===== 5. SERVICES =====
             $servicesData = $this->getServiceStats($salonId, $currentRange, $previousRange);
-
-            // ===== 6. PACKAGES =====
             $packagesData = $this->getPackageStats($salonId, $currentRange, $previousRange);
-
-            // ===== 7. COMPLETION RATE =====
             $completionData = $this->getCompletionRateStats($salonId, $currentRange, $previousRange);
-
-            // ===== 8. PENDING ACTIONS =====
             $pendingData = $this->getPendingStats($salonId, $currentRange, $previousRange);
-
-            // ===== 9. TOP PERFORMERS (Staff Performance) =====
             $topPerformers = $this->getTopPerformers($salonId, $currentRange);
-
-            // ===== 10. SERVICES CHART DATA =====
             $servicesChart = $this->getServicesChartData($salonId, $currentRange);
-
-            // ===== 11. STATUS CHART DATA =====
             $statusChart = $this->getStatusChartData($salonId, $currentRange);
-
-            // ===== 12. RECENT ACTIVITY =====
             $recentActivity = $this->getRecentActivity($salonId, 6);
 
             Response::json([
@@ -98,7 +76,7 @@ class DashboardController
 
         } catch (Exception $e) {
             error_log("Dashboard stats error: " . $e->getMessage());
-            error_log("Stack trace: " . $e->getTraceAsString());
+            error_log("Dashboard stack trace: " . $e->getTraceAsString());
             Response::json([
                 "status" => "error",
                 "message" => "Failed to fetch dashboard stats: " . $e->getMessage()
@@ -254,16 +232,21 @@ class DashboardController
         $stmt->execute([$salonId]);
         $inactive = $stmt->fetch();
 
-        // Get staff on leave today (from ACTIVE staff)
+        // Get staff on leave today (from ACTIVE staff) - skip if leave_requests has bad dates
         $today = date('Y-m-d');
-        $stmt = $this->db->prepare("
-            SELECT COUNT(DISTINCT si.staff_id) as on_leave FROM staff_info si
-            INNER JOIN leave_requests lr ON si.staff_id = lr.staff_id
-            WHERE si.salon_id = ? AND si.status = 'ACTIVE' AND lr.status = 'Approved'
-            AND ? BETWEEN lr.start_date AND lr.end_date
-        ");
-        $stmt->execute([$salonId, $today]);
-        $onLeave = $stmt->fetch();
+        $onLeave = ['on_leave' => 0];
+        try {
+            $stmt = $this->db->prepare("
+                SELECT COUNT(DISTINCT si.staff_id) as on_leave FROM staff_info si
+                INNER JOIN leave_requests lr ON si.staff_id = lr.staff_id
+                WHERE si.salon_id = ? AND si.status = 'ACTIVE' AND lr.status = 'Approved'
+                AND ? BETWEEN lr.start_date AND lr.end_date
+            ");
+            $stmt->execute([$salonId, $today]);
+            $onLeave = $stmt->fetch();
+        } catch (\Exception $e) {
+            error_log("DASH: leave_requests query failed, skipping: " . $e->getMessage());
+        }
 
         // Get busy staff estimate (appointments today)
         $stmt = $this->db->prepare("
@@ -284,22 +267,15 @@ class DashboardController
         $activePercent = ((int)$active['active'] / $totalStaff) * 100;
 
         // ===== STAFF TREND =====
-        // Track staff growth by comparing new staff hired in current vs previous period
-        $currentNewStaff = $this->getNewStaffCount($salonId, $currentRange);
-        $previousNewStaff = $this->getNewStaffCount($salonId, $previousRange);
-        $staffTrend = $this->calculateTrend($currentNewStaff, $previousNewStaff);
-
-        // If no new staff in either period, compare active staff count instead
-        if ($currentNewStaff == 0 && $previousNewStaff == 0) {
-            $prevActiveCount = $this->getPreviousActiveStaffCount($salonId, $previousRange);
-            $staffTrend = $this->calculateTrend($active['active'], $prevActiveCount);
-        }
+        // Compare active % now vs active % at end of previous period
+        $prevActivePercent = $this->getPreviousActivePercent($salonId, $previousRange);
+        $staffTrend = round($activePercent - $prevActivePercent, 1);
 
         return [
             'value' => (int)$active['active'],
             'formatted' => number_format($active['active']),
-            'trend' => round($staffTrend, 1),
-            'trend_percentage' => abs(round($staffTrend, 1)),
+            'trend' => $staffTrend,
+            'trend_percentage' => abs($staffTrend),
             'label' => 'Active Staff',
             'sublabel' => round($activePercent, 0) . '% of total staff',
             'on_leave' => (int)$onLeave['on_leave'],
@@ -308,8 +284,42 @@ class DashboardController
             'total_staff' => (int)$allStaff['total'],
             'inactive_staff' => (int)$inactive['inactive'],
             'active_percent' => round($activePercent, 1),
-            'prev_active_percent' => round($activePercent, 1)
+            'prev_active_percent' => round($prevActivePercent, 1)
         ];
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | HELPER: Get Previous Period Active Staff Percentage
+    |--------------------------------------------------------------------------
+    | Calculates what % of staff were active at the end of the previous period.
+    | Since we don't have status history, we approximate by counting staff
+    | that existed at that time and checking how many are currently active.
+    |--------------------------------------------------------------------------
+    */
+    private function getPreviousActivePercent($salonId, $previousRange)
+    {
+        if (!$previousRange) return 0;
+
+        // Count staff that existed before end of previous period
+        $stmt = $this->db->prepare("
+            SELECT COUNT(*) as total FROM staff_info
+            WHERE salon_id = ? AND created_at <= ?
+        ");
+        $stmt->execute([$salonId, $previousRange['end']]);
+        $prevTotal = $stmt->fetch();
+
+        if ((int)$prevTotal['total'] == 0) return 0;
+
+        // Count how many of those staff are currently ACTIVE
+        $stmt = $this->db->prepare("
+            SELECT COUNT(*) as active FROM staff_info
+            WHERE salon_id = ? AND status = 'ACTIVE' AND created_at <= ?
+        ");
+        $stmt->execute([$salonId, $previousRange['end']]);
+        $prevActive = $stmt->fetch();
+
+        return ((int)$prevActive['active'] / (int)$prevTotal['total']) * 100;
     }
 
     /*
@@ -597,15 +607,56 @@ class DashboardController
 
     private function getPreviousDateRange($period, $currentRange)
     {
-        $days = (strtotime($currentRange['end']) - strtotime($currentRange['start'])) / 86400 + 1;
-        $prevEnd = date('Y-m-d', strtotime($currentRange['start']) - 1);
-        $prevStart = date('Y-m-d', strtotime($prevEnd . ' -' . ($days - 1) . ' days'));
-        return ['start' => $prevStart, 'end' => $prevEnd];
+        // Calculate previous period based on calendar periods, not just day count
+        $currentStart = strtotime($currentRange['start']);
+        $currentEnd = strtotime($currentRange['end']);
+        $daysInPeriod = (int)round(($currentEnd - $currentStart) / 86400) + 1;
+
+        switch ($period) {
+            case 'week':
+                // Previous week: go back 7 days from current start
+                $prevEnd = date('Y-m-d', strtotime($currentRange['start'] . ' -1 day'));
+                $prevStart = date('Y-m-d', strtotime($prevEnd . ' -6 days'));
+                return ['start' => $prevStart, 'end' => $prevEnd];
+
+            case 'month':
+                // Previous calendar month (first to last day)
+                $prevStart = date('Y-m-01', strtotime($currentRange['start'] . ' -1 month'));
+                $prevEnd = date('Y-m-t', strtotime($prevStart));
+                return ['start' => $prevStart, 'end' => $prevEnd];
+
+            case 'quarter':
+                // Previous quarter (3 months back)
+                $currentMonth = (int)date('n', $currentStart);
+                $currentYear = (int)date('Y', $currentStart);
+                $prevQuarterMonth = $currentMonth - 3;
+                $prevQuarterYear = $currentYear;
+                if ($prevQuarterMonth <= 0) {
+                    $prevQuarterMonth += 12;
+                    $prevQuarterYear--;
+                }
+                $prevStart = date('Y-m-d', strtotime("$prevQuarterYear-$prevQuarterMonth-01"));
+                $prevEnd = date('Y-m-t', strtotime($prevStart));
+                return ['start' => $prevStart, 'end' => $prevEnd];
+
+            case 'year':
+                // Previous calendar year
+                $prevYear = (int)date('Y', $currentStart) - 1;
+                return ['start' => "$prevYear-01-01", 'end' => "$prevYear-12-31"];
+
+            default:
+                // Fallback: use day count method
+                $prevEnd = date('Y-m-d', strtotime($currentRange['start'] . ' -1 day'));
+                $prevStart = date('Y-m-d', strtotime($prevEnd . ' -' . ($daysInPeriod - 1) . ' days'));
+                return ['start' => $prevStart, 'end' => $prevEnd];
+        }
     }
 
     /*
     |--------------------------------------------------------------------------
     | 2️⃣ GET REVENUE CHART DATA
+    |--------------------------------------------------------------------------
+    | Returns revenue grouped by week for the selected period
     |--------------------------------------------------------------------------
     */
     public function getRevenueChart()
@@ -618,22 +669,49 @@ class DashboardController
         }
 
         $period = $_GET['period'] ?? 'month';
-        $dateRange = $this->getDateRange($period);
+        $startDate = $_GET['start_date'] ?? null;
+        $endDate = $_GET['end_date'] ?? null;
+        $dateRange = $this->getDateRange($period, $startDate, $endDate);
 
         try {
+            // Build array of week ranges covering the date range
+            $weeks = $this->getWeekRanges($dateRange['start'], $dateRange['end']);
+
+            // Fetch all daily revenue data in the range
             $stmt = $this->db->prepare("
                 SELECT
-                    DATE_FORMAT(appointment_date, '%Y-%m-%d') as date,
+                    DATE(appointment_date) as date,
                     COALESCE(SUM(CASE WHEN status IN ('COMPLETED', 'CONFIRMED') THEN final_amount ELSE 0 END), 0) as revenue,
                     COUNT(*) as appointment_count
                 FROM appointments
                 WHERE salon_id = ? AND appointment_date BETWEEN ? AND ?
-                GROUP BY DATE_FORMAT(appointment_date, '%Y-%m-%d')
+                GROUP BY DATE(appointment_date)
                 ORDER BY date ASC
             ");
-
             $stmt->execute([$salonId, $dateRange['start'], $dateRange['end']]);
-            $chartData = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $dailyData = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Aggregate daily data into weekly buckets
+            $chartData = [];
+            foreach ($weeks as $week) {
+                $weekRevenue = 0;
+                $weekCount = 0;
+
+                foreach ($dailyData as $day) {
+                    if ($day['date'] >= $week['start'] && $day['date'] <= $week['end']) {
+                        $weekRevenue += (float)$day['revenue'];
+                        $weekCount += (int)$day['appointment_count'];
+                    }
+                }
+
+                $chartData[] = [
+                    'date' => $week['label'],
+                    'start' => $week['start'],
+                    'end' => $week['end'],
+                    'revenue' => round($weekRevenue, 2),
+                    'appointment_count' => $weekCount
+                ];
+            }
 
             Response::json([
                 "status" => "success",
@@ -650,6 +728,39 @@ class DashboardController
                 "message" => "Failed to fetch chart data: " . $e->getMessage()
             ], 500);
         }
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | HELPER: Get Week Ranges
+    |--------------------------------------------------------------------------
+    | Splits a date range into week buckets (Mon-Sun)
+    |--------------------------------------------------------------------------
+    */
+    private function getWeekRanges($start, $end)
+    {
+        $weeks = [];
+        $current = strtotime($start);
+        $endTimestamp = strtotime($end);
+
+        // Find the Monday of the week containing $start
+        $dayOfWeek = date('N', $current); // 1=Monday, 7=Sunday
+        $monday = $current - (($dayOfWeek - 1) * 86400);
+
+        while ($monday <= $endTimestamp) {
+            $sunday = $monday + (6 * 86400);
+            $weekEnd = min($sunday, $endTimestamp);
+
+            $weeks[] = [
+                'start' => date('Y-m-d', $monday),
+                'end' => date('Y-m-d', $weekEnd),
+                'label' => date('M j', $monday) . ' - ' . date('M j', $weekEnd)
+            ];
+
+            $monday = $sunday + 86400; // Next Monday
+        }
+
+        return $weeks;
     }
 
     /*
@@ -709,7 +820,25 @@ class DashboardController
     */
     private function getDateRange($period, $startDate = null, $endDate = null)
     {
-        // Custom date range
+        // Custom date range - validate dates first
+        if ($startDate && $endDate) {
+            // Validate date format (YYYY-MM-DD) and ensure year is reasonable (1900-2100)
+            if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $startDate) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $endDate)) {
+                $startDate = null;
+                $endDate = null;
+            } else {
+                $startYear = (int)substr($startDate, 0, 4);
+                $endYear = (int)substr($endDate, 0, 4);
+                if ($startYear < 1900 || $startYear > 2100 || $endYear < 1900 || $endYear > 2100) {
+                    $startDate = null;
+                    $endDate = null;
+                } elseif (!strtotime($startDate) || !strtotime($endDate)) {
+                    $startDate = null;
+                    $endDate = null;
+                }
+            }
+        }
+
         if ($startDate && $endDate) {
             return ['start' => $startDate, 'end' => $endDate];
         }
@@ -745,14 +874,11 @@ class DashboardController
     |--------------------------------------------------------------------------
     | HELPER: Get Top Performers (Staff Performance)
     |--------------------------------------------------------------------------
-    | Note: appointment_services doesn't have staff_id column in current schema.
-    | This is a placeholder that returns active staff with their basic info.
+    | Links staff to appointments via: staff → services → appointment_services
     |--------------------------------------------------------------------------
     */
     private function getTopPerformers($salonId, $dateRange)
     {
-        // Since appointment_services doesn't have staff_id, we return active staff
-        // with appointment counts from the appointments table directly
         $stmt = $this->db->prepare("
             SELECT 
                 si.staff_id,
@@ -761,12 +887,14 @@ class DashboardController
                 COUNT(DISTINCT a.appointment_id) as appointments_count,
                 COALESCE(SUM(a.final_amount), 0) as revenue_generated
             FROM staff_info si
-            LEFT JOIN appointments a ON si.salon_id = a.salon_id 
+            INNER JOIN services svc ON si.staff_id = svc.staff_id
+            INNER JOIN appointment_services asrv ON svc.service_id = asrv.service_id
+            INNER JOIN appointments a ON asrv.appointment_id = a.appointment_id
                 AND a.appointment_date BETWEEN ? AND ?
                 AND a.status IN ('COMPLETED', 'CONFIRMED')
             WHERE si.salon_id = ? AND si.status = 'ACTIVE'
             GROUP BY si.staff_id, si.name, si.specialization
-            ORDER BY appointments_count DESC
+            ORDER BY revenue_generated DESC
             LIMIT 5
         ");
         $stmt->execute([$dateRange['start'], $dateRange['end'], $salonId]);

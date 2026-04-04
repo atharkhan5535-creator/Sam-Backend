@@ -456,6 +456,7 @@ class SalonSubscriptionController
         $startDate = $data['start_date'] ?? date('Y-m-d');
         $endDate = $data['end_date'] ?? null;
         $status = $data['status'] ?? 'ACTIVE';
+        $createInvoice = $data['create_invoice'] ?? true; // Default to true for backward compatibility
 
         // Validation
         if (!$planId) {
@@ -515,47 +516,54 @@ class SalonSubscriptionController
 
             $subscriptionId = $this->db->lastInsertId();
 
-            // 2. Auto-create invoice for the subscription with proration for flat plans
-            $amount = (float) $plan['flat_price'];
-            
-            // Calculate proration if subscription starts mid-month
-            $startDateTime = new DateTime($startDate);
-            $daysInMonth = $startDateTime->format('t'); // Total days in start month
-            $dayOfMonth = (int) $startDateTime->format('d');
-            
-            if ($plan['plan_type'] === 'flat' && $dayOfMonth > 1) {
-                // Prorate: charge only for remaining days in the month
-                $daysRemaining = $daysInMonth - $dayOfMonth + 1;
-                $amount = ($plan['flat_price'] / $daysInMonth) * $daysRemaining;
+            // 2. Optionally create invoice (only if requested)
+            $invoiceData = null;
+            if ($createInvoice) {
+                $amount = (float) $plan['flat_price'];
+
+                // Calculate proration if subscription starts mid-month
+                $startDateTime = new DateTime($startDate);
+                $daysInMonth = $startDateTime->format('t');
+                $dayOfMonth = (int) $startDateTime->format('d');
+
+                if ($plan['plan_type'] === 'flat' && $dayOfMonth > 1) {
+                    $daysRemaining = $daysInMonth - $dayOfMonth + 1;
+                    $amount = ($plan['flat_price'] / $daysInMonth) * $daysRemaining;
+                }
+
+                $taxRate = 0;
+                $taxAmount = ($amount * $taxRate) / 100;
+                $totalAmount = $amount + $taxAmount;
+
+                $invoiceNumber = 'INV-SUB-' . $salonId . '-' . date('Ymd') . '-' . str_pad(mt_rand(1, 9999), 4, '0', STR_PAD_LEFT);
+                $dueDate = date('Y-m-d', strtotime('+7 days'));
+                $invoiceDate = date('Y-m-d');
+
+                $invoiceStmt = $this->db->prepare("
+                    INSERT INTO invoice_salon
+                    (salon_id, subscription_id, invoice_number, amount, tax_amount, total_amount,
+                     payment_status, invoice_date, due_date)
+                    VALUES (?, ?, ?, ?, ?, ?, 'UNPAID', ?, ?)
+                ");
+
+                $invoiceStmt->execute([
+                    $salonId,
+                    $subscriptionId,
+                    $invoiceNumber,
+                    $amount,
+                    $taxAmount,
+                    $totalAmount,
+                    $invoiceDate,
+                    $dueDate
+                ]);
+
+                $invoiceId = $this->db->lastInsertId();
+                $invoiceData = [
+                    "invoice_id" => $invoiceId,
+                    "invoice_number" => $invoiceNumber,
+                    "total_amount" => $totalAmount
+                ];
             }
-            
-            $taxRate = 0; // Change to 18 for GST
-            $taxAmount = ($amount * $taxRate) / 100;
-            $totalAmount = $amount + $taxAmount;
-
-            $invoiceNumber = 'INV-SUB-' . $salonId . '-' . date('Ymd') . '-' . str_pad(mt_rand(1, 9999), 4, '0', STR_PAD_LEFT);
-            $dueDate = date('Y-m-d', strtotime('+7 days'));
-            $invoiceDate = date('Y-m-d');
-
-            $invoiceStmt = $this->db->prepare("
-                INSERT INTO invoice_salon
-                (salon_id, subscription_id, invoice_number, amount, tax_amount, total_amount,
-                 payment_status, invoice_date, due_date)
-                VALUES (?, ?, ?, ?, ?, ?, 'UNPAID', ?, ?)
-            ");
-
-            $invoiceStmt->execute([
-                $salonId,
-                $subscriptionId,
-                $invoiceNumber,
-                $amount,
-                $taxAmount,
-                $totalAmount,
-                $invoiceDate,
-                $dueDate
-            ]);
-
-            $invoiceId = $this->db->lastInsertId();
 
             $this->db->commit();
 
@@ -563,12 +571,11 @@ class SalonSubscriptionController
                 "status" => "success",
                 "data" => [
                     "subscription_id" => $subscriptionId,
-                    "invoice_id" => $invoiceId,
-                    "invoice_number" => $invoiceNumber,
-                    "total_amount" => $totalAmount,
+                    "invoice" => $invoiceData,
                     "start_date" => $startDate,
                     "end_date" => $endDate
-                ]
+                ],
+                "message" => "Subscription created successfully" . ($createInvoice ? " with invoice" : " (no invoice)")
             ], 201);
 
         } catch (Exception $e) {

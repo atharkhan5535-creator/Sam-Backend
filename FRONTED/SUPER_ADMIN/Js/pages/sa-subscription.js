@@ -351,7 +351,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify({
                     plan_id: data.plan_id,
                     start_date: data.start_date,
-                    status: data.status || 'ACTIVE'
+                    status: data.status || 'ACTIVE',
+                    create_invoice: data.create_invoice !== undefined ? data.create_invoice : true
                 })
             });
 
@@ -1110,12 +1111,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const planId = parseInt(document.getElementById('assignPlan').value);
         const startDate = document.getElementById('assignStartDate').value;
         const status = document.getElementById('assignStatus').value;
+        const createInvoice = document.getElementById('createInvoiceNow').checked;
 
         // Note: end_date is auto-calculated by backend from plan duration
         const data = {
             plan_id: planId,
             start_date: startDate,
-            status: status
+            status: status,
+            create_invoice: createInvoice
         };
 
         console.log('Assigning subscription:', data);

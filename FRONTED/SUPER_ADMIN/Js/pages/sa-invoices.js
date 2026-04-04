@@ -712,10 +712,10 @@ document.addEventListener("DOMContentLoaded", () => {
         // 2. Calculate outstanding amount
         const invoice = currentInvoice;
         const totalPaid = invoice.payments?.reduce((sum, p) => sum + parseFloat(p.amount || 0), 0) || 0;
-        const outstanding = invoice.total_amount - totalPaid;
+        const outstanding = Math.round((invoice.total_amount - totalPaid) * 100) / 100;
 
         // 3. Check if payment exceeds outstanding
-        if (paymentAmount > outstanding) {
+        if (Math.round(paymentAmount * 100) > Math.round(outstanding * 100)) {
             showErrorToast(`Payment amount (₹${paymentAmount.toLocaleString('en-IN')}) exceeds outstanding balance (₹${outstanding.toLocaleString('en-IN')})`);
             return;
         }

@@ -625,25 +625,29 @@
             if (!data) return;
 
             const prefix = cardType === 'completion_rate' ? 'completion' : cardType;
-            
+
             // Update value
             const valueEl = document.getElementById(`${prefix}Value`);
             if (valueEl) {
                 valueEl.textContent = data.formatted || data.value;
             }
 
-            // Update trend badge
+            // Update trend badge — staff card uses percentage points, not %
             const trendEl = document.getElementById(`${prefix}Trend`);
             if (trendEl && data.trend !== undefined) {
-                updateTrendBadgeInline(trendEl, data.trend);
+                if (cardType === 'staff') {
+                    updateStaffTrendBadge(trendEl, data.trend, data.active_percent, data.prev_active_percent);
+                } else {
+                    updateTrendBadgeInline(trendEl, data.trend);
+                }
             }
 
             // Update sublabel
             const sublabelEl = document.getElementById(`${prefix}Sublabel`);
             if (sublabelEl && data.sublabel) {
-                // Special handling for staff card - show available staff
-                if (cardType === 'staff' && data.available !== undefined) {
-                    sublabelEl.textContent = `${data.available} available today`;
+                // Special handling for staff card - show active %
+                if (cardType === 'staff' && data.active_percent !== undefined) {
+                    sublabelEl.textContent = `${data.active_percent}% of total staff`;
                 } else if (cardType === 'pending' && data.previous_total !== undefined) {
                     // Special handling for pending card - show trend context
                     const change = data.previous_total - data.value;
@@ -678,9 +682,9 @@
                 case 'staff':
                     const staffBreakdown = document.getElementById('staffBreakdown');
                     if (staffBreakdown && data.active_percent !== undefined) {
-                        const activePct = Math.round(data.active_percent);
-                        const inactivePct = 100 - activePct;
-                        staffBreakdown.textContent = `${data.total_staff} total • ${data.inactive_staff} inactive (${inactivePct}%) • ${data.on_leave} on leave • ${data.available} free`;
+                        const currentPct = Math.round(data.active_percent);
+                        const prevPct = data.prev_active_percent !== undefined ? Math.round(data.prev_active_percent) : '—';
+                        staffBreakdown.textContent = `${currentPct}% active now vs ${prevPct}% prev (${data.total_staff} total • ${data.inactive_staff} inactive)`;
                     }
                     break;
                     
@@ -727,7 +731,7 @@
             const trend = parseFloat(trendValue) || 0;
             // Round to 1 decimal place to avoid .9999999999 issues
             const roundedTrend = Math.round(trend * 10) / 10;
-            
+
             element.className = 'trend-badge';
 
             // Get the card type to determine if up is good or bad
@@ -760,6 +764,28 @@
             }
         }
 
+        // Staff trend badge — shows percentage point change in active %
+        function updateStaffTrendBadge(element, trendValue, currentPercent, prevPercent) {
+            if (!element) return;
+
+            const trend = parseFloat(trendValue) || 0;
+            const roundedTrend = Math.round(trend * 10) / 10;
+
+            element.className = 'trend-badge';
+
+            // Higher active % is good
+            if (roundedTrend > 0.01) {
+                element.classList.add('up');
+                element.innerHTML = `<i class="fas fa-arrow-up"></i><span>+${Math.abs(roundedTrend)}pp</span>`;
+            } else if (roundedTrend < -0.01) {
+                element.classList.add('down');
+                element.innerHTML = `<i class="fas fa-arrow-down"></i><span>${Math.abs(roundedTrend)}pp</span>`;
+            } else {
+                element.classList.add('stable');
+                element.innerHTML = `<i class="fas fa-minus"></i><span>${currentPercent}%</span>`;
+            }
+        }
+
         function formatNumber(num) {
             if (!num || num === 0) return '0';
             if (num >= 1000) return (num / 1000).toFixed(1) + 'k';
@@ -781,12 +807,8 @@
             if (charts.revenue) charts.revenue.destroy();
             if (!chartData || chartData.length === 0) return;
 
-            const labels = chartData.map(item => {
-                if (item.date) {
-                    return new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-                }
-                return '';
-            });
+            // Backend now sends pre-formatted week labels like "Apr 1 - Apr 7"
+            const labels = chartData.map(item => item.date || '');
             const data = chartData.map(item => parseFloat(item.revenue || 0));
 
             const gradient = ctx.createLinearGradient(0, 0, 0, 220);
@@ -794,21 +816,19 @@
             gradient.addColorStop(1, 'rgba(212, 175, 55, 0)');
 
             charts.revenue = new Chart(ctx, {
-                type: 'line',
+                type: 'bar',
                 data: {
                     labels: labels,
                     datasets: [{
-                        label: 'Revenue',
+                        label: 'Weekly Revenue',
                         data: data,
+                        backgroundColor: 'rgba(212, 175, 55, 0.6)',
                         borderColor: '#d4af37',
-                        backgroundColor: gradient,
                         borderWidth: 2,
-                        fill: true,
-                        tension: 0.4,
-                        pointRadius: 3,
-                        pointBackgroundColor: '#d4af37',
-                        pointBorderColor: '#f1f5f9',
-                        pointBorderWidth: 2
+                        borderRadius: 6,
+                        borderSkipped: false,
+                        barPercentage: 0.7,
+                        categoryPercentage: 0.8
                     }]
                 },
                 options: {
@@ -825,13 +845,21 @@
                             padding: 10,
                             displayColors: false,
                             callbacks: {
-                                label: function(context) { return '₹' + context.parsed.y.toLocaleString('en-IN'); }
+                                title: function(context) { return 'Week: ' + context[0].label; },
+                                label: function(context) {
+                                    const idx = context.dataIndex;
+                                    const item = chartData[idx];
+                                    return [
+                                        'Revenue: ₹' + context.parsed.y.toLocaleString('en-IN'),
+                                        'Appointments: ' + (item.appointment_count || 0)
+                                    ];
+                                }
                             }
                         }
                     },
                     scales: {
-                        x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 9 } } },
-                        y: { grid: { color: 'rgba(42, 49, 66, 0.5)' }, ticks: { color: '#94a3b8', font: { size: 9 }, callback: function(value) { return '₹' + (value >= 1000 ? (value/1000).toFixed(0) + 'k' : value); } } }
+                        x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 10 } } },
+                        y: { grid: { color: 'rgba(42, 49, 66, 0.5)' }, ticks: { color: '#94a3b8', font: { size: 10 }, callback: function(value) { return '₹' + (value >= 1000 ? (value/1000).toFixed(0) + 'k' : value); } } }
                     }
                 }
             });

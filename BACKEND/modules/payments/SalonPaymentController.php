@@ -77,8 +77,8 @@ class SalonPaymentController
         $totalPaid = $stmt->fetchColumn();
 
         // Check if payment would exceed outstanding amount
-        $outstandingAmount = $invoice['total_amount'] - $totalPaid;
-        if ($amount > $outstandingAmount) {
+        $outstandingAmount = round($invoice['total_amount'] - $totalPaid, 2);
+        if (round($amount, 2) > $outstandingAmount) {
             Response::json([
                 "status" => "error",
                 "message" => "Payment amount exceeds outstanding balance. Outstanding: $outstandingAmount"
@@ -274,8 +274,8 @@ class SalonPaymentController
         $totalPaid = $stmt->fetchColumn();
 
         // Check if payment would exceed outstanding amount
-        $outstandingAmount = $invoice['total_amount'] - $totalPaid;
-        if ($amount > $outstandingAmount) {
+        $outstandingAmount = round($invoice['total_amount'] - $totalPaid, 2);
+        if (round($amount, 2) > $outstandingAmount) {
             Response::json([
                 "status" => "error",
                 "message" => "Payment amount exceeds outstanding balance. Outstanding: $outstandingAmount"
